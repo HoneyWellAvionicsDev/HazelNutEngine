@@ -19,3 +19,4 @@ bin-int/Debug-x64/DevGround/Application.obj
 *.log
 *.idb
 *.pdb
+*.obj
