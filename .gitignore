@@ -20,3 +20,5 @@ bin-int/Debug-x64/DevGround/Application.obj
 *.idb
 *.pdb
 *.obj
+bin-int
+x64
