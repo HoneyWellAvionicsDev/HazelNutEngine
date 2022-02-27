@@ -27,12 +27,8 @@ namespace Hazel
 		EventCategoryKeyboard 			  = BIT(2),
 		EventCategoryMouse 				  = BIT(3),
 		EventCategoryMouseButton		  = BIT(4)
-
 	};
 //we use these macros so that we dont need to implment this code in every event subclass
-//#define EVENT_CLASS_TYPE(type) static EventType GetStaticType() { return EventType::##type; }\
-//							   virtual EventType GetEventType() const override { return GetStaticType(); }\                 //
-//	                           virtual const char* GetName() const override { return #type; }
 #define EVENT_CLASS_TYPE(type) static EventType GetStaticType() { return EventType::type; }\
 								virtual EventType GetEventType() const override { return GetStaticType(); }\
 								virtual const char* GetName() const override { return #type; }
