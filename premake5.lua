@@ -12,7 +12,7 @@ workspace "Hazel"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
-IncludeDir["glfw"] = "Hazel/vendors/glfw/include"
+IncludeDir["GLFW"] = "Hazel/vendors/glfw/include"
 
 include "Hazel/vendors/glfw"
 
@@ -21,8 +21,8 @@ project "Hazel"
     kind "SharedLib"
     language "C++"
 
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+    targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
     pchheader "hzpch.h"
     pchsource "Hazel/Source/hzpch.cpp"
@@ -36,7 +36,8 @@ project "Hazel"
     includedirs
     {
         "%{prj.name}/Source",
-        "%{prj.name}/vendors/spdlog/include"
+        "%{prj.name}/vendors/spdlog/include",
+        "{prj.name}/vendors/glfw/include"
     }
 
     filter "system:windows"
