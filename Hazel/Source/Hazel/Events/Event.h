@@ -67,7 +67,7 @@ namespace Hazel
 		template<typename T, typename F>
 		bool Dispatch(const F& func)
 		{
-			if (m_Event.GetEventType() == T::GetStaticType())
+			if (m_Event.GetEventType() == T::GetStaticType())                 //checks if the recieved event(T) matches the event type passed into the dispatcher(F)
 			{
 				m_Event.Handled |= func(static_cast<T&>(m_Event));
 				return true;
