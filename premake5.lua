@@ -12,9 +12,11 @@ workspace "Hazel"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
-IncludeDir["GLFW"] = "Hazel/vendors/glfw/include"
+IncludeDir["glfw"] = "Hazel/vendors/glfw/include"
+IncludeDir["Glad"] = "Hazel/vendors/Glad/include"
 
 include "Hazel/vendors/glfw"
+include "Hazel/vendors/Glad"
 
 project "Hazel"
     location "Hazel"
@@ -37,7 +39,15 @@ project "Hazel"
     {
         "%{prj.name}/Source",
         "%{prj.name}/vendors/spdlog/include",
-        "{prj.name}/vendors/glfw/include"
+        "%{IncludeDir.glfw}",
+        "%{IncludeDir.Glad}"
+    }
+
+    links
+    {
+        "glfw",
+        "Glad",
+        "opengl32.lib"
     }
 
     filter "system:windows"
@@ -81,8 +91,8 @@ project "DevGround"
     kind "ConsoleApp"
     language "C++"
 
-    targetdir ("/bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("/bin-int/" .. outputdir .. "/%{prj.name}")
+    targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
     files
     {
