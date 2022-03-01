@@ -22,3 +22,5 @@ bin-int/Debug-x64/DevGround/Application.obj
 *.obj
 bin-int
 x64
+Hazel/vendors/spdlog
+outputdirs.txt

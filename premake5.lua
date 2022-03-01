@@ -11,6 +11,11 @@ workspace "Hazel"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+IncludeDir = {}
+IncludeDir["glfw"] = "Hazel/vendors/glfw/include"
+
+include "Hazel/vendors/glfw"
+
 project "Hazel"
     location "Hazel"
     kind "SharedLib"
@@ -18,6 +23,9 @@ project "Hazel"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+    pchheader "hzpch.h"
+    pchsource "Hazel/Source/hzpch.cpp"
 
     files
     {
@@ -40,7 +48,8 @@ project "Hazel"
         {
             "HZ_PLATFORM_WINDOWS",
             "HZ_BUILD_DLL",
-            "_WINDLL"
+            "_WINDLL",
+            "HZ_ENABLE_ASSERTS"
         }
 
         postbuildcommands
@@ -60,8 +69,8 @@ project "Hazel"
         defines "HZ_DIST"
         optimize "On"
 
-    --filter { "system:windows", "configuration:Release" }
-        --buildoptions "/MT"
+    filter { "system:windows" }
+        buildoptions "/MDd"
     
 project "DevGround"
     location "DevGround"
@@ -80,12 +89,15 @@ project "DevGround"
     includedirs
     {
         "Hazel/vendors/spdlog/include",
-        "Hazel/Source"
+        "Hazel/Source",
+        "%{IncludeDir.glfw}"
     }
 
     links
     {
-        "Hazel"
+        "Hazel",
+        "glfw",
+        "opengl32.lib"
     }
 
     filter "system:windows"
