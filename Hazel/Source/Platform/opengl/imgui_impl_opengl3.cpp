@@ -78,6 +78,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
+#include "glad/glad.h"
 #include <stdio.h>
 #if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
 #include <stddef.h>     // intptr_t
@@ -714,10 +715,10 @@ static void ImGui_ImplOpenGL3_RenderWindow(ImGuiViewport* viewport, void*)
 static void ImGui_ImplOpenGL3_InitPlatformInterface()
 {
     //ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-   // platform_io.Renderer_RenderWindow = ImGui_ImplOpenGL3_RenderWindow;
+    //platform_io.Renderer_RenderWindow = ImGui_ImplOpenGL3_RenderWindow;
 }
 
 static void ImGui_ImplOpenGL3_ShutdownPlatformInterface()
 {
-    ImGui::LogToClipboard();
+    //ImGui::LogToClipboard();
 }
