@@ -56,7 +56,7 @@ project "Hazel"
 
     filter "system:windows"
         cppdialect "C++20"
-        staticruntime "On"
+        staticruntime "off"
         systemversion "latest"
 
         defines
@@ -75,17 +75,17 @@ project "Hazel"
     
     filter "configurations:Debug"
         defines "HZ_DEBUG"
-        buildoptions "/MDd"
+        staticruntime "off"
         symbols "On"
 
     filter "configurations:Release"
         defines "HZ_RELEASE"
-        buildoptions "/MD"
+        staticruntime "On"
         optimize "On"
     
     filter "configurations:Dist"
         defines "HZ_DIST"
-        buildoptions "/MD"
+        staticruntime "On"
         optimize "On"
 
     --filter { "system:windows" }
@@ -121,7 +121,7 @@ project "DevGround"
 
     filter "system:windows"
         cppdialect "C++20"
-        staticruntime "On"
+        staticruntime "off"
         systemversion "latest"
 
         defines
@@ -131,15 +131,15 @@ project "DevGround"
     
     filter "configurations:Debug"
         defines "HZ_DEBUG"
-        buildoptions "/MDd"
+        staticruntime "off"
         symbols "On"
 
     filter "configurations:Release"
         defines "HZ_RELEASE"
-        buildoptions "/MD"
+        staticruntime "On"
         optimize "On"
     
     filter "configurations:Dist"
         defines "HZ_DIST"
-        buildoptions "/MD"
+        staticruntime "On"
         optimize "On"
