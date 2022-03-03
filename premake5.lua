@@ -114,7 +114,8 @@ project "DevGround"
     {
         "Hazel/vendors/spdlog/include",
         "Hazel/Source",
-        "%{IncludeDir.glm}"
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.imGui}"
     }
 
     links
