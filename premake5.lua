@@ -15,10 +15,12 @@ IncludeDir = {}
 IncludeDir["glfw"] = "Hazel/vendors/glfw/include"
 IncludeDir["Glad"] = "Hazel/vendors/Glad/include"
 IncludeDir["imGui"] = "Hazel/vendors/imGui"
+IncludeDir["glm"] = "Hazel/vendors/glm"
 
 include "Hazel/vendors/glfw"
 include "Hazel/vendors/Glad"
 include "Hazel/vendors/imGui"
+
 
 project "Hazel"
     location "Hazel"
@@ -34,7 +36,9 @@ project "Hazel"
     files
     {
         "%{prj.name}/Source/**.h",
-        "%{prj.name}/Source/**.cpp"
+        "%{prj.name}/Source/**.cpp",
+        "%{prj.name}/vendor/glm/glm/**.hpp",                                --this can be removed to reduce clutter
+        "%{prj.name}/vendor/glm/glm/**.inl"   
     }
 
     includedirs
@@ -43,7 +47,8 @@ project "Hazel"
         "%{prj.name}/vendors/spdlog/include",
         "%{IncludeDir.glfw}",
         "%{IncludeDir.Glad}",
-        "%{IncludeDir.imGui}"
+        "%{IncludeDir.imGui}",
+        "%{IncludeDir.glm}"
     }
 
     links
@@ -109,14 +114,12 @@ project "DevGround"
     {
         "Hazel/vendors/spdlog/include",
         "Hazel/Source",
-        "%{IncludeDir.glfw}"
+        "%{IncludeDir.glm}"
     }
 
     links
     {
-        "Hazel",
-        "glfw",
-        "opengl32.lib"
+        "Hazel"
     }
 
     filter "system:windows"
