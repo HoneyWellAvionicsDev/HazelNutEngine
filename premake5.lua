@@ -24,8 +24,10 @@ include "Hazel/vendors/imGui"
 
 project "Hazel"
     location "Hazel"
-    kind "SharedLib"
+    kind "StaticLib"
     language "C++"
+    cppdialect "C++20"
+    staticruntime "On"
 
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -60,8 +62,6 @@ project "Hazel"
     }
 
     filter "system:windows"
-        cppdialect "C++20"
-        staticruntime "off"
         systemversion "latest"
 
         defines
@@ -72,26 +72,21 @@ project "Hazel"
             "HZ_ENABLE_ASSERTS",
             "GLFW_INCLUDE_NONE"
         }
-
-        postbuildcommands
-        {
-            ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/DevGround")
-        }
     
     filter "configurations:Debug"
         defines "HZ_DEBUG"
-        staticruntime "off"
-        symbols "On"
+        runtime "Debug"
+        symbols "on"
 
     filter "configurations:Release"
         defines "HZ_RELEASE"
-        staticruntime "On"
-        optimize "On"
+        runtime "Release"
+        optimize "on"
     
     filter "configurations:Dist"
         defines "HZ_DIST"
-        staticruntime "On"
-        optimize "On"
+        runtime "Release"
+        optimize "on"
 
     --filter { "system:windows" }
         --buildoptions "/MDd"
@@ -100,6 +95,8 @@ project "DevGround"
     location "DevGround"
     kind "ConsoleApp"
     language "C++"
+    cppdialect "C++20"
+    staticruntime "on"
 
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -124,8 +121,6 @@ project "DevGround"
     }
 
     filter "system:windows"
-        cppdialect "C++20"
-        staticruntime "off"
         systemversion "latest"
 
         defines
@@ -135,15 +130,15 @@ project "DevGround"
     
     filter "configurations:Debug"
         defines "HZ_DEBUG"
-        staticruntime "off"
-        symbols "On"
+        runtime "Debug"
+        symbols "on"
 
     filter "configurations:Release"
         defines "HZ_RELEASE"
-        staticruntime "On"
-        optimize "On"
+        runtime "Release"
+        optimize "on"
     
     filter "configurations:Dist"
         defines "HZ_DIST"
-        staticruntime "On"
+        runtime "Release"
         optimize "On"
