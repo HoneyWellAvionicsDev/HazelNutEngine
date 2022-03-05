@@ -29,8 +29,7 @@ namespace Hazel
 		glGenVertexArrays(1, &m_VertexArray);
 		glBindVertexArray(m_VertexArray);
 
-		//glGenBuffers(1, &m_VertexBuffer);
-		//glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
+		
 
 		float vertices[3 * 3] = //currently this data exsists in the CPU
 		{
@@ -38,21 +37,16 @@ namespace Hazel
 			0.9f, -0.7f, 0.f,
 			0.f, 0.8f, 0.f
 		};
+		//so lets move it over to the GPU
 
 		m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
-		//buffer.bind();
 
-		//so lets move it over to the GPU
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //(buffer type, size of data in bytes, data name, static because we are not constantly refreshing this data as its static)
 		glEnableVertexAttribArray(0); //we need to describe our data to the GPU 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr); //(index, #of vars, data type, normalized?, size of data, pointer)
 
-		//glGenBuffers(1, &m_IndexBuffer);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
-
 		uint32_t indices[3] = { 0,1,2 };
 		m_IndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
-		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+		
 
 		std::string vertexSrc = R"(
 			#version 330 core
@@ -81,7 +75,7 @@ namespace Hazel
 			}
 		)";
 
-		m_Shader.reset(new Shader(vertexSrc, fragmentSrc));
+		m_Shader.reset(Shader::Upload(vertexSrc, fragmentSrc));
 	}
 
 	Application::~Application()

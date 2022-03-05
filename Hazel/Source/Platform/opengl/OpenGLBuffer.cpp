@@ -11,7 +11,7 @@ namespace Hazel
 	{
 		glCreateBuffers(1, &m_RendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW); //(buffer type, size of data in bytes, data name, static because we are not constantly refreshing this data as its static)
 	}
 
 	OpenGLVertexBuffer::~OpenGLVertexBuffer()

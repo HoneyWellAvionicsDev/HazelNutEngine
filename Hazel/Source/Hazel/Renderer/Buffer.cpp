@@ -22,16 +22,16 @@ namespace Hazel
 		return nullptr;
 	}
 
-	IndexBuffer* IndexBuffer::Create(uint32_t* indices, uint32_t size)
+	IndexBuffer* IndexBuffer::Create(uint32_t* indices, uint32_t count)
 	{
 		switch (Renderer::GetAPI())
 		{
 		case RendererAPI::None: HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
-		case RendererAPI::OpenGL: return new OpenGLIndexBuffer(indices, size);
+		case RendererAPI::OpenGL: return new OpenGLIndexBuffer(indices, count);
 		}
 
-		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons")
-			return nullptr;
+		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons");
+		return nullptr;
 
 	
 	}
