@@ -29,11 +29,11 @@ public:
 
 	void OnEvent(Hazel::Event& event) override
 	{
-		if (event.GetEventType() == Hazel::EventType::KeyPressed)
-		{
-			Hazel::KeyPressedEvent& e = (Hazel::KeyPressedEvent&)event;
-			HZ_TRACE("{0}", (char)e.GetKeyCode());
-		}
+		//if (event.GetEventType() == Hazel::EventType::KeyPressed)
+		//{
+		//	Hazel::KeyPressedEvent& e = (Hazel::KeyPressedEvent&)event;
+		//	HZ_TRACE("{0}", (char)e.GetKeyCode());
+		//}
 	}
 };
 

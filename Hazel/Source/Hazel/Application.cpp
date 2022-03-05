@@ -25,6 +25,33 @@ namespace Hazel
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
+
+		glGenVertexArrays(1, &m_VertexArray);
+		glBindVertexArray(m_VertexArray);
+
+		glGenBuffers(1, &m_VertexBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
+
+		float vertices[3 * 3] = //currently this data exsists in the CPU
+		{
+			-0.5f, -0.5f, 0.f,
+			0.5f, -0.5f, 0.f,
+			0.f, 0.5f, 0.f
+		};
+		//so lets move it over to the GPU
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //(buffer type, size of data in bytes, data name, static because we are not constantly refreshing this data as its static)
+		glEnableVertexAttribArray(0); //we need to describe our data to the GPU 
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr); //(index, #of vars, data type, normalized?, size of data, pointer)
+
+		glGenBuffers(1, &m_IndexBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
+
+		unsigned int indices[3] = { 0,1,2 };
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+
+
 	}
 
 	Application::~Application()
@@ -73,8 +100,11 @@ namespace Hazel
 
 			m_Window->OnUpdate();
 
-			glClearColor(0.24f, 0, 1, 1);
+			glClearColor(0.04f, 0.04f, 0.04f, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
+
+			glBindVertexArray(m_VertexArray);
+			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);  //elements are our indices (draw mode, how many to draw, type, pointer to elements)
 		}
 	}
 
