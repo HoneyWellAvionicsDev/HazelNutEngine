@@ -20,9 +20,7 @@ public:
 
 	void OnImGuiRender() override
 	{
-		ImGui::Begin("test");
-		ImGui::Text("Bitches");
-		ImGui::End();
+		
 
 
 	}
