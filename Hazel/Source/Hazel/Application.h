@@ -9,9 +9,11 @@
 #include "Hazel/imGui/imGuiLayer.h"
 #include "Hazel/Renderer/Buffer.h"
 #include "Hazel/Renderer/VertexArray.h"
+#include "Hazel/Renderer/OrthographicCamera.h"
 
 //temp
 #include "Hazel/Renderer/Shader.h"
+#include "Hazel/KeyCodes.h"
 
 namespace Hazel
 {
@@ -44,6 +46,7 @@ namespace Hazel
 		std::shared_ptr<Shader> m_Shader2;
 		std::shared_ptr<VertexArray> m_SquareVA;
 
+		OrthographicCamera m_Camera;
 		static Application* s_Instance;
 
 	};

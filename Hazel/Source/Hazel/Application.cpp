@@ -1,14 +1,9 @@
 #include "hzpch.h"
-
 #include "Application.h"
 
 #include "Hazel/Log.h"
-//#include <GLFW/glfw3.h>
-//#include <glad/glad.h>
-#include "Hazel/Renderer/Renderer.h"
-
 #include "Hazel/Input.h"
-
+#include "Hazel/Renderer/Renderer.h"
 
 namespace Hazel
 {
@@ -17,6 +12,7 @@ namespace Hazel
 	Application* Application::s_Instance = nullptr;
 
 	Application::Application()
+		: m_Camera(-1.6f, 1.6f, -0.9f, 0.9f)
 	{
 		HZ_CORE_ASSERT(!s_Instance, "Application already exsists!");
 		s_Instance = this;
@@ -56,10 +52,10 @@ namespace Hazel
 
 		float sqVertices[3 * 4] = 
 		{
-			-0.5f, -0.5f, 0.f, 
-			 0.5f, -0.5f, 0.f, 
-			 0.5f,  0.5f, 0.f,
-			-0.5f,  0.5f, 0.f
+			-3.f, -3.f, 0.f, 
+			 3.f, -3.f, 0.f, 
+			 3.f,  3.f, 0.f,
+			-3.f,  3.f, 0.f
 		};
 		std::shared_ptr<VertexBuffer> squareVB; 
 		squareVB.reset(VertexBuffer::Create(sqVertices, sizeof(sqVertices)));
@@ -83,6 +79,8 @@ namespace Hazel
 			layout(location = 0) in vec3 a_Position;
 			layout(location = 1) in vec4 a_Color;
 
+			uniform mat4 u_ViewProjection;
+
 			out vec3 v_Position;
 			out vec4 v_Color;
 
@@ -90,7 +88,7 @@ namespace Hazel
 			{
 				v_Position = a_Position;
 				v_Color = a_Color;
-				gl_Position = vec4(a_Position, 1.0);
+				gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 			}
 		)";
 
@@ -115,13 +113,15 @@ namespace Hazel
 			
 			layout(location = 0) in vec3 a_Position;
 
+			uniform mat4 u_ViewProjection;
+
 			out vec3 v_Position;
 			out vec4 v_Color;
 
 			void main()
 			{
 				v_Position = a_Position;
-				gl_Position = vec4(a_Position, 1.0);
+				gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 			}
 		)";
 
@@ -159,16 +159,16 @@ namespace Hazel
 		layer->OnAttach();
 	}
 
-	void Application::OnEvent(Event& e)
+	void Application::OnEvent(Event& event)
 	{
-		EventDispatcher dispatcher(e);
+		EventDispatcher dispatcher(event);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));                 //if dispatcher recieves windowCloseEvent then we call OnWindowClose
-		//HZ_CORE_TRACE("{0}", e);
+		//HZ_CORE_TRACE("{0}", event);
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)                      //collects all events from the layer stack from TOP to DOWN
 		{
-			(*--it)->OnEvent(e);
-			if (e.Handled)
+			(*--it)->OnEvent(event);
+			if (event.Handled)
 				break;
 		}
 	}
@@ -190,12 +190,27 @@ namespace Hazel
 			//--------------------------------------------------------------------------------------------------
 			RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
 			RenderCommand::Clear();
-			Renderer::BeginScene();
 
-			m_Shader2->Bind();
-			Renderer::Sumbit(m_SquareVA);
-			m_Shader->Bind();
-			Renderer::Sumbit(m_VertexArray);
+			glm::vec3 lastPos = m_Camera.GetPosition();
+			float rotationAngle = m_Camera.GetRotation();
+			if (Hazel::Input::IsKeyPressed(HZ_KEY_W))
+				m_Camera.SetPosition({lastPos.x, lastPos.y + 0.02f, lastPos.z});
+			if (Hazel::Input::IsKeyPressed(HZ_KEY_S))
+				m_Camera.SetPosition({ lastPos.x, lastPos.y - 0.02f, lastPos.z });
+			if (Hazel::Input::IsKeyPressed(HZ_KEY_A))
+				m_Camera.SetPosition({ lastPos.x - 0.02f, lastPos.y, lastPos.z });
+			if (Hazel::Input::IsKeyPressed(HZ_KEY_D))
+				m_Camera.SetPosition({ lastPos.x + 0.02f, lastPos.y, lastPos.z });
+			if (Hazel::Input::IsKeyPressed(HZ_KEY_Q))
+				m_Camera.SetRotation(rotationAngle - 1);
+			if (Hazel::Input::IsKeyPressed(HZ_KEY_E))
+				m_Camera.SetRotation(rotationAngle + 1);
+
+
+			Renderer::BeginScene(m_Camera);
+			
+			Renderer::Sumbit(m_SquareVA, m_Shader2);
+			Renderer::Sumbit(m_VertexArray, m_Shader);
 
 			Renderer::EndScene();
 

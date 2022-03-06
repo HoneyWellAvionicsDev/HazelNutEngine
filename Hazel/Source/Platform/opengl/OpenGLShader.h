@@ -12,6 +12,7 @@ namespace Hazel
 
 		void Bind() const override;
 		void Unbind() const override;
+		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix) override;
 	private:
 		uint32_t m_RendererID;
 	};
