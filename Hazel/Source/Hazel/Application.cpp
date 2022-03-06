@@ -15,6 +15,27 @@ namespace Hazel
 
 	Application* Application::s_Instance = nullptr;
 
+	static GLenum ShaderDataTypeToOpenGlBaseType(ShaderDataType type)
+	{
+		switch (type)
+		{
+			case Hazel::ShaderDataType::Float:			 return GL_FLOAT;
+			case Hazel::ShaderDataType::Float2:			 return GL_FLOAT;
+			case Hazel::ShaderDataType::Float3:			 return GL_FLOAT;
+			case Hazel::ShaderDataType::Float4:			 return GL_FLOAT;
+			case Hazel::ShaderDataType::Mat3:			 return GL_FLOAT;
+			case Hazel::ShaderDataType::Mat4:			 return GL_FLOAT;
+			case Hazel::ShaderDataType::Int:			 return GL_INT;
+			case Hazel::ShaderDataType::Int2:			 return GL_INT;
+			case Hazel::ShaderDataType::Int3:			 return GL_INT;
+			case Hazel::ShaderDataType::Int4:			 return GL_INT;
+			case Hazel::ShaderDataType::Bool:			 return GL_BOOL;
+			//case Hazel::ShaderDataType::
+		}
+		HZ_CORE_ASSERT(false, "Unknown ShaderDataType!")
+		return 0;
+	}
+
 	Application::Application()
 	{
 		HZ_CORE_ASSERT(!s_Instance, "Application already exsists!");
@@ -31,18 +52,40 @@ namespace Hazel
 
 		
 
-		float vertices[3 * 3] = //currently this data exsists in the CPU
+		float vertices[3 * 7] = //currently this data exsists in the CPU
 		{
-			-0.9f, -0.7f, 0.f,
-			0.9f, -0.7f, 0.f,
-			0.f, 0.8f, 0.f
+			-0.9f, -0.7f, 0.f, 0.54f, 0.21f, 0.36f, 1.f,
+			 0.9f, -0.7f, 0.f, 0.34f, 0.54f, 0.66f, 1.f,
+			 0.f,   0.8f, 0.f, 0.98f, 0.76f, 0.06f, 1.f
 		};
 		//so lets move it over to the GPU
 
 		m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
 
-		glEnableVertexAttribArray(0); //we need to describe our data to the GPU 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr); //(index, #of vars, data type, normalized?, size of data, pointer)
+		{
+			BufferLayout layout =
+			{
+				{ShaderDataType::Float3, "a_Posistion" },
+				{ShaderDataType::Float4, "a_Color" },
+			};
+			m_VertexBuffer->SetLayout(layout);
+		}
+
+		const auto& layout = m_VertexBuffer->GetLayout();
+		
+		uint32_t index = 0;
+		for (const auto& elements : layout)
+		{
+			glEnableVertexAttribArray(index); //we need to describe our data to the GPU 
+			glVertexAttribPointer(index, 
+				elements.GetComponentCount(), 
+				ShaderDataTypeToOpenGlBaseType(elements.Type), 
+				elements.Normalized ? GL_TRUE : GL_FALSE, 
+				layout.GetStride(),
+				(const void*)elements.Offset); //(index, #of vars, data type, normalized?, size of data, pointer)
+			index++;
+		}
+
 
 		uint32_t indices[3] = { 0,1,2 };
 		m_IndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
@@ -52,12 +95,15 @@ namespace Hazel
 			#version 330 core
 			
 			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec4 a_Color;
 
 			out vec3 v_Position;
+			out vec4 v_Color;
 
 			void main()
 			{
 				v_Position = a_Position;
+				v_Color = a_Color;
 				gl_Position = vec4(a_Position, 1.0);
 			}
 		)";
@@ -68,10 +114,12 @@ namespace Hazel
 			layout(location = 0) out vec4 color;
 
 			in vec3 v_Position;
+			in vec4 v_Color;
 
 			void main()
 			{
 				color = vec4(v_Position * 0.5 + 0.5, 0.34);
+				color = v_Color;
 			}
 		)";
 
