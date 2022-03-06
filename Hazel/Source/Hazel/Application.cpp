@@ -3,8 +3,9 @@
 #include "Application.h"
 
 #include "Hazel/Log.h"
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
+//#include <GLFW/glfw3.h>
+//#include <glad/glad.h>
+#include "Hazel/Renderer/Renderer.h"
 
 #include "Hazel/Input.h"
 
@@ -37,7 +38,6 @@ namespace Hazel
 		//so lets move it over to the GPU
 		std::shared_ptr<VertexBuffer> vertexBuffer;
 		vertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
-
 		
 		BufferLayout layout =
 		{
@@ -187,17 +187,19 @@ namespace Hazel
 			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
-
-			glClearColor(0.04f, 0.04f, 0.04f, 1);
-			glClear(GL_COLOR_BUFFER_BIT);
+			//--------------------------------------------------------------------------------------------------
+			RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
+			RenderCommand::Clear();
+			Renderer::BeginScene();
 
 			m_Shader2->Bind();
-			m_SquareVA->Bind();
-			glDrawElements(GL_TRIANGLES, m_SquareVA->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
-			//--------------------------------------------------------------------------------------------------
+			Renderer::Sumbit(m_SquareVA);
 			m_Shader->Bind();
-			m_VertexArray->Bind();
-			glDrawElements(GL_TRIANGLES, m_VertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);  //elements are our indices (draw mode, how many to draw, type, pointer to elements)
+			Renderer::Sumbit(m_VertexArray);
+
+			Renderer::EndScene();
+
+			//--------------------------------------------------------------------------------------------------
 		}
 	}
 
