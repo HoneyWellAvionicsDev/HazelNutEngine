@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Hazel/Renderer/Shader.h"
+#include "glm/gtc/type_ptr.hpp"
 
 namespace Hazel
 {
@@ -12,8 +13,16 @@ namespace Hazel
 
 		void Bind() const override;
 		void Unbind() const override;
-		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix) override;
-		void UploadUniformFloat4(const std::string& name, const glm::vec4& vector) override;
+
+		void UploadUniformInt(const std::string& name, int value);
+		void UploadUniformFloat(const std::string& name, float value);
+
+		void UploadUniformFloat2(const std::string& name, const glm::vec2& vector);
+		void UploadUniformFloat3(const std::string& name, const glm::vec3& vector);
+		void UploadUniformFloat4(const std::string& name, const glm::vec4& vector);
+
+		void UploadUniformMat3(const std::string& name, const glm::mat3& matrix);
+		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
 	private:
 		uint32_t m_RendererID;
 	};
