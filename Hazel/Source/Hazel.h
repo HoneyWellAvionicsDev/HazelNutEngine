@@ -6,6 +6,7 @@
 #include "Hazel/Layer.h"
 #include "Hazel/Log.h"
 #include "Hazel/imGui/imGuiLayer.h"
+#include "Hazel/Core/TimeStep.h"
 /*--------------------------------------------------*/
 
 /*-------------------Input--------------------------*/

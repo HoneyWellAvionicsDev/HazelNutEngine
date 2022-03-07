@@ -7,6 +7,7 @@
 #include "Hazel/Events/Event.h"
 #include "Hazel/Events/ApplicationEvent.h"
 #include "Hazel/imGui/imGuiLayer.h"
+#include "Hazel/Core/TimeStep.h"
 
 namespace Hazel
 {
@@ -32,6 +33,7 @@ namespace Hazel
 		std::unique_ptr<Window> m_Window;
 		ImGuiLayer* m_ImGuiLayer;
 		LayerStack m_LayerStack;
+		float m_LastFrameTime = 0.f;
 
 		static Application* s_Instance;
 
