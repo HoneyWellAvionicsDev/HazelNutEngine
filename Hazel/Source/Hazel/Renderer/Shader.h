@@ -13,7 +13,7 @@ namespace Hazel
 		virtual void Bind() const = 0;
 		virtual void Unbind() const = 0;
 		
-
+		static Shader* Upload(const std::string& filepath);
 		static Shader* Upload(const std::string& vertexSrc, const std::string& fragmentSrc);
 	
 	

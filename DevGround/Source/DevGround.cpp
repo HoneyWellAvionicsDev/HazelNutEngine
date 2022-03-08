@@ -98,6 +98,8 @@ public:
 		)";
 		m_Shader.reset(Hazel::Shader::Upload(vertexSrc, fragmentSrc));
 
+		
+
 		std::string vertexSrc2 = R"(
 			#version 330 core
 			
@@ -134,41 +136,41 @@ public:
 
 		m_Shader2.reset(Hazel::Shader::Upload(vertexSrc2, fragmentSrc2));
 
-		std::string vertexTextureShader = R"(
-			#version 330 core
-			
-			layout(location = 0) in vec3 a_Position;
-			layout(location = 1) in vec2 a_TextureCoord;
+		//std::string vertexTextureShader = R"(
+		//	#version 330 core
+		//	
+		//	layout(location = 0) in vec3 a_Position;
+		//	layout(location = 1) in vec2 a_TextureCoord;
+		//
+		//	uniform mat4 u_ViewProjection;
+		//	uniform mat4 u_Transform;
+		//
+		//	out vec2 v_TextureCoord;
+		//
+		//	void main()
+		//	{
+		//		v_TextureCoord = a_TextureCoord;
+		//		gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+		//	}
+		//)";
+		//
+		//std::string fragmentTextureShader = R"(
+		//	#version 330 core
+		//	
+		//	layout(location = 0) out vec4 color;
+		//
+		//	in vec2 v_TextureCoord;
+		//
+		//	uniform sampler2D u_Texture;
+		//
+		//	void main()
+		//	{
+		//		color = texture(u_Texture, v_TextureCoord);
+		//	}
+		//)";
 
-			uniform mat4 u_ViewProjection;
-			uniform mat4 u_Transform;
-
-			out vec2 v_TextureCoord;
-
-			void main()
-			{
-				v_TextureCoord = a_TextureCoord;
-				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
-			}
-		)";
-
-		std::string fragmentTextureShader = R"(
-			#version 330 core
-			
-			layout(location = 0) out vec4 color;
-
-			in vec2 v_TextureCoord;
-		
-			uniform sampler2D u_Texture;
-
-			void main()
-			{
-				color = texture(u_Texture, v_TextureCoord);
-			}
-		)";
-
-		m_TextureShader.reset(Hazel::Shader::Upload(vertexTextureShader, fragmentTextureShader));
-		m_Texture = Hazel::Texture2D::Upload("assets/textures/purple-square-9.png");
+		m_TextureShader.reset((Hazel::Shader::Upload("assets/shaders/Texture.glsl")));
+		m_Texture = Hazel::Texture2D::Upload("assets/textures/Space.png");
 
 		std::dynamic_pointer_cast<Hazel::OpenGLShader>(m_TextureShader)->Bind();
 		std::dynamic_pointer_cast<Hazel::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
