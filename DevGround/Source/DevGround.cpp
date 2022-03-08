@@ -26,7 +26,7 @@ public:
 		Hazel::BufferLayout layout =
 		{
 			{Hazel::ShaderDataType::Float3, "a_Posistion" },
-			{Hazel::ShaderDataType::Float4, "a_Color" },
+			{Hazel::ShaderDataType::Float4, "a_Color" }
 		};
 		vertexBuffer->SetLayout(layout);
 		m_VertexArray->AddVertexBuffer(vertexBuffer);       //binds vertex buffer to vertex array
@@ -38,12 +38,12 @@ public:
 		//-------------------------------------------------------------------------------------------------
 		m_SquareVA.reset(Hazel::VertexArray::Create());
 
-		float sqVertices[3 * 4] =
+		float sqVertices[5 * 4] =             //if 0.5f has - then its 0.f, positive then its 1.f
 		{
-			-0.5f, -0.5f, 0.f,
-			 0.5f, -0.5f, 0.f,
-			 0.5f,  0.5f, 0.f,
-			-0.5f,  0.5f, 0.f
+			-0.5f, -0.5f, 0.f, 0.f, 0.f,
+			 0.5f, -0.5f, 0.f, 1.f, 0.f,
+			 0.5f,  0.5f, 0.f, 1.f, 1.f,
+			-0.5f,  0.5f, 0.f, 0.f, 1.f  
 		};
 		Hazel::Ref<Hazel::VertexBuffer> squareVB;
 		squareVB.reset(Hazel::VertexBuffer::Create(sqVertices, sizeof(sqVertices)));
@@ -51,7 +51,8 @@ public:
 
 		Hazel::BufferLayout sqLayout =
 		{
-			{Hazel::ShaderDataType::Float3, "a_Posistion" }
+			{Hazel::ShaderDataType::Float3, "a_Posistion" },
+			{Hazel::ShaderDataType::Float2, "a_TextureCoord" }
 		};
 		squareVB->SetLayout(sqLayout);
 		m_SquareVA->AddVertexBuffer(squareVB);
@@ -132,6 +133,45 @@ public:
 		)";
 
 		m_Shader2.reset(Hazel::Shader::Upload(vertexSrc2, fragmentSrc2));
+
+		std::string vertexTextureShader = R"(
+			#version 330 core
+			
+			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec2 a_TextureCoord;
+
+			uniform mat4 u_ViewProjection;
+			uniform mat4 u_Transform;
+
+			out vec2 v_TextureCoord;
+
+			void main()
+			{
+				v_TextureCoord = a_TextureCoord;
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+			}
+		)";
+
+		std::string fragmentTextureShader = R"(
+			#version 330 core
+			
+			layout(location = 0) out vec4 color;
+
+			in vec2 v_TextureCoord;
+		
+			uniform sampler2D u_Texture;
+
+			void main()
+			{
+				color = texture(u_Texture, v_TextureCoord);
+			}
+		)";
+
+		m_TextureShader.reset(Hazel::Shader::Upload(vertexTextureShader, fragmentTextureShader));
+		m_Texture = Hazel::Texture2D::Upload("assets/textures/purple-square-9.png");
+
+		std::dynamic_pointer_cast<Hazel::OpenGLShader>(m_TextureShader)->Bind();
+		std::dynamic_pointer_cast<Hazel::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
 	}
 
 	void OnUpdate(Hazel::Timestep ts) override
@@ -174,8 +214,10 @@ public:
 				Hazel::Renderer::Sumbit(m_SquareVA, m_Shader2, transform);
 			}
 		}
+		m_Texture->Bind();
+		Hazel::Renderer::Sumbit(m_SquareVA, m_TextureShader, glm::scale(glm::mat4(1.f), glm::vec3(1.5f)));
 
-		Hazel::Renderer::Sumbit(m_VertexArray, m_Shader);
+		//Hazel::Renderer::Sumbit(m_VertexArray, m_Shader); triangle
 
 		Hazel::Renderer::EndScene();
 	}
@@ -202,8 +244,9 @@ public:
 private:
 	Hazel::Ref<Hazel::Shader> m_Shader;
 	Hazel::Ref<Hazel::VertexArray> m_VertexArray;                    //in the future we will create a new name for shared ptr
-	Hazel::Ref<Hazel::Shader> m_Shader2;
+	Hazel::Ref<Hazel::Shader> m_Shader2, m_TextureShader;
 	Hazel::Ref<Hazel::VertexArray> m_SquareVA;
+	Hazel::Ref <Hazel::Texture2D> m_Texture;
 
 	Hazel::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition;
