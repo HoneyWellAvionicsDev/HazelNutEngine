@@ -96,7 +96,7 @@ public:
 				color = v_Color;
 			}
 		)";
-		m_Shader.reset(Hazel::Shader::Upload(vertexSrc, fragmentSrc));
+		m_Shader = Hazel::Shader::Upload("VertexColorTri", vertexSrc, fragmentSrc);
 
 		
 
@@ -134,7 +134,7 @@ public:
 			}
 		)";
 
-		m_Shader2.reset(Hazel::Shader::Upload(vertexSrc2, fragmentSrc2));
+		m_Shader2 = Hazel::Shader::Upload("FlatColor", vertexSrc2, fragmentSrc2);
 
 		//std::string vertexTextureShader = R"(
 		//	#version 330 core
@@ -169,11 +169,11 @@ public:
 		//	}
 		//)";
 
-		m_TextureShader.reset((Hazel::Shader::Upload("assets/shaders/Texture.glsl")));
 		m_Texture = Hazel::Texture2D::Upload("assets/textures/Space.png");
+		auto textureShader = m_ShaderLibrary.Load("assets/shaders/Texture.glsl");
 
-		std::dynamic_pointer_cast<Hazel::OpenGLShader>(m_TextureShader)->Bind();
-		std::dynamic_pointer_cast<Hazel::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
+		std::dynamic_pointer_cast<Hazel::OpenGLShader>(textureShader)->Bind();
+		std::dynamic_pointer_cast<Hazel::OpenGLShader>(textureShader)->UploadUniformInt("u_Texture", 0);
 	}
 
 	void OnUpdate(Hazel::Timestep ts) override
@@ -216,8 +216,11 @@ public:
 				Hazel::Renderer::Sumbit(m_SquareVA, m_Shader2, transform);
 			}
 		}
+
+		auto textureShader = m_ShaderLibrary.Get("Texture");
+
 		m_Texture->Bind();
-		Hazel::Renderer::Sumbit(m_SquareVA, m_TextureShader, glm::scale(glm::mat4(1.f), glm::vec3(1.5f)));
+		Hazel::Renderer::Sumbit(m_SquareVA, textureShader, glm::scale(glm::mat4(1.f), glm::vec3(1.5f)));
 
 		//Hazel::Renderer::Sumbit(m_VertexArray, m_Shader); triangle
 
@@ -244,11 +247,12 @@ public:
 		return false;
 	}
 private:
+	Hazel::ShaderLibrary m_ShaderLibrary;
 	Hazel::Ref<Hazel::Shader> m_Shader;
-	Hazel::Ref<Hazel::VertexArray> m_VertexArray;                    //in the future we will create a new name for shared ptr
-	Hazel::Ref<Hazel::Shader> m_Shader2, m_TextureShader;
+	Hazel::Ref<Hazel::VertexArray> m_VertexArray;                   
+	Hazel::Ref<Hazel::Shader> m_Shader2/*, m_TextureShader*/;
 	Hazel::Ref<Hazel::VertexArray> m_SquareVA;
-	Hazel::Ref <Hazel::Texture2D> m_Texture;
+	Hazel::Ref<Hazel::Texture2D> m_Texture;
 
 	Hazel::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition;
