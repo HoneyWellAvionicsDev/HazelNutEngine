@@ -13,7 +13,7 @@ namespace Hazel
 		static void BeginScene(OrthographicCamera& camera); //todo
 		static void EndScene();
 
-		static void Sumbit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Shader>& shader, const glm::mat4& transform = glm::mat4(1.f));
+		static void Sumbit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.f));
 
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 	private:

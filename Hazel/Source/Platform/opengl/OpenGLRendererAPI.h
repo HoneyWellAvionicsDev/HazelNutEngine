@@ -8,7 +8,7 @@ namespace Hazel
 	{
 		void SetClearColor(const glm::vec4& color) override;
 		void Clear() override;
-		void DrawIndexed(const std::shared_ptr<VertexArray>& VertexArray) override;
+		void DrawIndexed(const Ref<VertexArray>& VertexArray) override;
 
 	};
 }

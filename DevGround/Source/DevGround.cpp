@@ -20,7 +20,7 @@ public:
 			 0.f,   0.8f, 0.f, 0.98f, 0.76f, 0.06f, 1.f
 		};
 		//so lets move it over to the GPU
-		std::shared_ptr<Hazel::VertexBuffer> vertexBuffer;
+		Hazel::Ref<Hazel::VertexBuffer> vertexBuffer;
 		vertexBuffer.reset(Hazel::VertexBuffer::Create(vertices, sizeof(vertices)));
 
 		Hazel::BufferLayout layout =
@@ -32,7 +32,7 @@ public:
 		m_VertexArray->AddVertexBuffer(vertexBuffer);       //binds vertex buffer to vertex array
 
 		uint32_t indices[3] = { 0,1,2 };
-		std::shared_ptr<Hazel::IndexBuffer> indexBuffer;
+		Hazel::Ref<Hazel::IndexBuffer> indexBuffer;
 		indexBuffer.reset(Hazel::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 		m_VertexArray->SetIndexBuffer(indexBuffer);
 		//-------------------------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ public:
 			 0.5f,  0.5f, 0.f,
 			-0.5f,  0.5f, 0.f
 		};
-		std::shared_ptr<Hazel::VertexBuffer> squareVB;
+		Hazel::Ref<Hazel::VertexBuffer> squareVB;
 		squareVB.reset(Hazel::VertexBuffer::Create(sqVertices, sizeof(sqVertices)));
 
 
@@ -57,7 +57,7 @@ public:
 		m_SquareVA->AddVertexBuffer(squareVB);
 
 		uint32_t sqIndices[6] = { 0,1,2,2,3,0 };
-		std::shared_ptr<Hazel::IndexBuffer> squareIB;
+		Hazel::Ref<Hazel::IndexBuffer> squareIB;
 		squareIB.reset(Hazel::IndexBuffer::Create(sqIndices, sizeof(sqIndices) / sizeof(uint32_t)));
 		m_SquareVA->SetIndexBuffer(squareIB);
 		//-------------------------------------------------------------------------------------------------
@@ -200,10 +200,10 @@ public:
 		return false;
 	}
 private:
-	std::shared_ptr<Hazel::Shader> m_Shader;
-	std::shared_ptr<Hazel::VertexArray> m_VertexArray;                    //in the future we will create a new name for shared ptr
-	std::shared_ptr<Hazel::Shader> m_Shader2;
-	std::shared_ptr<Hazel::VertexArray> m_SquareVA;
+	Hazel::Ref<Hazel::Shader> m_Shader;
+	Hazel::Ref<Hazel::VertexArray> m_VertexArray;                    //in the future we will create a new name for shared ptr
+	Hazel::Ref<Hazel::Shader> m_Shader2;
+	Hazel::Ref<Hazel::VertexArray> m_SquareVA;
 
 	Hazel::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition;
