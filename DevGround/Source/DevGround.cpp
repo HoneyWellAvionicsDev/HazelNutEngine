@@ -152,22 +152,6 @@ public:
 		Hazel::RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
 		Hazel::RenderCommand::Clear();
 
-		//m_Camera.SetPosition(m_CameraPosition);
-		//m_Camera.SetRotation(m_CameraRotationAngle);
-
-		//if (Hazel::Input::IsKeyPressed(HZ_KEY_W))
-		//	m_CameraPosition.y += m_CameraMoveSpeed * ts;
-		//else if (Hazel::Input::IsKeyPressed(HZ_KEY_S))
-		//	m_CameraPosition.y -= m_CameraMoveSpeed * ts;
-		//if (Hazel::Input::IsKeyPressed(HZ_KEY_A))
-		//	m_CameraPosition.x -= m_CameraMoveSpeed * ts;
-		//if (Hazel::Input::IsKeyPressed(HZ_KEY_D))
-		//	m_CameraPosition.x += m_CameraMoveSpeed * ts;
-		//if (Hazel::Input::IsKeyPressed(HZ_KEY_Q))
-		//	m_CameraRotationAngle -= m_CameraRotationSpeed * ts;
-		//if (Hazel::Input::IsKeyPressed(HZ_KEY_E))
-		//	m_CameraRotationAngle += m_CameraRotationSpeed * ts;
-
 		Hazel::Renderer::BeginScene(m_CameraController.GetCamera());
 
 		//Hazel::MaterialRef material = new Hazel::Material(m_Shader2); this is an end goal for our API
@@ -220,7 +204,7 @@ private:
 	Hazel::ShaderLibrary m_ShaderLibrary;
 	Hazel::Ref<Hazel::Shader> m_Shader;
 	Hazel::Ref<Hazel::VertexArray> m_VertexArray;                   
-	Hazel::Ref<Hazel::Shader> m_Shader2/*, m_TextureShader*/;
+	Hazel::Ref<Hazel::Shader> m_Shader2;
 	Hazel::Ref<Hazel::VertexArray> m_SquareVA;
 	Hazel::Ref<Hazel::Texture2D> m_Texture;
 
