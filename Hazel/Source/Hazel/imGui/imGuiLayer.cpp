@@ -1,5 +1,5 @@
 #include "hzpch.h"
-#include "Hazel/Application.h"
+#include "Hazel/Core/Application.h"
 #include "imGuiLayer.h"
 #include "imgui.h"
 

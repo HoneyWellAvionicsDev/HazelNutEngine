@@ -22,6 +22,5 @@ bin-int/Debug-x64/DevGround/Application.obj
 *.obj
 bin-int
 x64
-outputdirs.txt
 DevGround/imgui.ini
-DevGround/assets
+
