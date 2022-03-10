@@ -128,6 +128,6 @@ namespace Hazel
 
 		virtual uint32_t GetCount() const = 0;
 
-		static IndexBuffer* Create(uint32_t* indices, uint32_t count);  //possibly make this 16 bit for optimization
+		static  IndexBuffer* Create(uint32_t* indices, uint32_t count);  //possibly make this 16 bit for optimization
 	};
 }

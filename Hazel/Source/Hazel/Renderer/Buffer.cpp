@@ -4,9 +4,9 @@
 #include "Renderer.h"
 #include "Platform/opengl/OpenGLBuffer.h"
 
-#if HZ_PLATFORM_WINDOWS
-//#include "Platform/Direct3D/Direct3DBuffer.h"
-#endif
+//#if HZ_PLATFORM_WINDOWS
+////#include "Platform/Direct3D/Direct3DBuffer.h"
+//#endif
 
 namespace Hazel
 {

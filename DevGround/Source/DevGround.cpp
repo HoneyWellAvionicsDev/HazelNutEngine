@@ -1,9 +1,11 @@
 #include <Hazel.h>
+#include <Hazel/Core/EntryPoint.h>
 #include <imgui.h>
 
 #include <glm/gtc/matrix_transform.hpp>
-#include "Platform/opengl/OpenGLShader.h"
 #include "glm/gtc/type_ptr.hpp"
+#include "Platform/opengl/OpenGLShader.h"
+#include "Sandbox2D.h"
 
 class ExampleLayer : public Hazel::Layer
 {
@@ -11,7 +13,7 @@ public:
 	ExampleLayer()
 		: Layer("Test"), m_CameraController(1280.f / 720.f, true)
 	{
-		m_VertexArray.reset(Hazel::VertexArray::Create());               //creates the vertex array
+		m_VertexArray = Hazel::VertexArray::Create();               //creates the vertex array
 
 		float vertices[3 * 7] = //currently this data exsists in the CPU
 		{
@@ -36,7 +38,7 @@ public:
 		indexBuffer.reset(Hazel::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 		m_VertexArray->SetIndexBuffer(indexBuffer);
 		//-------------------------------------------------------------------------------------------------
-		m_SquareVA.reset(Hazel::VertexArray::Create());
+		m_SquareVA = Hazel::VertexArray::Create();
 
 		float sqVertices[5 * 4] =             //if 0.5f has - then its 0.f, positive then its 1.f
 		{
@@ -186,8 +188,6 @@ public:
 	{
 		ImGui::Begin("Settings");
 		ImGui::ColorEdit3("Square Color", glm::value_ptr(m_SquareColor));
-
-
 		ImGui::End();
 	}
 
@@ -200,6 +200,7 @@ public:
 	{
 		return false;
 	}
+
 private:
 	Hazel::ShaderLibrary m_ShaderLibrary;
 	Hazel::Ref<Hazel::Shader> m_Shader;
@@ -218,7 +219,8 @@ class Sandbox : public Hazel::Application
 public:
 	Sandbox()
 	{
-		PushLayer(new ExampleLayer());
+		//PushLayer(new ExampleLayer());
+		PushLayer(new Sandbox2D());
 	}
 	~Sandbox()
 	{

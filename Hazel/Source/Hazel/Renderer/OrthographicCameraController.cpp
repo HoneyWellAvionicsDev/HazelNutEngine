@@ -14,13 +14,25 @@ namespace Hazel
 	void OrthographicCameraController::OnUpdate(Timestep ts)
 	{
 		if (Input::IsKeyPressed(HZ_KEY_W))
-			m_CameraPosition.y += m_CameraTranslationSpeed * ts;
+		{
+			m_CameraPosition.x += -sin(glm::radians(m_CameraRotationAngle)) * m_CameraTranslationSpeed * ts;
+			m_CameraPosition.y += cos(glm::radians(m_CameraRotationAngle)) * m_CameraTranslationSpeed * ts;
+		}
 		else if (Input::IsKeyPressed(HZ_KEY_S))
-			m_CameraPosition.y -= m_CameraTranslationSpeed * ts;
+		{
+			m_CameraPosition.x -= -sin(glm::radians(m_CameraRotationAngle)) * m_CameraTranslationSpeed * ts;
+			m_CameraPosition.y -= cos(glm::radians(m_CameraRotationAngle)) * m_CameraTranslationSpeed * ts;
+		}
 		if (Input::IsKeyPressed(HZ_KEY_A))
-			m_CameraPosition.x -= m_CameraTranslationSpeed * ts;
+		{
+			m_CameraPosition.x -= cos(glm::radians(m_CameraRotationAngle)) * m_CameraTranslationSpeed * ts;
+			m_CameraPosition.y -= sin(glm::radians(m_CameraRotationAngle)) * m_CameraTranslationSpeed * ts;
+		}
 		if (Input::IsKeyPressed(HZ_KEY_D))
-			m_CameraPosition.x += m_CameraTranslationSpeed * ts;
+		{
+			m_CameraPosition.x += cos(glm::radians(m_CameraRotationAngle)) * m_CameraTranslationSpeed * ts;
+			m_CameraPosition.y += sin(glm::radians(m_CameraRotationAngle)) * m_CameraTranslationSpeed * ts;
+		}
 		
 		if (m_Rotation)
 		{
@@ -28,6 +40,12 @@ namespace Hazel
 				m_CameraRotationAngle -= m_CameraRotationSpeed * ts;
 			if (Input::IsKeyPressed(HZ_KEY_E))
 				m_CameraRotationAngle += m_CameraRotationSpeed * ts;
+
+			if (m_CameraRotationAngle > 180.f)
+				m_CameraRotationAngle -= 360.f;
+			else if (m_CameraRotationAngle <= -180.f)
+				m_CameraRotationAngle += 360.f;
+
 
 			m_Camera.SetRotation(m_CameraRotationAngle);
 		}
