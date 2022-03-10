@@ -3,9 +3,9 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "RenderCommand.h"
+#include <glm/gtc/matrix_transform.hpp>
 
-//temp
-#include "Platform/opengl/OpenGLShader.h"
+
 
 namespace Hazel
 {
@@ -58,9 +58,8 @@ namespace Hazel
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
 	{
-		std::dynamic_pointer_cast<OpenGLShader>(s_Data->m_FlatColorShader)->Bind();
-		std::dynamic_pointer_cast<OpenGLShader>(s_Data->m_FlatColorShader)->UploadUniformMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
-		std::dynamic_pointer_cast<OpenGLShader>(s_Data->m_FlatColorShader)->UploadUniformMat4("u_Transform", glm::mat4(1.f));
+		s_Data->m_FlatColorShader->Bind();
+		s_Data->m_FlatColorShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
 	}
 
 	void Renderer2D::EndScene()
@@ -74,8 +73,27 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
-		std::dynamic_pointer_cast<OpenGLShader>(s_Data->m_FlatColorShader)->Bind();
-		std::dynamic_pointer_cast<OpenGLShader>(s_Data->m_FlatColorShader)->UploadUniformFloat4("u_Color", color);
+		s_Data->m_FlatColorShader->Bind();
+		s_Data->m_FlatColorShader->SetFloat4("u_Color", color);
+		glm::mat4 transform = glm::translate(glm::mat4(1.f), position) * glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
+		s_Data->m_FlatColorShader->SetMat4("u_Transform", transform);
+
+		s_Data->QuadVertexArray->Bind();
+		RenderCommand::DrawIndexed(s_Data->QuadVertexArray);
+		
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture)
+	{
+		DrawQuad({ position.x, position.y, 0.f }, size, texture);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture)
+	{
+		s_Data->m_FlatColorShader->Bind();
+		s_Data->m_FlatColorShader->SetFloat4("u_Color", color);
+		glm::mat4 transform = glm::translate(glm::mat4(1.f), position) * glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
+		s_Data->m_FlatColorShader->SetMat4("u_Transform", transform);
 
 		s_Data->QuadVertexArray->Bind();
 		RenderCommand::DrawIndexed(s_Data->QuadVertexArray);
