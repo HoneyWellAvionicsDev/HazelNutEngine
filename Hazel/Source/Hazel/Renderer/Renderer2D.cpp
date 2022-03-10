@@ -12,7 +12,8 @@ namespace Hazel
 	struct Renderer2Ddata
 	{
 		Ref<VertexArray> QuadVertexArray;
-		Ref<Shader> m_FlatColorShader;
+		Ref<Shader> FlatColorShader;
+		Ref<Shader> TextureShader;
 	};
 
 	static Renderer2Ddata* s_Data;
@@ -23,12 +24,12 @@ namespace Hazel
 
 		s_Data->QuadVertexArray = VertexArray::Create();
 
-		float sqVertices[3 * 4] =
+		float sqVertices[5 * 4] =
 		{
-			-0.5f, -0.5f, 0.f,
-			 0.5f, -0.5f, 0.f,
-			 0.5f,  0.5f, 0.f,
-			-0.5f,  0.5f, 0.f
+			-0.5f, -0.5f, 0.f, 0.f, 0.f,
+			 0.5f, -0.5f, 0.f, 1.f, 0.f,
+			 0.5f,  0.5f, 0.f, 1.f, 1.f,
+			-0.5f,  0.5f, 0.f, 0.f, 1.f
 		};
 		Ref<VertexBuffer> squareVB;
 		squareVB.reset(VertexBuffer::Create(sqVertices, sizeof(sqVertices)));
@@ -36,7 +37,8 @@ namespace Hazel
 
 		BufferLayout sqLayout =
 		{
-			{ShaderDataType::Float3, "a_Posistion" }
+			{ShaderDataType::Float3, "a_Posistion" },
+			{ShaderDataType::Float2, "v_TextureCoord" }
 		};
 		squareVB->SetLayout(sqLayout);
 		s_Data->QuadVertexArray->AddVertexBuffer(squareVB);
@@ -47,8 +49,10 @@ namespace Hazel
 		s_Data->QuadVertexArray->SetIndexBuffer(squareIB);
 
 
-
-		s_Data->m_FlatColorShader = Shader::Upload("assets/shaders/FlatColorShader.glsl");
+		s_Data->FlatColorShader = Shader::Upload("assets/shaders/FlatColorShader.glsl");
+		s_Data->TextureShader = Shader::Upload("assets/shaders/Texture.glsl");
+		s_Data->TextureShader->Bind();
+		s_Data->TextureShader->SetInt("u_Texture", 0);
 	}
 
 	void Renderer2D::Shutdown()
@@ -58,8 +62,12 @@ namespace Hazel
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
 	{
-		s_Data->m_FlatColorShader->Bind();
-		s_Data->m_FlatColorShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
+		s_Data->FlatColorShader->Bind();
+		s_Data->FlatColorShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
+
+		s_Data->TextureShader->Bind();
+		s_Data->TextureShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
+
 	}
 
 	void Renderer2D::EndScene()
@@ -73,10 +81,10 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
-		s_Data->m_FlatColorShader->Bind();
-		s_Data->m_FlatColorShader->SetFloat4("u_Color", color);
+		s_Data->FlatColorShader->Bind();
+		s_Data->FlatColorShader->SetFloat4("u_Color", color);
 		glm::mat4 transform = glm::translate(glm::mat4(1.f), position) * glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
-		s_Data->m_FlatColorShader->SetMat4("u_Transform", transform);
+		s_Data->FlatColorShader->SetMat4("u_Transform", transform);
 
 		s_Data->QuadVertexArray->Bind();
 		RenderCommand::DrawIndexed(s_Data->QuadVertexArray);
@@ -90,10 +98,13 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture)
 	{
-		s_Data->m_FlatColorShader->Bind();
-		s_Data->m_FlatColorShader->SetFloat4("u_Color", color);
+		s_Data->TextureShader->Bind();
+
+
 		glm::mat4 transform = glm::translate(glm::mat4(1.f), position) * glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
-		s_Data->m_FlatColorShader->SetMat4("u_Transform", transform);
+		s_Data->TextureShader->SetMat4("u_Transform", transform);
+
+		texture->Bind();
 
 		s_Data->QuadVertexArray->Bind();
 		RenderCommand::DrawIndexed(s_Data->QuadVertexArray);

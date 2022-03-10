@@ -11,7 +11,7 @@ Sandbox2D::Sandbox2D()
 
 void Sandbox2D::OnAttach()
 {
-	
+	m_Texture = Hazel::Texture2D::Upload("assets/textures/Space.png");
 
 	
 }
@@ -34,6 +34,7 @@ void Sandbox2D::OnUpdate(Hazel::Timestep ts)
 
 	Hazel::Renderer2D::DrawQuad({ -1.f, 0.f }, { 0.8f, 0.8f }, { 0.8f, 1.f, 0.9f, 0.8f });
 	Hazel::Renderer2D::DrawQuad({ 0.5f, -0.5f }, { 0.5f, 0.75f }, { 0.8f, 0.67f, 0.12f, 0.8f });
+	Hazel::Renderer2D::DrawQuad({ 0.f, 0.f, -0.f}, { 7.5f, 7.5f }, m_Texture);
 
 
 
