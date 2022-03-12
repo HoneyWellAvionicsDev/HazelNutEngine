@@ -10,7 +10,7 @@ namespace Hazel
 		switch (Renderer::GetAPI())
 		{
 		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
-		case RendererAPI::API::OpenGL:			return std::make_shared<OpenGLTexture2D>(path);
+		case RendererAPI::API::OpenGL:			return CreateScope<OpenGLTexture2D>(path);
 		}
 
 		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons");
@@ -18,4 +18,16 @@ namespace Hazel
 		return nullptr;
 	}
 
+	Ref<Texture2D> Texture2D::Upload(uint32_t width, uint32_t height)
+	{
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
+		case RendererAPI::API::OpenGL:			return CreateScope<OpenGLTexture2D>(width, height);
+		}
+
+		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons");
+
+		return nullptr;
+	}
 }
