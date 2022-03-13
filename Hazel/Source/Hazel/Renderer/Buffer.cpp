@@ -10,24 +10,36 @@
 
 namespace Hazel
 {
-	VertexBuffer* VertexBuffer::Create(float* vertices, uint32_t size)
+	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size)
 	{
 		switch (Renderer::GetAPI())
 		{
 		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
-		case RendererAPI::API::OpenGL:			return new OpenGLVertexBuffer(vertices, size);
+		case RendererAPI::API::OpenGL:			return CreateScope<OpenGLVertexBuffer>(size);
+		}
+
+		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons")
+			return nullptr;
+	}
+
+	Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size)
+	{
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
+		case RendererAPI::API::OpenGL:			return CreateScope<OpenGLVertexBuffer>(vertices, size);
 		}
 
 		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons")
 		return nullptr;
 	}
 
-	IndexBuffer* IndexBuffer::Create(uint32_t* indices, uint32_t count)
+	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t size)
 	{
 		switch (Renderer::GetAPI())
 		{
 		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
-		case RendererAPI::API::OpenGL:			return new OpenGLIndexBuffer(indices, count);
+		case RendererAPI::API::OpenGL:			return CreateScope<OpenGLIndexBuffer>(indices, size);
 		}
 
 		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons");

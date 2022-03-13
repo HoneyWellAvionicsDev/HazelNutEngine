@@ -26,8 +26,9 @@ namespace Hazel
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& VertexArray)
+	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& VertexArray, uint32_t indexCount)
 	{
-		glDrawElements(GL_TRIANGLES, VertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr); //elements are our indices (draw mode, how many to draw, type, pointer to elements)
+		uint32_t count = indexCount ? indexCount : VertexArray->GetIndexBuffer()->GetCount();           //maybe switch this the other way around
+		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr); //elements are our indices (draw mode, how many to draw, type, pointer to elements)
 	}
 }

@@ -23,7 +23,7 @@ public:
 		};
 		//so lets move it over to the GPU
 		Hazel::Ref<Hazel::VertexBuffer> vertexBuffer;
-		vertexBuffer.reset(Hazel::VertexBuffer::Create(vertices, sizeof(vertices)));
+		vertexBuffer = Hazel::VertexBuffer::Create(vertices, sizeof(vertices));
 
 		Hazel::BufferLayout layout =
 		{
@@ -35,7 +35,7 @@ public:
 
 		uint32_t indices[3] = { 0,1,2 };
 		Hazel::Ref<Hazel::IndexBuffer> indexBuffer;
-		indexBuffer.reset(Hazel::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		indexBuffer = Hazel::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
 		m_VertexArray->SetIndexBuffer(indexBuffer);
 		//-------------------------------------------------------------------------------------------------
 		m_SquareVA = Hazel::VertexArray::Create();
@@ -48,7 +48,7 @@ public:
 			-0.5f,  0.5f, 0.f, 0.f, 1.f  
 		};
 		Hazel::Ref<Hazel::VertexBuffer> squareVB;
-		squareVB.reset(Hazel::VertexBuffer::Create(sqVertices, sizeof(sqVertices)));
+		squareVB = Hazel::VertexBuffer::Create(sqVertices, sizeof(sqVertices));
 
 
 		Hazel::BufferLayout sqLayout =
@@ -61,7 +61,7 @@ public:
 
 		uint32_t sqIndices[6] = { 0,1,2,2,3,0 };
 		Hazel::Ref<Hazel::IndexBuffer> squareIB;
-		squareIB.reset(Hazel::IndexBuffer::Create(sqIndices, sizeof(sqIndices) / sizeof(uint32_t)));
+		squareIB = Hazel::IndexBuffer::Create(sqIndices, sizeof(sqIndices) / sizeof(uint32_t));
 		m_SquareVA->SetIndexBuffer(squareIB);
 		//-------------------------------------------------------------------------------------------------
 		std::string vertexSrc = R"(
