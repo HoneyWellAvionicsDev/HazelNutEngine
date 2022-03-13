@@ -1,4 +1,5 @@
 #pragma once
+#include "Hazel/Core/Core.h"
 
 #ifdef HZ_PLATFORM_WINDOWS
 
@@ -8,13 +9,19 @@ int main(int argc, char** argv)
 {
 	Hazel::Log::Init();
 	HZ_CORE_WARN("dick fell off!!!!!!!!!!!!!");
-	int a = 5;
-	HZ_INFO("Var={0}", a);
+	
 
-
+	HZ_PROFILE_BEGIN_SESSION("Startup", "HazelProfile-Startup.json");
 	auto app = Hazel::CreateApplication();                 //creates instance of applicaiton
+	HZ_PROFILE_END_SESSION();
+
+	HZ_PROFILE_BEGIN_SESSION("Runtime", "HazelProfile-Runtime.json");
 	app->Run();
+	HZ_PROFILE_END_SESSION();
+
+	HZ_PROFILE_BEGIN_SESSION("Shutdown", "HazelProfile-Shutdown.json");
 	delete app;
+	HZ_PROFILE_END_SESSION();
 }
 
 #endif

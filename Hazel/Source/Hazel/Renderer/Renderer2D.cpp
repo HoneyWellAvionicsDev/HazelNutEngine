@@ -20,6 +20,8 @@ namespace Hazel
 
 	void Renderer2D::Init()
 	{
+		HZ_PROFILE_FUNCTION();
+
 		s_Data = new Renderer2Ddata();
 
 		s_Data->QuadVertexArray = VertexArray::Create();
@@ -59,11 +61,13 @@ namespace Hazel
 
 	void Renderer2D::Shutdown()
 	{
+		HZ_PROFILE_FUNCTION();
 		delete s_Data;
 	}
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
 	{
+		HZ_PROFILE_FUNCTION();
 		s_Data->TextureShader->Bind();
 		s_Data->TextureShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
 
@@ -71,6 +75,7 @@ namespace Hazel
 
 	void Renderer2D::EndScene()
 	{
+		HZ_PROFILE_FUNCTION();
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
@@ -80,6 +85,8 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
+		HZ_PROFILE_FUNCTION();
+
 		s_Data->TextureShader->SetFloat4("u_Color", color);
 		s_Data->WhiteTexture->Bind();
 
@@ -98,6 +105,8 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& tint)
 	{
+		HZ_PROFILE_FUNCTION();
+
 		s_Data->TextureShader->SetFloat4("u_Color", tint);
 		texture->Bind();
 
