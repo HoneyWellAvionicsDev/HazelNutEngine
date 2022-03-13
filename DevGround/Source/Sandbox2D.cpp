@@ -34,7 +34,7 @@ void Sandbox2D::OnUpdate(Hazel::Timestep ts)
 
 	Hazel::Renderer2D::DrawQuad({ -1.f, 0.f }, { 0.8f, 0.8f }, { 0.8f, 1.f, 0.9f, 0.8f });
 	Hazel::Renderer2D::DrawQuad({ 0.5f, -0.5f }, { 0.5f, 0.75f }, { 0.8f, 0.67f, 0.12f, 0.8f });
-	//Hazel::Renderer2D::DrawQuad({ 0.f, 0.f, -0.f}, { 7.5f, 7.5f }, m_Texture);
+	Hazel::Renderer2D::DrawQuad({ -6.25f, -6.25f, -0.f}, { 12.5f, 12.5f }, m_Texture, { 0.8f, 1.f, 0.9f, 0.8f });
 
 	//Hazel::Renderer2D::DrawRotatedQuad({ 14.5f, -9.5f }, { 0.5f, 0.75f }, glm::radians(78.f), { 0.8f, 0.67f, 0.12f, 0.8f });
 	//Hazel::Renderer2D::DrawRotatedQuad({ 5.f, 7.f, -0.1f }, { 175.5f, 175.5f }, glm::radians(45.f), m_Texture, { 0.3f, 0.97f, 0.62f, 0.95f }, 550);
@@ -44,7 +44,7 @@ void Sandbox2D::OnUpdate(Hazel::Timestep ts)
 
 void Sandbox2D::OnImGuiRender()
 {
-	//HZ_PROFILE_FUNCTION();
+	HZ_PROFILE_FUNCTION();
 
 	ImGui::Begin("Settings");
 	ImGui::ColorEdit4("Square Color", glm::value_ptr(m_SquareColor));
