@@ -22,9 +22,9 @@ namespace Hazel
 	void OrthographicCamera::RecalculateViewMatrix()
 	{
 		HZ_PROFILE_FUNCTION();
-
-		glm::mat4 transform = glm::translate(glm::mat4(1.f), m_Position) *                                  //translation matrix *
-							  glm::rotate(glm::mat4(1.f), glm::radians(m_ZRotation), glm::vec3(0, 0, 1));   //rotation matrix (we are rotating around the Z axis so its (0, 0, 1))
+		glm::mat4 transform = glm::mat4(1.f);
+		transform = glm::translate(glm::mat4(1.f), m_Position) *                                  //translation matrix *
+					glm::rotate(glm::mat4(1.f), glm::radians(m_ZRotation), glm::vec3(0, 0, 1));   //rotation matrix (we are rotating around the Z axis so its (0, 0, 1))
 
 		m_ViewMatrix = glm::inverse(transform);
 		m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;										    //matrix multiplcation is not commutative so ORDER MATTERS
