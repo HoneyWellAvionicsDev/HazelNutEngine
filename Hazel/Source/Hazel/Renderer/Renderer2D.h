@@ -20,11 +20,23 @@ namespace Hazel
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& tint = glm::vec4(1.f), float tileFactor = 1.f);
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& tint = glm::vec4(1.f), float tileFactor = 1.f);
 
-		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotationInRadians, const glm::vec4& color);
-		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotationInRadians, const glm::vec4& color);
-		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotationInRadians, const Ref<Texture2D>& texture, const glm::vec4& tint = glm::vec4(1.f), float tileFactor = 1.f);
-		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotationInRadians, const Ref<Texture2D>& texture, const glm::vec4& tint = glm::vec4(1.f), float tileFactor = 1.f);
+		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotationInDegrees, const glm::vec4& color);
+		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotationInDegrees, const glm::vec4& color);
+		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotationInDegrees, const Ref<Texture2D>& texture, const glm::vec4& tint = glm::vec4(1.f), float tileFactor = 1.f);
+		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotationInDegrees, const Ref<Texture2D>& texture, const glm::vec4& tint = glm::vec4(1.f), float tileFactor = 1.f);
 
+		struct Statistics
+		{
+			uint32_t DrawCalls = 0;
+			uint32_t QuadCount = 0;
+
+			uint32_t GetTotalVertexCount() { return QuadCount * 4; }
+			uint32_t GetTotalIndexCount() { return QuadCount * 6; }
+		};
+		static void ResetStats();
+		static Statistics GetStats();
+	private:
+		static void StartNewBatch();
 	};
 }
 
