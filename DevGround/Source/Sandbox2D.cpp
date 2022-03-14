@@ -12,6 +12,8 @@ void Sandbox2D::OnAttach()
 {
 	HZ_PROFILE_FUNCTION();
 	m_Texture = Hazel::Texture2D::Upload("assets/textures/Space.png");
+	m_SpriteSheet = Hazel::Texture2D::Upload("assets/game/tiles_packed.png");
+	m_FullHeart = Hazel::SubTexture2D::CreateFromCoords(m_SpriteSheet, {17, 2}, { 18, 18 }, {1, 3});
 }
 
 void Sandbox2D::OnDetach()
@@ -37,10 +39,10 @@ void Sandbox2D::OnUpdate(Hazel::Timestep ts)
 	Hazel::Renderer2D::DrawQuad({ 0.5f, -0.5f }, { 0.5f, 0.75f }, { 0.8f, 0.67f, 0.12f, 0.8f });
 
 	static float rotation = 0.f;
-	rotation += ts * 60.f;
+	rotation += glm::radians(ts * m_RotationalSpeed);
 
-	Hazel::Renderer2D::DrawRotatedQuad({ 0.f, 0.f, -0.8f}, { 12.5f, 12.5f }, rotation + 30.f, m_Texture, m_SquareColor);
-	Hazel::Renderer2D::DrawRotatedQuad({ 14.5f, -9.5f, -0.9 }, { 5.5f, 9.5f }, rotation, m_SquareColor);
+	Hazel::Renderer2D::DrawRotatedQuad({ 0.f, 0.f, -0.8f}, { 15.0f, 45.0f }, rotation + 30.f, m_FullHeart, m_SquareColor);
+	Hazel::Renderer2D::DrawRotatedQuad({ 9.5f, -19.5f, -0.9 }, { 5.5f, 9.5f }, rotation, m_SquareColor);
 	Hazel::Renderer2D::DrawRotatedQuad({ 5.f, 7.f, -0.99f }, { 175.5f, 175.5f }, 45.f, m_Texture, { 0.3f, 0.97f, 0.62f, 0.95f });
 
 	for (float y = -5.f; y < 5.f; y += 0.4f)
@@ -66,7 +68,6 @@ void Sandbox2D::OnImGuiRender()
 	ImGui::Text("Quads: %d", stats.QuadCount);
 	ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
 	ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
-
 
 	ImGui::ColorEdit4("Square Color", glm::value_ptr(m_SquareColor));
 	ImGui::End();

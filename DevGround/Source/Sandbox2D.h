@@ -22,8 +22,11 @@ private:
 	Hazel::Ref<Hazel::VertexArray> m_SquareVA;
 	Hazel::Ref<Hazel::Shader> m_FlatColorShader;
 	Hazel::Ref<Hazel::Texture2D> m_Texture;
+	Hazel::Ref<Hazel::Texture2D> m_SpriteSheet;
+	Hazel::Ref<Hazel::SubTexture2D> m_FullHeart;
 
 	glm::vec4 m_SquareColor = { 0.2f, 0.3f, 0.8f, 1.f };
+	float m_RotationalSpeed = 60.f;
 
 
 };
