@@ -60,7 +60,7 @@ namespace Hazel
 		m_Context->Init();
 		
 		glfwSetWindowUserPointer(m_Window, &m_Data);                                          //sets userPointer to windowData for our window we created
-		SetVSync(true);
+		SetVSync(false);
 	
 		//Set GLFW callbacks
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
