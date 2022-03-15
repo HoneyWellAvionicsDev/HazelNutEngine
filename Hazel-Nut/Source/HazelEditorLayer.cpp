@@ -182,7 +182,7 @@ namespace Hazel
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize))
         {
-            //m_FrameBuffer->Resize(viewportPanelSize.x, viewportPanelSize.y);
+            //m_FrameBuffer->Resize(viewportPanelSize.x, viewportPanelSize.y); 
             m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
             m_CameraController.OnResize(viewportPanelSize.x, viewportPanelSize.y);
         }
