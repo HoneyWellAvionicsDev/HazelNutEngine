@@ -3,6 +3,16 @@
 #include "glm/gtc/type_ptr.hpp"
 
 
+static const char* s_MapTiles =
+"GGGGWWWWWWWWWWGGGGGGGGGGWWWGGGGGGGGGGGWWGGGGGGGG"
+"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+"DDDDDDDDDDDDDDDDDDDDDDEDDDDDDDDDDDDDDDDDDDDDDDDD"
+"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD";
+
 Sandbox2D::Sandbox2D()
 	: Layer("Sandbox2D"), m_CameraController(1280.f / 720.f, true)
 {
@@ -12,8 +22,12 @@ void Sandbox2D::OnAttach()
 {
 	HZ_PROFILE_FUNCTION();
 	m_Texture = Hazel::Texture2D::Upload("assets/textures/Space.png");
+	m_Texture2 = Hazel::Texture2D::Upload("assets/textures/purple-square-9.png");
 	m_SpriteSheet = Hazel::Texture2D::Upload("assets/game/tiles_packed.png");
-	m_FullHeart = Hazel::SubTexture2D::CreateFromCoords(m_SpriteSheet, {17, 2}, { 18, 18 }, {1, 3});
+	s_TextureMap['G'] = Hazel::SubTexture2D::CreateFromCoords(m_SpriteSheet, {18, 8}, {18, 18}, {1, 1});
+	s_TextureMap['D'] = Hazel::SubTexture2D::CreateFromCoords(m_SpriteSheet, {2, 2}, {18, 18}, {1, 1});
+	s_TextureMap['W'] = Hazel::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 13, 6 }, { 18, 18 }, { 1, 1 });
+	m_FullHeart = Hazel::SubTexture2D::CreateFromCoords(m_SpriteSheet, {2, 1}, { 18, 18 }, {1, 1});
 }
 
 void Sandbox2D::OnDetach()
@@ -34,15 +48,31 @@ void Sandbox2D::OnUpdate(Hazel::Timestep ts)
 	Hazel::RenderCommand::Clear();
 
 	Hazel::Renderer2D::BeginScene(m_CameraController.GetCamera());
-
+#if 1
+	for (uint32_t y = 0; y < 8; y++)
+	{
+		for (uint32_t x = 0; x < 48; x++)
+		{
+			char tileType = s_MapTiles[x + y * 48];
+			Hazel::Ref<Hazel::SubTexture2D> texture;
+			if (s_TextureMap.find(tileType) != s_TextureMap.end())
+				texture = s_TextureMap[tileType];
+			else
+				texture = m_FullHeart;
+			Hazel::Renderer2D::DrawQuad({ x , 8 - y, 1}, { 1.f, 1.f }, texture);
+		}
+	}
+#endif
+#if 0
 	Hazel::Renderer2D::DrawQuad({ -1.f, 0.f }, { 0.8f, 0.8f }, { 0.8f, 1.f, 0.9f, 0.8f });
 	Hazel::Renderer2D::DrawQuad({ 0.5f, -0.5f }, { 0.5f, 0.75f }, { 0.8f, 0.67f, 0.12f, 0.8f });
+	Hazel::Renderer2D::DrawQuad({ 9.5f, -4.5f }, { 5.5f, 5.5f }, m_FullHeart);
 
 	static float rotation = 0.f;
 	rotation += glm::radians(ts * m_RotationalSpeed);
 
-	Hazel::Renderer2D::DrawRotatedQuad({ 0.f, 0.f, -0.8f}, { 15.0f, 45.0f }, rotation + 30.f, m_FullHeart, m_SquareColor);
-	Hazel::Renderer2D::DrawRotatedQuad({ 9.5f, -19.5f, -0.9 }, { 5.5f, 9.5f }, rotation, m_SquareColor);
+	Hazel::Renderer2D::DrawRotatedQuad({ 0.f, 0.f, -0.8f}, { 15.0f, 15.0f }, rotation + 30.f, m_Texture2, m_SquareColor);
+	Hazel::Renderer2D::DrawRotatedQuad({ 9.5f, -19.5f, -0.9 }, { 5.5f, 5.5f }, rotation, m_SquareColor);
 	Hazel::Renderer2D::DrawRotatedQuad({ 5.f, 7.f, -0.99f }, { 175.5f, 175.5f }, 45.f, m_Texture, { 0.3f, 0.97f, 0.62f, 0.95f });
 
 	for (float y = -5.f; y < 5.f; y += 0.4f)
@@ -53,7 +83,7 @@ void Sandbox2D::OnUpdate(Hazel::Timestep ts)
 			Hazel::Renderer2D::DrawQuad({ x,y }, { 0.45f, 0.45f }, color);
 		}
 	}
-
+#endif
 	Hazel::Renderer2D::EndScene();
 }
 
