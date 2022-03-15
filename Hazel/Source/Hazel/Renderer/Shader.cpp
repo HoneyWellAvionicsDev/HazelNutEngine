@@ -12,7 +12,7 @@ namespace Hazel
 		switch (Renderer::GetAPI())
 		{
 		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
-		case RendererAPI::API::OpenGL:			return make_shared<OpenGLShader>(filepath);
+		case RendererAPI::API::OpenGL:			return CreateRef<OpenGLShader>(filepath);
 		}
 
 		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons");
@@ -24,13 +24,13 @@ namespace Hazel
 		switch (Renderer::GetAPI())
 		{
 		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
-		case RendererAPI::API::OpenGL:			return make_shared<OpenGLShader>(name, vertexSrc, fragmentSrc);
+		case RendererAPI::API::OpenGL:			return CreateRef<OpenGLShader>(name, vertexSrc, fragmentSrc);
 		}
 
 		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons");
 		return nullptr;
 	}
-
+ 
 	void ShaderLibrary::Add(const std::string& name, const Ref<Shader>& shader)
 	{
 		HZ_CORE_ASSERT(!Exsits(name), "Shader already exists!");

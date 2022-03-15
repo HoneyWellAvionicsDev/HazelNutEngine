@@ -11,10 +11,10 @@
 
 namespace Hazel
 {
-	class HAZEL_API Application
+	class Application
 	{
 	public:
-		Application();
+		Application(const std::string& name = "Hazel Application");
 		virtual ~Application();
 
 		void Run();
