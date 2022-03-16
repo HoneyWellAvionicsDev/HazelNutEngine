@@ -31,6 +31,8 @@ namespace Hazel
 	
 		glm::vec4 m_SquareColor = { 0.2f, 0.3f, 0.8f, 1.f };
 		glm::vec2 m_ViewportSize = {0.f, 0.f};
+		bool m_ViewportFocused = false;
+		bool m_ViewportHovered = false;
 		float m_RotationalSpeed = 60.f;
 	
 		std::unordered_map<char, Ref<SubTexture2D>> s_TextureMap;
