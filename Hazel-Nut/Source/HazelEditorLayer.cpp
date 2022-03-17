@@ -34,6 +34,11 @@ namespace Hazel
         FrameBufferSpec.Width = 2560;
         FrameBufferSpec.Height = 1440;
         m_FrameBuffer = FrameBuffer::Create(FrameBufferSpec);
+
+        m_Scene = CreateRef<Scene>();
+        auto square = m_Scene->CreateEntity();
+        m_Scene->Reg().emplace<TransformComponent>(square);
+        m_Scene->Reg().emplace<SpriteRendererComponent>(square, glm::vec4{0.f, 1.f, 0.f, 1.f});
     }
     
     void EditorLayer::OnDetach()
@@ -54,9 +59,11 @@ namespace Hazel
         m_FrameBuffer->Bind();
     	RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
     	RenderCommand::Clear();
+
+        //update scene
     
     	Renderer2D::BeginScene(m_CameraController.GetCamera());
-    #if 1
+    #if 0
     	Renderer2D::DrawQuad({ -1.f, 0.f }, { 0.8f, 0.8f }, { 0.8f, 1.f, 0.9f, 0.8f });
     	Renderer2D::DrawQuad({ 0.5f, -0.5f }, { 0.5f, 0.75f }, { 0.8f, 0.67f, 0.12f, 0.8f });
     	Renderer2D::DrawQuad({ 9.5f, -4.5f }, { 5.5f, 5.5f }, m_FullHeart);
@@ -77,6 +84,7 @@ namespace Hazel
     		}
     	}
     #endif
+        m_Scene->OnUpdate(ts);
     #if 1
     	for (uint32_t y = 0; y < 8; y++)
     	{

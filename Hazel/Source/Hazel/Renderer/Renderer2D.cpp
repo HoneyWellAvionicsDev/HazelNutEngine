@@ -154,26 +154,18 @@ namespace Hazel
 		s_Data.TextureSlotIndex = 1;
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
-	{
-		DrawQuad({ position.x, position.y, 0.f }, size, color);
-	}
-
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
 	{
 		HZ_PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = { {0.f, 0.f}, {1.f, 0.f}, {1.f, 1.f}, {0.f, 1.f} };
+		const float textureIndex = 0.f; //white texture
+		const float tileFactor = 1.f;
 
 		if (s_Data.QuadIndexCount >= Renderer2Ddata::MaxIndices)
 			StartNewBatch();
 
-		const float textureIndex = 0.f; //white texture
-		const float tileFactor = 1.f;
-
-		glm::mat4 transform = glm::translate(glm::mat4(1.f), position)
-			* glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
@@ -190,12 +182,22 @@ namespace Hazel
 		s_Data.Stats.QuadCount++;
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
 	{
-		DrawQuad({ position.x, position.y, 0.f }, size, texture, tint, tileFactor);
+		DrawQuad({ position.x, position.y, 0.f }, size, color);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
+	{
+		HZ_PROFILE_FUNCTION();
+
+		glm::mat4 transform = glm::translate(glm::mat4(1.f), position)
+			* glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
+
+		DrawQuad(transform, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor)
 	{
 		HZ_PROFILE_FUNCTION();
 
@@ -222,9 +224,6 @@ namespace Hazel
 			s_Data.TextureSlotIndex++;
 		}
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.f), position)
-			* glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
-		
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
 			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
@@ -238,6 +237,21 @@ namespace Hazel
 		s_Data.QuadIndexCount += 6;
 
 		s_Data.Stats.QuadCount++;
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor)
+	{
+		DrawQuad({ position.x, position.y, 0.f }, size, texture, tint, tileFactor);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor)
+	{
+		HZ_PROFILE_FUNCTION();
+
+		glm::mat4 transform = glm::translate(glm::mat4(1.f), position)
+			* glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
+
+		DrawQuad(transform, texture, tint, tileFactor);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const glm::vec4& tint, float tileFactor)

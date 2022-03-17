@@ -22,6 +22,7 @@ IncludeDir["Glad"] = "Hazel/vendors/Glad/include"
 IncludeDir["imGui"] = "Hazel/vendors/imGui"
 IncludeDir["glm"] = "Hazel/vendors/glm"
 IncludeDir["stb_image"] = "Hazel/vendors/stb_image"
+IncludeDir["entt"] = "Hazel/vendors/entt/include"
 
 group "Dependencies"
     include "Hazel/vendors/glfw"
@@ -61,6 +62,7 @@ project "Hazel"
         "%{IncludeDir.Glad}",
         "%{IncludeDir.imGui}",
         "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}",
         "%{IncludeDir.stb_image}"
 
     }
@@ -79,9 +81,7 @@ project "Hazel"
         defines
         {
             "HZ_PLATFORM_WINDOWS",
-            "HZ_BUILD_DLL",
-            "_WINDLL",
-            "HZ_ENABLE_ASSERTS",
+            "_CRT_SECURE_NO_WARNINGS",
             "GLFW_INCLUDE_NONE"
         }
     
@@ -124,6 +124,7 @@ project "DevGround"
         "Hazel/vendors/spdlog/include",
         "Hazel/Source",
         "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}",
         "%{IncludeDir.imGui}"
     }
 
@@ -176,6 +177,7 @@ project "DevGround"
         "Hazel/vendors/spdlog/include",
         "Hazel/Source",
         "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}",
         "%{IncludeDir.imGui}"
     }
 
