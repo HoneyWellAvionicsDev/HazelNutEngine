@@ -6,7 +6,7 @@
 	#ifdef _WIN64
 		#define HZ_PLATFORM_WINDOWS
 	#else
-		#error "x86 buikds are nit supported. Get a modern system."
+		#error "x86 buikds are not supported. Get a modern system."
 	#endif
 #elif defined(__APPLE__) || defined(__MACH__)
 	#include <TargetConditionals.h>
@@ -17,7 +17,7 @@
 		#error "IOS is not supported. Stop wasting your money on apple products they're dogshit."
 	#elif TARGET_OS_MAC == 1
 		#define HZ_PLATFORM_MACOS
-		#error "MacOS is not supported, please get a better PC"
+		#error "MacOS is not supported"
 	#else
 		#error "Unknown Apple Platform"
 	#endif
@@ -30,7 +30,19 @@
 	#define HAZEL_API
 #endif
 
-
+#ifdef HZ_DEBUG
+	#if defined(HZ_PLATFORM_WINDOWS)
+		#define HZ_DEBUGBREAK() __debugbreak()
+	#elif defined(HZ_PLATFORM_LINUX)
+		#include <signal.h>
+		#define HZ_DEBUGBREAK() raise(SIGTRAP)
+	#else
+		#error "Platform doesn't support debugbreak yet"
+	#endif
+	#define HZ_ENABLE_ASSERTS
+#else
+	#define HZ_DEBUGBREAK()
+#endif
 
 #ifdef HZ_PLATFORM_WINDOWS
 	#if HZ_DYNAMIC_LINK
@@ -46,7 +58,7 @@
 	#error Hazel only supports windows even though its a dogshit operationg system
 #endif
 
-
+//todo: assert macros with only condition argument
 #ifdef HZ_ENABLE_ASSERTS
 	#define HZ_ASSERT(x, ...)	{ if(!(x)) { HZ_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
 	#define HZ_CORE_ASSERT(x, ...) { if(!(x)) { HZ_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
