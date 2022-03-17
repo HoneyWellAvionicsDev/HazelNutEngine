@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "Hazel/Renderer/Camera.h"
 
 namespace Hazel
 {
@@ -35,5 +36,16 @@ namespace Hazel
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
+	};
+
+	struct CameraComponent
+	{
+		Hazel::Camera Camera;
+		bool Primary = true; //todo, move this to scene as we will only really have one primary camera
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
+		CameraComponent(const glm::mat4& projection)
+			: Camera(projection) {}
 	};
 }

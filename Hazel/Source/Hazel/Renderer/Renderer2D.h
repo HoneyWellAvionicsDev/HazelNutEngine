@@ -1,6 +1,7 @@
 #pragma once
 
 #include "OrthographicCamera.h"
+#include "Camera.h"
 #include "Texture.h"
 #include "SubTexture2D.h"
 
@@ -12,7 +13,8 @@ namespace Hazel
 		static void Init();
 		static void Shutdown();
 
-		static void BeginScene(const OrthographicCamera& camera);
+		static void BeginScene(const Camera& camera, const glm::mat4& transform);
+		static void BeginScene(const OrthographicCamera& camera); //remove this
 		static void EndScene();
 		static void Flush();
 

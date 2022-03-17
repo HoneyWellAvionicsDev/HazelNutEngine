@@ -39,6 +39,9 @@ namespace Hazel
         auto square = m_Scene->CreateEntity("TestSquare");
         square.AddComponent<SpriteRendererComponent>(glm::vec4{0.f, 1.f, 0.f, 1.f});
         m_SquareEntity = square;
+
+        m_CameraEntity = m_Scene->CreateEntity("Camera Entity");
+        m_CameraEntity.AddComponent<CameraComponent>(glm::ortho(-16.f, 16.f, -9.f, 9.f, -1.f, 1.f));
     }
     
     void EditorLayer::OnDetach()
@@ -62,7 +65,7 @@ namespace Hazel
 
         //update scene
     
-    	Renderer2D::BeginScene(m_CameraController.GetCamera());
+    	//Renderer2D::BeginScene(m_CameraController.GetCamera());
         m_Scene->OnUpdate(ts);
     #if 0
     	Renderer2D::DrawQuad({ -1.f, 0.f }, { 0.8f, 0.8f }, { 0.8f, 1.f, 0.9f, 0.8f });
@@ -84,7 +87,7 @@ namespace Hazel
     		}
     	}
     #endif
-    #if 1
+    #if 0
     	for (uint32_t y = 0; y < 8; y++)
     	{
     		for (uint32_t x = 0; x < 48; x++)
@@ -99,7 +102,7 @@ namespace Hazel
     		}
     	}
     #endif
-    	Renderer2D::EndScene();
+    	//Renderer2D::EndScene();
         m_FrameBuffer->Unbind();
     }
     
