@@ -27,6 +27,9 @@ namespace Hazel
 			glDeleteBuffers(1, &m_RendererID);
 			glDeleteTextures(1, &m_ColorAttachment);
 			glDeleteTextures(1, &m_DepthAttachment);
+
+			m_ColorAttachment = 0;
+			m_DepthAttachment = 0;
 		}
 
 		glCreateFramebuffers(1, &m_RendererID);
@@ -68,6 +71,6 @@ namespace Hazel
 		}
 		m_Specification.Width = width;
 		m_Specification.Height = height;
-		Invalidate();
+		Invalidate(); 
 	}
 }

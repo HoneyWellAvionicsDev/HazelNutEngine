@@ -80,18 +80,15 @@ namespace Hazel
 
 			if (!m_Minimized)
 			{
-				{
-					HZ_PROFILE_SCOPE("LayerStack OnUpdate");
-					for (Layer* layer : m_LayerStack)                                               //updates all the layers in the layerstack from BOTTOM to TOP
-						layer->OnUpdate(timestep);
-				}
+				HZ_PROFILE_SCOPE("LayerStack OnUpdate");
+				for (Layer* layer : m_LayerStack)                                               //updates all the layers in the layerstack from BOTTOM to TOP
+					layer->OnUpdate(timestep);
 			}
 
 			m_ImGuiLayer->Begin();
 			for (Layer* layer : m_LayerStack)
 				layer->OnImGuiRender();
 			m_ImGuiLayer->End();
-
 			m_Window->OnUpdate();
 		}
 	}
