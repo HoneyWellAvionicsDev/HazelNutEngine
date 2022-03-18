@@ -45,7 +45,7 @@ namespace Hazel
 
         m_CameraEntity2 = m_Scene->CreateEntity("Camera Entity");
         auto & cc = m_CameraEntity2.AddComponent<CameraComponent>();
-        cc.Primary = false;
+        cc.Primary = true;
 
         class CameraController : public ScriptableEntity
         {

@@ -42,7 +42,8 @@ namespace Hazel
 	struct CameraComponent
 	{
 		SceneCamera Camera;
-		bool Primary = true; //todo, move this to scene as we will only really have one primary camera
+
+		bool Primary = false; //todo, move this to scene as we will only really have one primary camera
 		bool FixedAspectRatio = false;
 
 		CameraComponent() = default;
