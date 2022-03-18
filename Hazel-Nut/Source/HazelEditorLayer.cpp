@@ -46,6 +46,44 @@ namespace Hazel
         m_CameraEntity2 = m_Scene->CreateEntity("Camera Entity");
         auto & cc = m_CameraEntity2.AddComponent<CameraComponent>();
         cc.Primary = false;
+
+        class CameraController : public ScriptableEntity
+        {
+        public:
+            void OnCreate()
+            {
+                auto& transform = GetComponent<TransformComponent>().Transform;
+                transform[3][0] = rand() % 10 - 5.f;
+
+            }
+
+            void OnDestroy()
+            {
+
+            }
+
+            void OnUpdate(Timestep ts)
+            {
+                auto& transform = GetComponent<TransformComponent>().Transform;
+                float speed = 5.f;
+
+                if (Input::IsKeyPressed(HZ_KEY_A))
+                    transform[3][0] -= speed * ts;
+                if (Input::IsKeyPressed(HZ_KEY_D))
+                    transform[3][0] += speed * ts;
+                if (Input::IsKeyPressed(HZ_KEY_W))
+                    transform[3][1] += speed * ts;
+                if (Input::IsKeyPressed(HZ_KEY_S))
+                    transform[3][1] -= speed * ts;
+            }
+
+        };
+
+        m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
+        m_CameraEntity2.AddComponent<NativeScriptComponent>().Bind<CameraController>();
+
+        m_SceneHierarchyPanel.SetContext(m_Scene);
+
     }
     
     void EditorLayer::OnDetach()
@@ -179,6 +217,9 @@ namespace Hazel
     
             ImGui::EndMenuBar();
         }
+
+        m_SceneHierarchyPanel.OnImGuiRender();
+
         ImGui::Begin("Settings");
         auto stats = Renderer2D::GetStats();
         ImGui::Text("Renderer2D Stats: ");

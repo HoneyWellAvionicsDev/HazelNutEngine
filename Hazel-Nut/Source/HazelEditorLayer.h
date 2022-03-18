@@ -2,6 +2,7 @@
 
 #include "Hazel.h"
 #include "Hazel/Core/Layer.h"
+#include "Panels/SceneHierarchyPanel.h"
 
 namespace Hazel
 {
@@ -42,6 +43,10 @@ namespace Hazel
 		float m_RotationalSpeed = 60.f;
 	
 		std::unordered_map<char, Ref<SubTexture2D>> s_TextureMap;
+
+
+		//panels
+		SceneHierarchyPanel m_SceneHierarchyPanel;
 	};
 }
 
