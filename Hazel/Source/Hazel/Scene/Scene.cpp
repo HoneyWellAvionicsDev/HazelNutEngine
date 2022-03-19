@@ -2,7 +2,6 @@
 #include "Scene.h"
 #include "Components.h"
 #include "Entity.h"
-//#include "ScriptableEntity.h"
 #include "Hazel/Renderer/Renderer2D.h"
 
 #include <glm/glm.hpp>
@@ -22,9 +21,9 @@ namespace Hazel
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this};
-		entity.AddComponent<TransformComponent>();
 		auto & tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
+		entity.AddComponent<TransformComponent>();
 		return entity;
 	}
 
@@ -120,7 +119,7 @@ namespace Hazel
 	template<>
 	void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
 	{
-
+		
 	}
 
 	template<>
