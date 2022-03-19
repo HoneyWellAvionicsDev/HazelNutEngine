@@ -22,6 +22,7 @@ namespace Hazel
 
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
+		uint32_t m_CreatedEntities = 0;
 
 
 	};
