@@ -309,10 +309,7 @@ namespace Hazel
 					camera.SetOrthographicFarClip(orthoFar);
 
 				ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
-			}
-
-			ImGui::TreePop();
-			
+			}	
 		});
 
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
