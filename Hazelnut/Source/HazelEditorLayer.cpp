@@ -2,6 +2,8 @@
 #include <imgui.h>
 #include "glm/gtc/type_ptr.hpp"
 
+#include "Hazel/Scene/SceneSerializer.h"
+
 namespace Hazel
 {
     static const char* s_MapTiles =
@@ -36,6 +38,7 @@ namespace Hazel
         m_FrameBuffer = FrameBuffer::Create(FrameBufferSpec);
 
         m_Scene = CreateRef<Scene>();
+#if 0
         auto square = m_Scene->CreateEntity("TestSquare");
         square.AddComponent<SpriteRendererComponent>(glm::vec4{0.f, 1.f, 0.f, 1.f});
         m_SquareEntity = square;
@@ -81,9 +84,8 @@ namespace Hazel
 
         m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
         m_CameraEntity2.AddComponent<NativeScriptComponent>().Bind<CameraController>();
-
+#endif
         m_SceneHierarchyPanel.SetContext(m_Scene);
-
     }
     
     void EditorLayer::OnDetach()
@@ -211,10 +213,22 @@ namespace Hazel
         {
             if (ImGui::BeginMenu("File"))
             {
-                ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
+                //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
                 ImGui::MenuItem("Padding", NULL, &opt_padding);
                 ImGui::Separator();
-    
+                
+                if (ImGui::MenuItem("Serialize"))
+                {
+                    SceneSerializer serializer(m_Scene);
+                    serializer.Serialize("assets/scenes/Example.hazel");
+                }
+
+                if (ImGui::MenuItem("Deserialize"))
+                {
+                    SceneSerializer serializer(m_Scene);
+                    serializer.Deserialize("assets/scenes/Example.hazel");
+                }
+
                 if (ImGui::MenuItem("Quit")) Application::Get().CloseWindow();
                 
                 ImGui::EndMenu();
