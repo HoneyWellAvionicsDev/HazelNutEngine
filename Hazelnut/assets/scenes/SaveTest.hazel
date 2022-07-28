@@ -1,0 +1,58 @@
+Scene: Untitled
+Entities:
+  - Entity: 37095698347506
+    TagComponent:
+      Tag: Rotate
+    TransformComponent:
+      Translation: [-1.89999998, 0, 0]
+      Rotation: [0, 0, 0.637045145]
+      Scale: [1, 1, 0]
+    SpriteRendererComponent:
+      Color: [0.683274031, 0.17021063, 0.17021063, 1]
+  - Entity: 37095698347506
+    TagComponent:
+      Tag: Camera Entity
+    TransformComponent:
+      Translation: [-2.70000005, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 45
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 10000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 37095698347506
+    TagComponent:
+      Tag: Bitches
+    TransformComponent:
+      Translation: [-4.19999981, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 45
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 10000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: false
+      FixedAspectRatio: false
+    SpriteRendererComponent:
+      Color: [0.510424972, 0.47582987, 0.718861222, 1]
+  - Entity: 37095698347506
+    TagComponent:
+      Tag: TestSquare
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.0319778137, 0.359430611, 0.0319778137, 1]

@@ -3,6 +3,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "Hazel/Scene/SceneSerializer.h"
+#include "Hazel/Utils/PlatfromUtils.h"
 
 namespace Hazel
 {
@@ -217,17 +218,16 @@ namespace Hazel
                 ImGui::MenuItem("Padding", NULL, &opt_padding);
                 ImGui::Separator();
                 
-                if (ImGui::MenuItem("Serialize"))
-                {
-                    SceneSerializer serializer(m_Scene);
-                    serializer.Serialize("assets/scenes/Example.hazel");
-                }
+                if (ImGui::MenuItem("New", "Ctrl+N"))
+                    NewScene();
 
-                if (ImGui::MenuItem("Deserialize"))
-                {
-                    SceneSerializer serializer(m_Scene);
-                    serializer.Deserialize("assets/scenes/Example.hazel");
-                }
+                if (ImGui::MenuItem("Open...", "Ctrl+O"))
+                    OpenScene();
+
+                if (ImGui::MenuItem("Save", "Ctrl+S"));
+
+                if (ImGui::MenuItem("Save As", "Ctrl+Shift+S"))
+                    SaveSceneAs();
 
                 if (ImGui::MenuItem("Quit")) Application::Get().CloseWindow();
                 
@@ -277,5 +277,71 @@ namespace Hazel
     void EditorLayer::OnEvent(Event& event)
     {
     	m_CameraController.OnEvent(event);
+
+        EventDispatcher dispatcher(event);
+        dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); //key presses on imgui are captured by imgui and therefor will not be dispatched
+    }
+
+    bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
+    {
+        //short cuts
+        if (event.GetRepeatCount() > 0)
+            return false;
+
+        bool control = Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL);
+        bool shift = Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT) || Input::IsKeyPressed(HZ_KEY_RIGHT_SHIFT);
+        switch (event.GetKeyCode())
+        {
+            case HZ_KEY_N:
+            {
+                if (control)
+                    NewScene();
+                break;
+            }
+            case HZ_KEY_O:
+            {
+                if (control)
+                    OpenScene();
+                break;
+            }
+            case HZ_KEY_S:
+            {
+                if (control && shift)
+                    SaveSceneAs();
+                break;
+            }
+        }
+    }
+
+    void EditorLayer::NewScene()
+    {
+        m_Scene = CreateRef<Scene>();
+        m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_Scene);
+    }
+
+    void EditorLayer::OpenScene()
+    {
+                                                            //(allfiles ("*")) - the actual filter
+        std::string filepath = FileDialogs::OpenFile("Hazel Scene (*.hazel\0*.hazel\0");
+        if (!filepath.empty())
+        {
+            m_Scene = CreateRef<Scene>();
+            m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_SceneHierarchyPanel.SetContext(m_Scene);
+
+            SceneSerializer serializer(m_Scene);
+            serializer.Deserialize(filepath);
+        }
+    }
+
+    void EditorLayer::SaveSceneAs()
+    {
+        std::string filepath = FileDialogs::SaveFile("Hazel Scene (*.hazel\0*.hazel\0");
+        if (!filepath.empty())
+        {
+            SceneSerializer serializer(m_Scene);
+            serializer.Serialize(filepath);
+        }
     }
 }
