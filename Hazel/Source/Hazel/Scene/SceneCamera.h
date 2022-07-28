@@ -36,7 +36,7 @@ namespace Hazel
 		void SetPerspectiveNearClip(float nearClip) { m_PerspectiveNear = nearClip; }
 		void SetPerspectiveFarClip(float farClip) { m_PerspectiveFar = farClip; }
 
-		void SetProjectionType(ProjectionType type) { m_ProjectionType = type; }
+		void SetProjectionType(ProjectionType type) { m_ProjectionType = type; RecalculateProjection(); }
 		
 	private:
 		void RecalculateProjection();
