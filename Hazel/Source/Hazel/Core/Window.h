@@ -14,8 +14,8 @@ namespace Hazel
 		uint32_t Height;
 
 		WindowProps(const std::string& title = "Hazel Engine",
-			uint32_t width = 2560,
-			uint32_t height = 1440)
+			uint32_t width = 1920,
+			uint32_t height = 1080)
 			: Title(title), Width(width), Height(height)
 		{
 
@@ -23,7 +23,7 @@ namespace Hazel
 	};
 
 	//Interface representing a desktop system based window
-	class HAZEL_API Window
+	class Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;
