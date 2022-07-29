@@ -245,7 +245,7 @@ namespace Hazel
 			glm::vec3 rotation = glm::degrees(component.Rotation);
 			DrawVec3Control("Rotation", rotation, 0.25f);
 			component.Rotation = glm::radians(rotation);
-			DrawVec3Control("Scale", component.Scale, 0.1f);
+			DrawVec3Control("Scale", component.Scale, 0.1f, 1.0f);
 		});
 
 		ImGui::PopItemWidth();
