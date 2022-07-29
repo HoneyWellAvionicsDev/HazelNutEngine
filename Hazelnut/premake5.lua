@@ -10,7 +10,10 @@ project "Hazelnut"
 	files
 	{
 		"Source/**.h",
-		"Source/**.cpp"
+		"Source/**.cpp",
+
+		--"%{wks.location}/Hazel/vendors/ImGuizmo/*.h",
+		--"%{wks.location}/Hazel/vendors/ImGuizmo/*.cpp"
 	}
 
 	includedirs

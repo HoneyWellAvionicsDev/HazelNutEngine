@@ -50,7 +50,7 @@ namespace Hazel
 	
 		std::unordered_map<char, Ref<SubTexture2D>> s_TextureMap;
 
-
+		int m_GizmoType = -1;
 		//panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 	};

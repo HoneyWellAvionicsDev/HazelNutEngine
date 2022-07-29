@@ -17,7 +17,10 @@ project "Hazel"
 		"vendors/stb_image/**.h",
 		"vendors/stb_image/**.cpp",
 		"vendors/glm/glm/**.hpp",
-		"vendors/glm/glm/**.inl"
+		"vendors/glm/glm/**.inl",
+
+        "vendors/ImGuizmo/ImGuizmo.h",
+        "vendors/ImGuizmo/ImGuizmo.cpp"
     }
 
     defines
