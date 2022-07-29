@@ -42,6 +42,8 @@ namespace Hazel
         m_FrameBuffer = FrameBuffer::Create(FrameBufferSpec);
 
         m_Scene = CreateRef<Scene>();
+
+        m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 #if 0
         auto square = m_Scene->CreateEntity("TestSquare");
         square.AddComponent<SpriteRendererComponent>(glm::vec4{0.f, 1.f, 0.f, 1.f});
@@ -107,12 +109,17 @@ namespace Hazel
         {
             //m_FrameBuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+            m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
 
     	//------------------Update----------------------------------
-        if(m_ViewportFocused)
-    	    m_CameraController.OnUpdate(ts);
+        if (m_ViewportFocused)
+        {
+            m_CameraController.OnUpdate(ts);
+            m_EditorCamera.OnUpdate(ts);
+        }
+
     
     	//------------------Render----------------------------------
     	Renderer2D::ResetStats();
@@ -121,7 +128,7 @@ namespace Hazel
     	RenderCommand::Clear();
 
         //update scene
-        m_Scene->OnUpdate(ts);
+        m_Scene->OnUpdateEditor(ts, m_EditorCamera);
     #if 0
     	Renderer2D::BeginScene(m_CameraController.GetCamera());
     	Renderer2D::DrawQuad({ -1.f, 0.f }, { 0.8f, 0.8f }, { 0.8f, 1.f, 0.9f, 0.8f });
@@ -267,6 +274,7 @@ namespace Hazel
         {
             //m_FrameBuffer->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y); 
             m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+            m_EditorCamera.SetViewportSize(viewportPanelSize.x, viewportPanelSize.y);
             m_CameraController.OnResize(viewportPanelSize.x, viewportPanelSize.y);
         }
         uint32_t textureID = m_FrameBuffer->GetColorAttachmentRendererID();
@@ -283,11 +291,15 @@ namespace Hazel
             float windowHeight = (float)ImGui::GetWindowHeight();
             ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
-            //get cam
-            auto cameraEntity = m_Scene->GetPrimaryCameraEntity();
-            const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-            const glm::mat4& cameraProjection = camera.GetProjection();
-            glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
+            ////get runtime cam
+            //auto cameraEntity = m_Scene->GetPrimaryCameraEntity();
+            //const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+            //const glm::mat4& cameraProjection = camera.GetProjection();
+            //glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
+
+            //Get Editor cam
+            const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
+            glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 
             // Entity transfrom
             auto& tc = selectedEntity.GetComponent<TransformComponent>();
@@ -329,6 +341,7 @@ namespace Hazel
     void EditorLayer::OnEvent(Event& event)
     {
     	m_CameraController.OnEvent(event);
+        m_EditorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); 

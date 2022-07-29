@@ -40,7 +40,9 @@ namespace Hazel
 		Entity m_SquareEntity;
 		Entity m_CameraEntity;
 		Entity m_CameraEntity2;
+
 		bool m_PrimaryCamera = true;
+		EditorCamera m_EditorCamera;
 	
 		glm::vec4 m_SquareColor = { 0.2f, 0.3f, 0.8f, 1.f };
 		glm::vec2 m_ViewportSize = {0.f, 0.f};
