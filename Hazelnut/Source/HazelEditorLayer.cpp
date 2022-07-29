@@ -259,8 +259,8 @@ namespace Hazel
         ImGui::Begin("Viewport");
 
         m_ViewportFocused = ImGui::IsWindowFocused();
-        m_ViewportHovered = ImGui::IsWindowHovered();                                            // temp solution
-        Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportHovered && !m_ViewportFocused && !Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL));
+        m_ViewportHovered = ImGui::IsWindowHovered();                                            // either control key should prevent imgui blocking events
+        Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportHovered && !m_ViewportFocused && !(Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL)));
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize) && viewportPanelSize.x > 0 && viewportPanelSize.y > 0)
@@ -331,7 +331,7 @@ namespace Hazel
     	m_CameraController.OnEvent(event);
 
         EventDispatcher dispatcher(event);
-        dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); //key presses on imgui are captured by imgui and therefor will not be dispatched
+        dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); 
     }
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
@@ -364,16 +364,20 @@ namespace Hazel
             }
             //gizmo shortcuts
             case HZ_KEY_Q:
-                m_GizmoType = -1;
+                if(!control)
+                    m_GizmoType = -1;
                 break;
             case HZ_KEY_W:
-                m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                if (!control)
+                    m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
                 break;
             case HZ_KEY_E:
-                m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+                if (!control)
+                    m_GizmoType = ImGuizmo::OPERATION::ROTATE;
                 break;
             case HZ_KEY_R:
-                m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                if (!control)
+                    m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
         }
 
