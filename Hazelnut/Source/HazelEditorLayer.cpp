@@ -37,9 +37,9 @@ namespace Hazel
     	m_FullHeart = SubTexture2D::CreateFromCoords(m_SpriteSheet, {2, 1}, { 18, 18 }, {1, 1});
     
         FrameBufferSpecification FrameBufferSpec;
-        FrameBufferSpec.Attachments = { FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::Depth };
-        FrameBufferSpec.Width = 2560;
-        FrameBufferSpec.Height = 1440;
+        FrameBufferSpec.Attachments = { FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::RED_INTEGER, FrameBufferTextureFormat::Depth };
+        FrameBufferSpec.Width = 1280;
+        FrameBufferSpec.Height = 720;
         m_FrameBuffer = FrameBuffer::Create(FrameBufferSpec);
 
         m_Scene = CreateRef<Scene>();
@@ -105,7 +105,7 @@ namespace Hazel
     	HZ_PROFILE_FUNCTION();
 
         if (FrameBufferSpecification spec = m_FrameBuffer->GetSpecification();
-            m_ViewportSize.x > 0.f && m_ViewportSize.y > 0.f &&
+            m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
             (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
         {
             //m_FrameBuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
@@ -130,6 +130,18 @@ namespace Hazel
 
         //update scene
         m_Scene->OnUpdateEditor(ts, m_EditorCamera);
+
+        auto [mx, my] = ImGui::GetMousePos();
+        mx -= m_ViewportBounds[0].x;
+        my -= m_ViewportBounds[0].y;
+        glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+        my = viewportSize.y = my;
+        int mouseX = (int)mx;
+        int mouseY = (int)my;
+        if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y) //this happens every frame, maybe make it happen on mouse click
+        {
+            m_FrameBuffer->ReadPixel(1, mouseX, mouseY);
+        }
     #if 0
     	Renderer2D::BeginScene(m_CameraController.GetCamera());
     	Renderer2D::DrawQuad({ -1.f, 0.f }, { 0.8f, 0.8f }, { 0.8f, 1.f, 0.9f, 0.8f });
@@ -257,29 +269,32 @@ namespace Hazel
         ImGui::Text("Quads: %d", stats.QuadCount);
         ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
-      
-
+ 
         ImGui::ShowDemoWindow(&dockspaceOpen);
         ImGui::ColorEdit4("Square Color", glm::value_ptr(m_SquareColor));
         ImGui::End();
     
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
         ImGui::Begin("Viewport");
+        auto viewportOffset = ImGui::GetCursorPos(); //includes tab bar
 
         m_ViewportFocused = ImGui::IsWindowFocused();
         m_ViewportHovered = ImGui::IsWindowHovered();                                            // either control key should prevent imgui blocking events
         Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportHovered && !m_ViewportFocused && !(Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL)));
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-        if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize) && viewportPanelSize.x > 0 && viewportPanelSize.y > 0)
-        {
-            //m_FrameBuffer->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y); 
-            m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-            m_EditorCamera.SetViewportSize(viewportPanelSize.x, viewportPanelSize.y);
-            m_CameraController.OnResize(viewportPanelSize.x, viewportPanelSize.y);
-        }
+        m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+  
         uint32_t textureID = m_FrameBuffer->GetColorAttachmentRendererID();
         ImGui::Image((void*)textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y}, ImVec2{0,1}, ImVec2{1,0});
+
+        auto windowSize = ImGui::GetWindowSize();
+        ImVec2 minBound = ImGui::GetWindowPos();
+        minBound.x += viewportOffset.x;
+        minBound.y += viewportOffset.y;
+        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        m_ViewportBounds[0] = { minBound.x, minBound.y };
+        m_ViewportBounds[1] = { maxBound.x, maxBound.y };
 
         //Gizmos
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
@@ -394,8 +409,6 @@ namespace Hazel
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
         }
-
-        
     }
 
     void EditorLayer::NewScene()

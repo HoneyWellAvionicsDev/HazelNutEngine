@@ -44,11 +44,12 @@ namespace Hazel
 		bool m_PrimaryCamera = true;
 		EditorCamera m_EditorCamera;
 	
-		glm::vec4 m_SquareColor = { 0.2f, 0.3f, 0.8f, 1.f };
-		glm::vec2 m_ViewportSize = {0.f, 0.f};
+		glm::vec4 m_SquareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
+		glm::vec2 m_ViewportSize = {0.0f, 0.0f};
+		glm::vec2 m_ViewportBounds[2];
 		bool m_ViewportFocused = false;
 		bool m_ViewportHovered = false;
-		float m_RotationalSpeed = 60.f;
+		float m_RotationalSpeed = 60.0f;
 	
 		std::unordered_map<char, Ref<SubTexture2D>> s_TextureMap;
 

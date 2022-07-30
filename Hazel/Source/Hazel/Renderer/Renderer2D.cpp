@@ -54,11 +54,12 @@ namespace Hazel
 		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
 
 		s_Data.QuadVertexBuffer->SetLayout({
-				{ShaderDataType::Float3, "a_Posistion" },        //these names are needed for direct x but not opengl
-				{ShaderDataType::Float4, "a_Color" },
-				{ShaderDataType::Float2, "a_TextureCoord" },
-				{ShaderDataType::Float, "a_TexIndex" },
-				{ShaderDataType::Float, "a_TileFactor" }
+				{ ShaderDataType::Float3, "a_Posistion"	   },        //these names are needed for direct x but not opengl
+				{ ShaderDataType::Float4, "a_Color"		   },
+				{ ShaderDataType::Float2, "a_TextureCoord" },
+				{ ShaderDataType::Float,  "a_TexIndex"	   },
+				{ ShaderDataType::Float,  "a_TileFactor"   }
+				//{ ShaderDataType::Int,    "a_EntityID"     }
 		});
 		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
 
@@ -84,6 +85,13 @@ namespace Hazel
 		s_Data.QuadVertexArray->SetIndexBuffer(quadIB);
 		delete[] quadIndices;
 
+		//Circles
+
+		//lines
+
+
+
+		//white texture
 		s_Data.WhiteTexture = Texture2D::Upload(1, 1);
 		uint32_t whiteTextureData = 0xffffffff;
 		s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(whiteTextureData));
@@ -96,6 +104,7 @@ namespace Hazel
 		s_Data.TextureShader->Bind();
 		s_Data.TextureShader->SetIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
 
+		//set first texture slot to 0
 		s_Data.TextureSlots[0] = s_Data.WhiteTexture;
 
 		s_Data.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.f, 1.f };
@@ -133,10 +142,7 @@ namespace Hazel
 		s_Data.TextureShader->Bind();
 		s_Data.TextureShader->SetMat4("u_ViewProjection", viewProj);
 
-		s_Data.QuadIndexCount = 0;
-		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
-		s_Data.TextureSlotIndex = 1;
+		StartBatch();
 	}
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
@@ -145,25 +151,32 @@ namespace Hazel
 		s_Data.TextureShader->Bind();
 		s_Data.TextureShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
 
-		s_Data.QuadIndexCount = 0;
-		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
-		s_Data.TextureSlotIndex = 1;
+		StartBatch();
 	}
 
 	void Renderer2D::EndScene()
 	{
 		HZ_PROFILE_FUNCTION();
 
-		int32_t dataSize = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
-		s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
-
 		Flush();
+	}
+
+	void Renderer2D::StartBatch()
+	{
+		s_Data.QuadIndexCount = 0;
+		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+		s_Data.TextureSlotIndex = 1;
 	}
 
 	void Renderer2D::Flush()
 	{
 		HZ_PROFILE_FUNCTION();
+		if (s_Data.QuadIndexCount == 0) //nothing to draw
+			return;
+
+		uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
+		s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
+
 		//bind textures here
 		for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
 			s_Data.TextureSlots[i]->Bind(i);
@@ -175,13 +188,8 @@ namespace Hazel
 	void Renderer2D::StartNewBatch()
 	{
 		HZ_PROFILE_FUNCTION();
-
-		EndScene();
-
-		s_Data.QuadIndexCount = 0;
-		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
-		s_Data.TextureSlotIndex = 1;
+		Flush();
+		StartBatch();
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)

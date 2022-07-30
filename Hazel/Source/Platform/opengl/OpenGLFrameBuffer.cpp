@@ -22,16 +22,16 @@ namespace Hazel
 			glBindTexture(TextureTarget(multisampled), id);
 		}
 
-		static void AttachColorTexture(uint32_t id, int samples, GLenum format, uint32_t width, uint32_t height, int index)
+		static void AttachColorTexture(uint32_t id, int samples, GLenum interlalformat, GLenum format, uint32_t width, uint32_t height, int index)
 		{
 			bool multisampled = samples > 1;
 			if (multisampled)
 			{
-				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_FALSE);
+				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, interlalformat, width, height, GL_FALSE);
 			}
 			else
 			{
-				glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); //allocates memory for textures
+				glTexImage2D(GL_TEXTURE_2D, 0, interlalformat, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr); //allocates memory for textures
 
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -75,6 +75,8 @@ namespace Hazel
 		}
 	}
 
+	static const uint32_t s_MaxFramebufferSize = 8192;
+
 	OpenGLFrameBuffer::OpenGLFrameBuffer(const FrameBufferSpecification& specs)
 		: m_Specification(specs)
 	{
@@ -88,8 +90,6 @@ namespace Hazel
 
 		Invalidate();
 	}
-
-	static const uint32_t s_MaxFramebufferSize = 8192;
 
 	OpenGLFrameBuffer::~OpenGLFrameBuffer()
 	{
@@ -127,7 +127,10 @@ namespace Hazel
 				switch (m_ColorAttachmentSpecifications[i].TextureFormat)
 				{
 					case FrameBufferTextureFormat::RGBA8:
-						Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA8, m_Specification.Width, m_Specification.Height, i);
+						Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA8, GL_RGBA, m_Specification.Width, m_Specification.Height, i);
+						break;
+					case FrameBufferTextureFormat::RED_INTEGER:
+						Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_R32I, GL_RED_INTEGER, m_Specification.Width, m_Specification.Height, i);
 						break;
 				}
 			}
@@ -156,19 +159,6 @@ namespace Hazel
 			glDrawBuffer(GL_NONE); //only depth-pass
 		}
 
-		//glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachment);
-		//glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
-		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Specification.Width, m_Specification.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
-		//
-		//glCreateTextures(GL_TEXTURE_2D, 1, &m_DepthAttachment);
-		//glBindTexture(GL_TEXTURE_2D, m_DepthAttachment);
-		//glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, m_Specification.Width, m_Specification.Height);
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachment, 0);
-
 		HZ_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -195,5 +185,14 @@ namespace Hazel
 		m_Specification.Width = width;
 		m_Specification.Height = height;
 		Invalidate(); 
+	}
+
+	int OpenGLFrameBuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
+	{
+		HZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attach index is out of bounds");
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
+		int pixelData;
+		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);  //only reads a single pixel
+		return pixelData;
 	}
 }
