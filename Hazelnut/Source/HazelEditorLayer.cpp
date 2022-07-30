@@ -37,6 +37,7 @@ namespace Hazel
     	m_FullHeart = SubTexture2D::CreateFromCoords(m_SpriteSheet, {2, 1}, { 18, 18 }, {1, 1});
     
         FrameBufferSpecification FrameBufferSpec;
+        FrameBufferSpec.Attachments = { FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::Depth };
         FrameBufferSpec.Width = 2560;
         FrameBufferSpec.Height = 1440;
         m_FrameBuffer = FrameBuffer::Create(FrameBufferSpec);

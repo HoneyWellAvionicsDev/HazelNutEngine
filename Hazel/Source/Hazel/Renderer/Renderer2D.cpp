@@ -54,7 +54,7 @@ namespace Hazel
 		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
 
 		s_Data.QuadVertexBuffer->SetLayout({
-				{ShaderDataType::Float3, "a_Posistion" },
+				{ShaderDataType::Float3, "a_Posistion" },        //these names are needed for direct x but not opengl
 				{ShaderDataType::Float4, "a_Color" },
 				{ShaderDataType::Float2, "a_TextureCoord" },
 				{ShaderDataType::Float, "a_TexIndex" },
