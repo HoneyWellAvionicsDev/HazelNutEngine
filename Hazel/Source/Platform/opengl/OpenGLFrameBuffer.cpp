@@ -73,6 +73,30 @@ namespace Hazel
 
 			return false;
 		}
+
+		static GLenum ConvertFBTextureFormatToGL(FrameBufferTextureFormat format)
+		{
+			switch (format)
+			{
+				case FrameBufferTextureFormat::RGBA8:		return GL_RGBA8;
+				case FrameBufferTextureFormat::RED_INTEGER: return GL_RED_INTEGER;
+			}
+
+			HZ_CORE_ASSERT(false, "Unknown format");
+			return 0;
+		}
+
+		static GLenum GLDataType(FrameBufferTextureFormat format)
+		{
+			switch (format)
+			{
+			case FrameBufferTextureFormat::RGBA8:		return GL_UNSIGNED_BYTE;
+			case FrameBufferTextureFormat::RED_INTEGER: return GL_RED_INTEGER;
+			}
+
+			HZ_CORE_ASSERT(false, "Unknown format");
+			return 0;
+		}
 	}
 
 	static const uint32_t s_MaxFramebufferSize = 8192;
@@ -190,9 +214,18 @@ namespace Hazel
 	int OpenGLFrameBuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
 	{
 		HZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attach index is out of bounds");
+
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
 		int pixelData;
 		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);  //only reads a single pixel
 		return pixelData;
+	}
+
+	void OpenGLFrameBuffer::ClearAttachment(uint32_t attachmentIndex, int value)
+	{
+		HZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attach index is out of bounds");
+
+		auto& spec = m_ColorAttachmentSpecifications[attachmentIndex];
+		glClearTexImage(m_ColorAttachments[attachmentIndex], 0, Utils::ConvertFBTextureFormatToGL(spec.TextureFormat), GL_INT, &value);
 	}
 }

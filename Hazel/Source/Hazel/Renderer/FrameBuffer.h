@@ -59,6 +59,8 @@ namespace Hazel
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
 		virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
+		virtual void ClearAttachment(uint32_t attachmentIndex, /*const void**/int value) = 0; //maybe template this later to specifiy type
+
 		virtual uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const = 0;
 		virtual const FrameBufferSpecification& GetSpecification() const = 0;
 

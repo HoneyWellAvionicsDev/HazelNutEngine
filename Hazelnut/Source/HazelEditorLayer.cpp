@@ -128,7 +128,9 @@ namespace Hazel
     	RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
     	RenderCommand::Clear();
 
-        //update scene
+        //------------------Clear ent ID to -1----------------------------------
+        m_FrameBuffer->ClearAttachment(1, -1);
+        //------------------Scene----------------------------------
         m_Scene->OnUpdateEditor(ts, m_EditorCamera);
 
         auto [mx, my] = ImGui::GetMousePos();
