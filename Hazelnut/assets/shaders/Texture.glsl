@@ -6,14 +6,15 @@ layout(location = 1) in vec4 a_Color;
 layout(location = 2) in vec2 a_TextureCoord;
 layout(location = 3) in float a_TexIndex;
 layout(location = 4) in float a_TileFactor;
-//layout(location = 5) in int a_EntityID;
+layout(location = 5) in int a_EntityID;
 
 uniform mat4 u_ViewProjection;
 
 out vec4 v_Color;
 out vec2 v_TextureCoord;
-out float v_TexIndex;
+out flat float v_TexIndex;
 out float v_TileFactor;
+out flat int v_EntityID;
 
 void main()
 {
@@ -21,6 +22,7 @@ void main()
 	v_TextureCoord = a_TextureCoord;
 	v_TexIndex = a_TexIndex;
 	v_TileFactor = a_TileFactor;
+	v_EntityID = a_EntityID;
 	gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 }
 
@@ -32,8 +34,9 @@ layout(location = 1) out int color2;
 
 in vec4 v_Color;
 in vec2 v_TextureCoord;
-in float v_TexIndex;
+in flat float v_TexIndex;
 in float v_TileFactor;
+in flat int v_EntityID;
 
 
 uniform sampler2D u_Textures[32];
@@ -80,5 +83,5 @@ void main()
 
 	color = texColor;
 
-	color2 = 50; //placeholder for entity ID
+	color2 = v_EntityID; 
 }

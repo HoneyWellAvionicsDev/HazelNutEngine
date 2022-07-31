@@ -20,6 +20,7 @@ namespace Hazel
 	
 	private:
 		bool OnKeyPressed(KeyPressedEvent& event);
+		bool OnMouseClick(MouseButtonEvent& event);
 
 		void NewScene();
 		void OpenScene();
@@ -40,6 +41,7 @@ namespace Hazel
 		Entity m_SquareEntity;
 		Entity m_CameraEntity;
 		Entity m_CameraEntity2;
+		Entity m_HoveredEntity;
 
 		bool m_PrimaryCamera = true;
 		EditorCamera m_EditorCamera;
@@ -52,7 +54,6 @@ namespace Hazel
 		float m_RotationalSpeed = 60.0f;
 	
 		std::unordered_map<char, Ref<SubTexture2D>> s_TextureMap;
-
 		int m_GizmoType = -1;
 		//panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;

@@ -108,7 +108,7 @@ namespace Hazel
             m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
             (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
         {
-            //m_FrameBuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_FrameBuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
@@ -132,7 +132,7 @@ namespace Hazel
         m_FrameBuffer->ClearAttachment(1, -1);
         //------------------Scene----------------------------------
         m_Scene->OnUpdateEditor(ts, m_EditorCamera);
-
+       
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x;
         my -= m_ViewportBounds[0].y;
@@ -142,7 +142,8 @@ namespace Hazel
         int mouseY = (int)my;
         if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y) //this happens every frame, maybe make it happen on mouse click
         {
-            m_FrameBuffer->ReadPixel(1, mouseX, mouseY);
+            int pixelData = m_FrameBuffer->ReadPixel(1, mouseX, mouseY);
+            m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_Scene.get());
         }
     #if 0
     	Renderer2D::BeginScene(m_CameraController.GetCamera());
@@ -265,6 +266,12 @@ namespace Hazel
         m_SceneHierarchyPanel.OnImGuiRender();
 
         ImGui::Begin("Statistics");
+
+        std::string name = "None";
+        if (m_HoveredEntity)
+            name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
+        ImGui::Text("Hovered Entity: %s", name.c_str());
+
         auto stats = Renderer2D::GetStats();
         ImGui::Text("Renderer2D Stats: ");
         ImGui::Text("Draw Calls: %d", stats.DrawCalls);
@@ -298,10 +305,11 @@ namespace Hazel
         ImVec2 minBound = ImGui::GetWindowPos();
         minBound.x += viewportOffset.x;
         minBound.y += viewportOffset.y;
+
         ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
         m_ViewportBounds[0] = { minBound.x, minBound.y };
         m_ViewportBounds[1] = { maxBound.x, maxBound.y };
-
+#endif
         //Gizmos
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity && m_GizmoType != -1)
@@ -367,6 +375,7 @@ namespace Hazel
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); 
+        dispatcher.Dispatch<MouseButtonPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnMouseClick));
     }
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
@@ -415,6 +424,16 @@ namespace Hazel
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
         }
+    }
+
+    bool EditorLayer::OnMouseClick(MouseButtonEvent& event)
+    {
+        if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT)
+        {
+            if (m_ViewportHovered != ImGuizmo::IsOver() && !Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_5))   //move these boolean checks into its own func             
+                m_SceneHierarchyPanel.SetSelectionContext(m_HoveredEntity);
+        }
+        return false;
     }
 
     void EditorLayer::NewScene()

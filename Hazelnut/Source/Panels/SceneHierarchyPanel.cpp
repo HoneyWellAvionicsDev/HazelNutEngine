@@ -33,12 +33,8 @@ namespace Hazel
 		if (ImGui::BeginPopupContextWindow(0, 1, false))
 		{
 			if (ImGui::MenuItem("Create Blank Entity"))
-			{ 
-				//if(m_CreatedEntities)
 					m_Context->CreateEntity("Blank Entity");
 
-				//m_CreatedEntities++;
-			}
 
 			ImGui::EndPopup();
 		}
@@ -64,9 +60,7 @@ namespace Hazel
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
-		{
 			m_SelectionContext = entity;
-		}
 
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
@@ -90,10 +84,7 @@ namespace Hazel
 		{
 			m_Context->DestroyEntity(entity);
 			if (m_SelectionContext == entity)
-			{
-				m_CreatedEntities--;
 				m_SelectionContext = {};
-			}
 		}
 	}
 

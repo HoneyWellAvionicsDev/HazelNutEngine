@@ -14,6 +14,7 @@ namespace Hazel
 		SceneHierarchyPanel(const Ref<Scene>& scene);
 
 		void SetContext(const Ref<Scene>& scene);
+		void SetSelectionContext(const Entity& ent) { m_SelectionContext = ent; }
 		void OnImGuiRender();
 
 		Entity GetSelectedEntity() const { return m_SelectionContext; }
@@ -23,7 +24,6 @@ namespace Hazel
 
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
-		uint32_t m_CreatedEntities;
 	};
 }
 
