@@ -16,7 +16,8 @@ namespace Hazel
 		glm::vec2 TextureCoord;
 		float TexIndex;
 		float TileFactor;
-		//todo: maskid
+		//Editor-only
+		int EntityID;
 	};
 
 	struct Renderer2Ddata
@@ -58,8 +59,8 @@ namespace Hazel
 				{ ShaderDataType::Float4, "a_Color"		   },
 				{ ShaderDataType::Float2, "a_TextureCoord" },
 				{ ShaderDataType::Float,  "a_TexIndex"	   },
-				{ ShaderDataType::Float,  "a_TileFactor"   }
-				//{ ShaderDataType::Int,    "a_EntityID"     }
+				{ ShaderDataType::Float,  "a_TileFactor"   },
+				{ ShaderDataType::Int,    "a_EntityID"     }
 		});
 		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
 
@@ -181,7 +182,7 @@ namespace Hazel
 		for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
 			s_Data.TextureSlots[i]->Bind(i);
 
-		RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
+		RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount); //quads are actually drawn here
 		s_Data.Stats.DrawCalls++;
 	}
 
@@ -192,7 +193,7 @@ namespace Hazel
 		StartBatch();
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
 	{
 		HZ_PROFILE_FUNCTION();
 
@@ -205,13 +206,14 @@ namespace Hazel
 			StartNewBatch();
 
 
-		for (size_t i = 0; i < quadVertexCount; i++)
+		for (size_t i = 0; i < quadVertexCount; i++)                                         //important to note that draw quad just uploads data into the quad vertex buffer
 		{
 			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
 			s_Data.QuadVertexBufferPtr->Color = color;
 			s_Data.QuadVertexBufferPtr->TextureCoord = textureCoords[i];
 			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TileFactor = tileFactor;
+			s_Data.QuadVertexBufferPtr->EntityID = entityID;
 			s_Data.QuadVertexBufferPtr++;
 		}
 
@@ -235,7 +237,7 @@ namespace Hazel
 		DrawQuad(transform, color);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor, int entityID)
 	{
 		HZ_PROFILE_FUNCTION();
 
@@ -269,6 +271,7 @@ namespace Hazel
 			s_Data.QuadVertexBufferPtr->TextureCoord = textureCoords[i];
 			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TileFactor = tileFactor;
+			s_Data.QuadVertexBufferPtr->EntityID = entityID;
 			s_Data.QuadVertexBufferPtr++;
 		}
 
@@ -481,6 +484,11 @@ namespace Hazel
 		s_Data.QuadIndexCount += 6;
 
 		s_Data.Stats.QuadCount++;
+	}
+
+	void Renderer2D::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
+	{//in the future we will check to see if the SpriteRendComp has a texture and to draw that instead
+		DrawQuad(transform, src.Color, entityID);
 	}
 
 	void Renderer2D::ResetStats()

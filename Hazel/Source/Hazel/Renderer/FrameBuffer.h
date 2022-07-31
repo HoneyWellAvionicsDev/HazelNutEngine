@@ -65,7 +65,7 @@ namespace Hazel
 		virtual const FrameBufferSpecification& GetSpecification() const = 0;
 
 		static Ref<FrameBuffer> Create(const FrameBufferSpecification& specs);
-
+		virtual void Test() = 0; //remove this
 	};
 }
 
