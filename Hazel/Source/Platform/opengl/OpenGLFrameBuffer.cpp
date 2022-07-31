@@ -126,7 +126,7 @@ namespace Hazel
 	{
 		if (m_RendererID)
 		{
-			glDeleteBuffers(1, &m_RendererID);
+			glDeleteFramebuffers(1, &m_RendererID);
 			glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data());
 			glDeleteTextures(1, &m_DepthAttachment);
 
