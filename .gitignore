@@ -27,3 +27,7 @@ DevGround/imgui.ini
 *.json
 Hazel-Nut/imgui.ini
 *.hazel
+scripts/__pycache__
+Hazel/vendors/VulkanSDK
+Hazelnut/assets/cache
+Hazel/vendor/VulkanSDK
