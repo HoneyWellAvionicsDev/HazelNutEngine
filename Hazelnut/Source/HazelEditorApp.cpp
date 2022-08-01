@@ -8,8 +8,8 @@ namespace Hazel
 	class HazelEditor : public Application
 	{
 	public:
-		HazelEditor()
-			: Application("Hazel Editor")
+		HazelEditor(ApplicationCommandLineArgs args)
+			: Application(args ,"Hazel Editor")
 		{
 			PushLayer(new EditorLayer());
 		}
@@ -20,8 +20,8 @@ namespace Hazel
 		}
 	};
 	
-	Application* CreateApplication()
+	Application* CreateApplication(ApplicationCommandLineArgs args)
 	{
-		return new HazelEditor();
+		return new HazelEditor(args);
 	}
 }

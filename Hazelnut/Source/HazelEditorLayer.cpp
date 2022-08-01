@@ -28,13 +28,7 @@ namespace Hazel
     void EditorLayer::OnAttach()
     {
     	HZ_PROFILE_FUNCTION();
-    	m_Texture = Texture2D::Upload("assets/textures/Space.png");
-    	m_Texture2 = Texture2D::Upload("assets/textures/purple-square-9.png");
-    	m_SpriteSheet = Texture2D::Upload("assets/game/tiles_packed.png");
-    	s_TextureMap['G'] = SubTexture2D::CreateFromCoords(m_SpriteSheet, {18, 8}, {18, 18}, {1, 1});
-    	s_TextureMap['D'] = SubTexture2D::CreateFromCoords(m_SpriteSheet, {2, 2}, {18, 18}, {1, 1});
-    	s_TextureMap['W'] = SubTexture2D::CreateFromCoords(m_SpriteSheet, { 13, 6 }, { 18, 18 }, { 1, 1 });
-    	m_FullHeart = SubTexture2D::CreateFromCoords(m_SpriteSheet, {2, 1}, { 18, 18 }, {1, 1});
+    	
     
         FrameBufferSpecification FrameBufferSpec;
         FrameBufferSpec.Attachments = { FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::RED_INTEGER, FrameBufferTextureFormat::Depth };
@@ -44,54 +38,16 @@ namespace Hazel
 
         m_Scene = CreateRef<Scene>();
 
-        m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
-#if 0
-        auto square = m_Scene->CreateEntity("TestSquare");
-        square.AddComponent<SpriteRendererComponent>(glm::vec4{0.f, 1.f, 0.f, 1.f});
-        m_SquareEntity = square;
-
-        m_CameraEntity = m_Scene->CreateEntity("Camera Test");
-        m_CameraEntity.AddComponent<CameraComponent>();
-
-        m_CameraEntity2 = m_Scene->CreateEntity("Camera Entity");
-        auto & cc = m_CameraEntity2.AddComponent<CameraComponent>();
-        cc.Primary = true;
-
-        class CameraController : public ScriptableEntity
+        auto commandLineArgs = Application::Get().GetCommandLineArgs();
+        if (commandLineArgs.Count > 1)
         {
-        public:
-            void OnCreate() override
-            {
-                auto& translation = GetComponent<TransformComponent>().Translation;
-                translation.x = rand() % 10 - 5.f;
+            auto sceneFilePath = commandLineArgs[1];
+            SceneSerializer serializer(m_Scene);
+            serializer.Deserialize(sceneFilePath);
+        }
 
-            }
+        m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 
-            void OnDestroy() override
-            {
-
-            }
-
-            void OnUpdate(Timestep ts) override
-            {
-                auto& translation = GetComponent<TransformComponent>().Translation;
-                float speed = 5.f;
-
-                if (Input::IsKeyPressed(HZ_KEY_A))
-                    translation.x -= speed * ts;
-                if (Input::IsKeyPressed(HZ_KEY_D))
-                    translation.x += speed * ts;
-                if (Input::IsKeyPressed(HZ_KEY_W))
-                    translation.y += speed * ts;
-                if (Input::IsKeyPressed(HZ_KEY_S))
-                    translation.y -= speed * ts;
-            }
-
-        };
-
-        m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
-        m_CameraEntity2.AddComponent<NativeScriptComponent>().Bind<CameraController>();
-#endif
         m_SceneHierarchyPanel.SetContext(m_Scene);
     }
     
@@ -145,43 +101,8 @@ namespace Hazel
             int pixelData = m_FrameBuffer->ReadPixel(1, mouseX, mouseY);
             m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_Scene.get());
         }
-    #if 0
-    	Renderer2D::BeginScene(m_CameraController.GetCamera());
-    	Renderer2D::DrawQuad({ -1.f, 0.f }, { 0.8f, 0.8f }, { 0.8f, 1.f, 0.9f, 0.8f });
-    	Renderer2D::DrawQuad({ 0.5f, -0.5f }, { 0.5f, 0.75f }, { 0.8f, 0.67f, 0.12f, 0.8f });
-    	Renderer2D::DrawQuad({ 9.5f, -4.5f }, { 5.5f, 5.5f }, m_FullHeart);
-    
-    	static float rotation = 0.f;
-    	rotation += glm::radians(ts * m_RotationalSpeed);
-    
-    	Renderer2D::DrawRotatedQuad({ 9.5f, -19.5f, -0.9 }, { 5.5f, 5.5f }, rotation, m_SquareColor);
-    	Renderer2D::DrawRotatedQuad({ 0.f, 0.f, -0.8f}, { 15.0f, 15.0f }, rotation + 30.f, m_Texture2, m_SquareColor);
-    
-    	for (float y = -5.f; y < 5.f; y += 0.4f)
-    	{
-    		for (float x = -5.f; x < 5.f; x += 0.4f)
-    		{
-    			glm::vec4 color = { (x + 5.f) / 10.f, 0.4f, (y + 5.f) / 10.f, 0.4f };
-    			Renderer2D::DrawQuad({ x,y }, { 0.45f, 0.45f }, color);
-    		}
-    	}
-    #endif
-    #if 0
-    	for (uint32_t y = 0; y < 8; y++)
-    	{
-    		for (uint32_t x = 0; x < 48; x++)
-    		{
-    			char tileType = s_MapTiles[x + y * 48];
-    			Ref<SubTexture2D> texture;
-    			if (s_TextureMap.find(tileType) != s_TextureMap.end())
-    				texture = s_TextureMap[tileType];
-    			else
-    				texture = m_FullHeart;
-    			Renderer2D::DrawQuad({ x , 8 - y, 1}, { 1.f, 1.f }, texture);
-    		}
-    	}
-    #endif
-    	//Renderer2D::EndScene();
+
+
         m_FrameBuffer->Unbind();
     }
     
@@ -300,16 +221,7 @@ namespace Hazel
   
         uint32_t textureID = m_FrameBuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
-#if 0
-        auto windowSize = ImGui::GetWindowSize();
-        ImVec2 minBound = ImGui::GetWindowPos();
-        minBound.x += viewportOffset.x;
-        minBound.y += viewportOffset.y;
 
-        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        m_ViewportBounds[0] = { minBound.x, minBound.y };
-        m_ViewportBounds[1] = { maxBound.x, maxBound.y };
-#endif
         //Gizmos
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity && m_GizmoType != -1)
