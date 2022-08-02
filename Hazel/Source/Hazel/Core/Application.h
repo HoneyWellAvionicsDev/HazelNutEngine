@@ -8,6 +8,7 @@
 #include "Hazel/Events/ApplicationEvent.h"
 #include "Hazel/imGui/imGuiLayer.h"
 #include "Hazel/Core/TimeStep.h"
+#include "Hazel/Core/Timer.h"
 
 namespace Hazel
 {

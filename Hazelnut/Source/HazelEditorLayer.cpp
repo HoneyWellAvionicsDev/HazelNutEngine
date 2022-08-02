@@ -10,16 +10,9 @@
 
 namespace Hazel
 {
-    static const char* s_MapTiles =
-    "GGGGWWWWWWWWWWGGGGGGGGGGWWWGGGGGGGGGGGWWGGGGGGGG"
-    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
-    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
-    "DDDDDDDDDDDDDDDDDDDDDDEDDDDDDDDDDDDDDDDDDDDDDDDD"
-    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
-    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
-    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
-    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD";
     
+    extern const std::filesystem::path g_AssetPath;
+
     EditorLayer::EditorLayer()
     	: Layer("EditorLayer"), m_CameraController(1280.f / 720.f, true)
     {
@@ -65,7 +58,6 @@ namespace Hazel
             (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
         {
             m_FrameBuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-            m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
@@ -185,6 +177,7 @@ namespace Hazel
         }
 
         m_SceneHierarchyPanel.OnImGuiRender();
+        m_ContentBrowserPanel.OnImGuiRender();
 
         ImGui::Begin("Statistics");
 
@@ -201,7 +194,6 @@ namespace Hazel
         ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
  
         ImGui::ShowDemoWindow(&dockspaceOpen);
-        ImGui::ColorEdit4("Square Color", glm::value_ptr(m_SquareColor));
         ImGui::End();
     
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
@@ -221,6 +213,16 @@ namespace Hazel
   
         uint32_t textureID = m_FrameBuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                const wchar_t* path = static_cast<const wchar_t*>(payload->Data);
+                OpenScene(std::filesystem::path(g_AssetPath) / path); //TODO: before opening another scene, prompt user for save changes
+            }
+            ImGui::EndDragDropTarget();
+        }
 
         //Gizmos
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
@@ -282,7 +284,7 @@ namespace Hazel
   
     void EditorLayer::OnEvent(Event& event)
     {
-    	m_CameraController.OnEvent(event);
+        m_CameraController.OnEvent(event);
         m_EditorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
@@ -320,19 +322,19 @@ namespace Hazel
             }
             //gizmo shortcuts
             case HZ_KEY_Q:
-                if(!control)
+                if(!control && !ImGuizmo::IsUsing())
                     m_GizmoType = -1;
                 break;
-            case HZ_KEY_W:
-                if (!control)
+            case HZ_KEY_W: //control is our FILE key so lets not do anything if control is pressed
+                if (!control && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
                 break;
             case HZ_KEY_E:
-                if (!control)
+                if (!control && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::ROTATE;
                 break;
             case HZ_KEY_R:
-                if (!control)
+                if (!control && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
         }
@@ -342,7 +344,7 @@ namespace Hazel
     {
         if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT)
         {
-            if (m_ViewportHovered != ImGuizmo::IsOver() && !Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_5))   //move these boolean checks into its own func             
+            if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_5))   //move these boolean checks into its own func             
                 m_SceneHierarchyPanel.SetSelectionContext(m_HoveredEntity);
         }
         return false;
@@ -361,13 +363,18 @@ namespace Hazel
         std::string filepath = FileDialogs::OpenFile("Hazel Scene (*.hazel\0*.hazel\0");
         if (!filepath.empty())
         {
-            m_Scene = CreateRef<Scene>();
-            m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-            m_SceneHierarchyPanel.SetContext(m_Scene);
-
-            SceneSerializer serializer(m_Scene);
-            serializer.Deserialize(filepath);
+            OpenScene(filepath);
         }
+    }
+
+    void EditorLayer::OpenScene(const std::filesystem::path& filepath)
+    {
+        m_Scene = CreateRef<Scene>();
+        m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_Scene);
+
+        SceneSerializer serializer(m_Scene);
+        serializer.Deserialize(filepath.string()); //TODO: lets just use filesystem paths instead of strings
     }
 
     void EditorLayer::SaveSceneAs()

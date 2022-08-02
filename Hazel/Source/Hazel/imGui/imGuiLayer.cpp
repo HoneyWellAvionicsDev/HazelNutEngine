@@ -37,9 +37,12 @@ namespace Hazel
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
+		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
-		io.Fonts->AddFontFromFileTTF("assets/fonts/rubik/static/Rubik-Bold.ttf", 20.f);
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/rubik/static/Rubik-Regular.ttf", 20.f); 
+		float fontSize = 20.f;
+		io.Fonts->AddFontFromFileTTF("assets/fonts/rubik/static/Rubik-Bold.ttf", fontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/rubik/static/Rubik-Regular.ttf", fontSize);
 
 		ImGui::StyleColorsDark();
 

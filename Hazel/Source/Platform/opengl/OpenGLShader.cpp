@@ -94,7 +94,7 @@ namespace Hazel
 
 		Utils::CreateCacheDirectoryIfNeeded();
 
-		std::string shaderSource = ReadFile(filepath);
+		std::string shaderSource = ReadFile(filepath); //we need to check if a shader has been modified so that it can be recompiled. We can do this by hashing the shader and then storing it. And upon read we hash the shader and check against its previous hash
 		auto shaderSources = PreProcess(shaderSource);
 
 		{

@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Hazel/Scene/SceneCamera.h"
 #include "Hazel/Scene/ScriptableEntity.h"
+#include "Hazel/Renderer/Texture.h"
 
 namespace Hazel
 {
@@ -44,7 +45,8 @@ namespace Hazel
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.f };
-		//Ref<MaterialInstance>
+		Ref<Texture2D> Texture;
+		float TileFactor = 1.f;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;

@@ -23,7 +23,7 @@ namespace Hazel
 
 		m_Window = std::unique_ptr<Window>(Window::Create(WindowProps(name)));
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
-		m_Window->SetVSync(true);
+		m_Window->SetVSync(false);
 
 		Renderer::Init();
 
@@ -73,6 +73,7 @@ namespace Hazel
 
 		while (m_Running)
 		{
+			Timer timer;
 			HZ_PROFILE_SCOPE("RunLoop");
 
 			float time = (float)glfwGetTime();                                                     //to go in the platform class Platform::GetTime()
@@ -91,6 +92,8 @@ namespace Hazel
 				layer->OnImGuiRender();
 			m_ImGuiLayer->End();
 			m_Window->OnUpdate();
+			//HZ_CORE_WARN("Frametime: {0}", timer.ElapsedMilliseconds());
+			//HZ_CORE_WARN("FPS: {0}", 1.f / timer.Elapsed());
 		}
 	}
 

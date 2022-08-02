@@ -1,5 +1,7 @@
 #include "hzpch.h"
 
+#include "Hazel/Core/Timer.h"
+
 #include "UniformBuffer.h"
 #include "Renderer2D.h"
 #include "VertexArray.h"
@@ -70,7 +72,7 @@ namespace Hazel
 				{ ShaderDataType::Float3, "a_Posistion"	   },        //these names are needed for direct x but not opengl
 				{ ShaderDataType::Float4, "a_Color"		   },
 				{ ShaderDataType::Float2, "a_TextureCoord" },
-				{ ShaderDataType::Float,  "a_TexIndex"	   },
+				{ ShaderDataType::Float,  "a_TextureIndex"	   },
 				{ ShaderDataType::Float,  "a_TileFactor"   },
 				{ ShaderDataType::Int,    "a_EntityID"     }
 		});
@@ -496,8 +498,11 @@ namespace Hazel
 	}
 
 	void Renderer2D::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
-	{//in the future we will check to see if the SpriteRendComp has a texture and to draw that instead
-		DrawQuad(transform, src.Color, entityID);
+	{
+		if (src.Texture)
+			DrawQuad(transform, src.Texture, src.Color, src.TileFactor, entityID);
+		else
+			DrawQuad(transform, src.Color, entityID);
 	}
 
 	void Renderer2D::ResetStats()
