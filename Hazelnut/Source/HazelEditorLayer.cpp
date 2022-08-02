@@ -306,23 +306,17 @@ namespace Hazel
         switch (event.GetKeyCode())
         {
             case HZ_KEY_N:
-            {
                 if (control)
                     NewScene();
                 break;
-            }
             case HZ_KEY_O:
-            {
                 if (control)
                     OpenScene();
                 break;
-            }
             case HZ_KEY_S:
-            {
                 if (control && shift)
                     SaveSceneAs();
                 break;
-            }
             //gizmo shortcuts
             case HZ_KEY_Q:
                 if(!control && !ImGuizmo::IsUsing())
