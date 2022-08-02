@@ -21,12 +21,12 @@ namespace Hazel
 
 	void EditorCamera::OnUpdate(Timestep ts)
 	{
-		if (Input::IsMouseButtonPressed((HZ_MOUSE_BUTTON_5)))
-		{
 			const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
 			glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
 			m_InitialMousePosition = mouse;
 
+		if (Input::IsMouseButtonPressed((HZ_MOUSE_BUTTON_5)))
+		{
 			if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_MIDDLE))
 				MousePan(delta);
 			else if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_LEFT))
