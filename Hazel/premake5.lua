@@ -33,24 +33,26 @@ project "Hazel"
     {
         "Source",
         "vendors/spdlog/include",
-        "%{IncludeDir.glfw}",
-        "%{IncludeDir.Glad}",
-        "%{IncludeDir.imGui}",
-        "%{IncludeDir.glm}",
+        "%{IncludeDir.Box2D}",
         "%{IncludeDir.entt}",
+        "%{IncludeDir.Glad}",
+        "%{IncludeDir.glfw}",
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.imGui}",
+        "%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.yaml_cpp}",
-        "%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.VulkanSDK}"
     }
 
     links
     {
+        "Box2D",
         "glfw",
         "Glad",
         "imGui",
-        "yaml-cpp",
-        "opengl32.lib"
+        "opengl32.lib",
+        "yaml-cpp"
     }
 
     filter "files:vendors/ImGuizmo/**.cpp"

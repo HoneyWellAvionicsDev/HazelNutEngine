@@ -3,6 +3,7 @@
 #include "Core.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 //This ignores all warnings raised inside external headers
 #pragma warning(push, 0)

@@ -43,7 +43,7 @@ namespace Hazel
 
 		float m_OrthographicSize = 10.f;
 		float m_OrthographicNear = -1.f;
-		float m_OrthographicFar =   1.f;
+		float m_OrthographicFar =   100.f;
 
 		float m_PerspectiveVerticalFOV = glm::radians(45.f);
 		float m_PerspectiveHorizontalFOV = glm::radians(90.f);
