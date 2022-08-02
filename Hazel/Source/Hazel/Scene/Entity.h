@@ -17,7 +17,7 @@ namespace Hazel
 		{
 			HZ_CORE_ASSERT(!HasComponent<T>(), "Entity already has component!");
 			T& component = m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
-			//m_Scene->OnComponentAdded<T>(*this, component);
+			m_Scene->OnComponentAdded<T>(*this, component);
 			return component;
 		}                                                         //dont unpack our args here, instead forward them to entt
 
@@ -49,7 +49,7 @@ namespace Hazel
 		bool operator!=(const Entity& other) const { return !(*this == other); }
 
 	private:
-		entt::entity m_EntityHandle = entt::null;
+		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr; 
 	};
 }

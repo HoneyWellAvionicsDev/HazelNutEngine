@@ -26,12 +26,21 @@ namespace Hazel
 		void NewScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
+		void SaveScene();
 		void SaveSceneAs();
+
+		void OnScenePlay();
+		void OnSceneStop();
+		void OnSceneSimulate();
+
+		void UIToolbar();
 	private:
 		Hazel::OrthographicCameraController m_CameraController;
 	
 		Ref<FrameBuffer> m_FrameBuffer;
 		Ref<Scene> m_Scene;
+		Ref<Texture2D> m_IconPlay;
+		Ref<Texture2D> m_IconStop;
 		Entity m_HoveredEntity;
 
 		EditorCamera m_EditorCamera;
@@ -46,6 +55,16 @@ namespace Hazel
 		//panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		ContentViewPanel m_ContentBrowserPanel;
+
+		enum class SceneState
+		{
+			Edit = 0,
+			Play,
+			Simulate,
+			Stop
+		};
+
+		SceneState m_SceneState = SceneState::Edit;
 	};
 }
 
