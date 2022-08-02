@@ -92,6 +92,7 @@ namespace Hazel
 				layer->OnImGuiRender();
 			m_ImGuiLayer->End();
 			m_Window->OnUpdate();
+			m_LastTime = timer.Elapsed();
 			//HZ_CORE_WARN("Frametime: {0}", timer.ElapsedMilliseconds());
 			//HZ_CORE_WARN("FPS: {0}", 1.f / timer.Elapsed());
 		}

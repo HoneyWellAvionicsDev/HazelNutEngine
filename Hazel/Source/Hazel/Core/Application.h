@@ -40,6 +40,7 @@ namespace Hazel
 		ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 		Window& GetWindow() { return *m_Window; }
 		ApplicationCommandLineArgs GetCommandLineArgs() const { return m_CommandLineArgs; }
+		float GetLastFrameTime() const { return m_LastTime; }
 
 		static Application& Get() { return *s_Instance; }
 	private:
@@ -54,6 +55,7 @@ namespace Hazel
 		ImGuiLayer* m_ImGuiLayer;
 		LayerStack m_LayerStack;
 		float m_LastFrameTime = 0.f;
+		float m_LastTime = 0.f;
 
 		static Application* s_Instance;
 	};

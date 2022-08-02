@@ -12,6 +12,11 @@ namespace Hazel
 			Reset();
 		}
 
+		~Timer()
+		{
+
+		}
+
 		void Reset()
 		{
 			m_Start = std::chrono::high_resolution_clock::now();

@@ -5,6 +5,7 @@
 #include "Hazel/Scene/SceneSerializer.h"
 #include "Hazel/Utils/PlatfromUtils.h"
 #include "Hazel/Math/Math.h"
+#include "Hazel/Core/Timer.h"
 
 #include "ImGuizmo.h"
 
@@ -185,9 +186,11 @@ namespace Hazel
         if (m_HoveredEntity)
             name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
         ImGui::Text("Hovered Entity: %s", name.c_str());
+        ImGui::Text("Initial mouse pos x: %f %f", m_EditorCamera.m_InitialMousePosition.x, m_EditorCamera.m_InitialMousePosition.y);
 
         auto stats = Renderer2D::GetStats();
         ImGui::Text("Renderer2D Stats: ");
+        ImGui::Text("FPS: %f", 1.f / Application::Get().GetLastFrameTime());
         ImGui::Text("Draw Calls: %d", stats.DrawCalls);
         ImGui::Text("Quads: %d", stats.QuadCount);
         ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
