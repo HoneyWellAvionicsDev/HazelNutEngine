@@ -1,14 +1,18 @@
 #pragma once
 
-
 #include "Core.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+
+//This ignores all warnings raised inside external headers
+#pragma warning(push, 0)
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
+#pragma warning(pop)
 
 namespace Hazel
 {
-
-	class HAZEL_API Log
+	class Log
 	{
 	public:
 		static void Init();
