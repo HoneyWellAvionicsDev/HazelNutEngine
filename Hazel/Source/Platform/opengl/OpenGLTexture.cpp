@@ -18,25 +18,23 @@ namespace Hazel
 		glTextureStorage2D(m_RendererID, 1, m_InteralFormat, m_Width, m_Height);
 
 		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);                          
-		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-
 	}
 
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
 		: m_Path(path)
 	{
 		HZ_PROFILE_FUNCTION();
-
+		//should add a check to see if file path exsists
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
 		stbi_uc* data = nullptr;
 		{
 			HZ_PROFILE_SCOPE("OpenGLTexture2D::OpenGLTexture2D(const std::string&) - stbi_load");
-			data = stbi_load(path.c_str(), &width, &height, &channels, 0);                        //stores texture on the CPU
+			data = stbi_load(path.c_str(), &width, &height, &channels, 0);                        //stores texture on RAM
 		}
 		HZ_CORE_ASSERT(data, "Failed to load image!");
 		m_Width = width;
@@ -63,7 +61,7 @@ namespace Hazel
 		glTextureStorage2D(m_RendererID, 1, internalFormat, m_Width, m_Height);                               //create space for texture on GPU
 
 		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);                           //texture params such as Min/Magnification and mipmapping
-		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);

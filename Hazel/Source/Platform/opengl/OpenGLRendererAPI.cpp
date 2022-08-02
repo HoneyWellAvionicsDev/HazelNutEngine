@@ -4,9 +4,29 @@
 
 namespace Hazel
 {
+	void OpenGLMessageCallback(
+		unsigned source,
+		unsigned type,
+		unsigned id,
+		unsigned severity,
+		int length,
+		const char* message,
+		const void* userParam)
+	{
+		switch (severity)
+		{
+			case GL_DEBUG_SEVERITY_HIGH:		 HZ_CORE_FATAL(message); return;
+			case GL_DEBUG_SEVERITY_MEDIUM:		 HZ_CORE_ERROR(message); return;
+			case GL_DEBUG_SEVERITY_LOW:			 HZ_CORE_WARN(message);	 return;
+			case GL_DEBUG_SEVERITY_NOTIFICATION: HZ_CORE_TRACE(message); return;
+		}
+
+		HZ_CORE_ASSERT(false, "Unknown severity level!");
+	}
+
 	void OpenGLRendererAPI::Init()
 	{
-#if/*def*/ 0//HZ_DEBUG
+#ifdef HZ_DEBUG
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(OpenGLMessageCallback, nullptr);

@@ -17,19 +17,19 @@ struct VertexOutput
 {
 	vec4 Color;
 	vec2 TextureCoord;
-	float TextureIndex;
 	float TileFactor;
 };
 
 layout (location = 0) out VertexOutput Output;
+layout (location = 3) out flat float v_TextureIndex;
 layout (location = 4) out flat int v_EntityID;
 
 void main()
 {
 	Output.Color = a_Color;
 	Output.TextureCoord = a_TextureCoord;
-	Output.TextureIndex = a_TextureIndex;
 	Output.TileFactor = a_TileFactor;
+	v_TextureIndex = a_TextureIndex;
 	v_EntityID = a_EntityID;
 
 	gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
@@ -45,11 +45,11 @@ struct VertexOutput
 {
 	vec4 Color;
 	vec2 TextureCoord;
-	float TextureIndex;
 	float TileFactor;
 };
 
 layout (location = 0) in VertexOutput Input;
+layout (location = 3) in flat float v_TextureIndex;
 layout (location = 4) in flat int v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
@@ -58,7 +58,7 @@ void main()
 {
 	vec4 texColor = Input.Color;
 
-	switch(int(Input.TextureIndex))
+	switch(int(v_TextureIndex))
 	{
 		case  0: texColor *= texture(u_Textures[ 0], Input.TextureCoord * Input.TileFactor); break;
 		case  1: texColor *= texture(u_Textures[ 1], Input.TextureCoord * Input.TileFactor); break;
