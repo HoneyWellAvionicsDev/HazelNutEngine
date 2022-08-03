@@ -35,22 +35,25 @@ namespace Hazel
 	{
 		ImGui::Begin("Scene Hierarch");
 
-		m_Context->m_Registry.each([&](auto entityID)
+		if (m_Context)
 		{
-			Entity entity{ entityID, m_Context.get() };
-			DrawEntityNode(entity);
-		});
+			m_Context->m_Registry.each([&](auto entityID)
+			{
+				Entity entity{ entityID, m_Context.get() };
+				DrawEntityNode(entity);
+			});
 
-		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-			m_SelectionContext = {};
+			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+				m_SelectionContext = {};
 
-		if (ImGui::BeginPopupContextWindow(0, 1, false))
-		{
-			if (ImGui::MenuItem("Create Blank Entity"))
-					m_Context->CreateEntity("Blank Entity");
+			if (ImGui::BeginPopupContextWindow(0, 1, false))
+			{
+				if (ImGui::MenuItem("Create Blank Entity"))
+						m_Context->CreateEntity("Blank Entity");
 
 
-			ImGui::EndPopup();
+				ImGui::EndPopup();
+			}
 		}
 
 		ImGui::End();
@@ -228,6 +231,7 @@ namespace Hazel
 		{
 			DisplayAddComponentEntry<CameraComponent>("Camera");
 			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
 			DisplayAddComponentEntry<RigidBody2DComponent>("2D Rigid Body");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("2D Box Collider");
 			ImGui::EndPopup();
@@ -323,6 +327,13 @@ namespace Hazel
 			}
 
 			ImGui::DragFloat("Tiling Factor", &component.TileFactor, 0.1f, 0.0f, 100.f);
+		});
+
+		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
+		{
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+			ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
+			ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
 		});
 	
 		DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](auto& component)

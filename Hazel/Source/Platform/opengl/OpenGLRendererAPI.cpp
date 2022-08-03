@@ -60,4 +60,15 @@ namespace Hazel
 		uint32_t count = indexCount ? indexCount : VertexArray->GetIndexBuffer()->GetCount();           //maybe switch this the other way around
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr); //elements are our indices (draw mode, how many to draw, type, pointer to elements)
 	}
+
+	void OpenGLRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
+	{
+		vertexArray->Bind();
+		glDrawArrays(GL_LINES, 0, vertexCount);
+	}
+
+	void OpenGLRendererAPI::SetLineWidth(float width)
+	{
+		glLineWidth(width);
+	}
 }
