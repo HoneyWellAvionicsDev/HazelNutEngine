@@ -23,6 +23,8 @@ namespace Hazel
 		bool OnKeyPressed(KeyPressedEvent& event);
 		bool OnMouseClick(MouseButtonEvent& event);
 
+		void OnOverlayRender();
+
 		void NewScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
@@ -33,12 +35,13 @@ namespace Hazel
 		void OnSceneStop();
 		void OnSceneSimulate();
 
+		void OnDuplicateEntity();
+
 		void UIToolbar();
 	private:
-		Hazel::OrthographicCameraController m_CameraController;
-	
 		Ref<FrameBuffer> m_FrameBuffer;
-		Ref<Scene> m_Scene;
+		Ref<Scene> m_ActiveScene;
+		Ref<Scene> m_EditorScene;
 		Ref<Texture2D> m_IconPlay;
 		Ref<Texture2D> m_IconStop;
 		Entity m_HoveredEntity;
@@ -50,7 +53,7 @@ namespace Hazel
 		bool m_ViewportFocused = false;
 		bool m_ViewportHovered = false;
 	
-		std::unordered_map<char, Ref<SubTexture2D>> s_TextureMap;
+		std::filesystem::path m_EditorScenePath;
 		int m_GizmoType = -1;
 		//panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;

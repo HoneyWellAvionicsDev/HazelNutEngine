@@ -10,8 +10,6 @@ extern Hazel::Application* Hazel::CreateApplication(ApplicationCommandLineArgs a
 int main(int argc, char** argv)
 {
 	Hazel::Log::Init();
-	HZ_CORE_WARN("dick fell off!!!!!!!!!!!!!");
-	
 
 	HZ_PROFILE_BEGIN_SESSION("Startup", "HazelProfile-Startup.json");
 	auto app = Hazel::CreateApplication({ argc, argv });                 //creates instance of applicaiton

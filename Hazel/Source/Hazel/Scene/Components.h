@@ -1,16 +1,28 @@
 #pragma once
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
+#include "Hazel/Scene/SceneCamera.h"
+#include "Hazel/Core/UUID.h"
+#include "Hazel/Renderer/Texture.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Hazel/Scene/SceneCamera.h"
-#include "Hazel/Scene/ScriptableEntity.h"
-#include "Hazel/Renderer/Texture.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
 
 namespace Hazel
 {
+	struct IDComponent
+	{
+		UUID ID;
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+		IDComponent(UUID uuid)
+			: ID(uuid) {}
+	};
+
 	struct TagComponent
 	{
 		std::string Tag;
@@ -65,9 +77,11 @@ namespace Hazel
 		CameraComponent(const CameraComponent&) = default;
 	};
 
+	class ScriptableEntity;
+
 	struct NativeScriptComponent
 	{
-		ScriptableEntity* Instance = nullptr;
+		ScriptableEntity* Instance = nullptr; //to use this pointer, must #include "ScriptableEntity.h"
 
 		ScriptableEntity*(*InstantiateScript)();
 		void (*DestroyScript)(NativeScriptComponent*);

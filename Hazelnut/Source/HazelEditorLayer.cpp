@@ -15,7 +15,7 @@ namespace Hazel
     extern const std::filesystem::path g_AssetPath;
 
     EditorLayer::EditorLayer()
-    	: Layer("EditorLayer"), m_CameraController(1280.f / 720.f, true)
+    	: Layer("EditorLayer")
     {
     }
     
@@ -33,19 +33,19 @@ namespace Hazel
         m_IconPlay = Texture2D::Upload("Resources/Icons/PlayButton.png");
         m_IconStop = Texture2D::Upload("Resources/Icons/StopButton.png");
 
-        m_Scene = CreateRef<Scene>();
+        m_ActiveScene = CreateRef<Scene>();
 
         auto commandLineArgs = Application::Get().GetCommandLineArgs();
         if (commandLineArgs.Count > 1)
         {
             auto sceneFilePath = commandLineArgs[1];
-            SceneSerializer serializer(m_Scene);
+            SceneSerializer serializer(m_ActiveScene);
             serializer.Deserialize(sceneFilePath);
         }
 
         m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 
-        m_SceneHierarchyPanel.SetContext(m_Scene);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
     
     void EditorLayer::OnDetach()
@@ -63,7 +63,7 @@ namespace Hazel
         {
             m_FrameBuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-            m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
 
     	//------------------Update----------------------------------
@@ -83,17 +83,14 @@ namespace Hazel
             case SceneState::Edit:
             {
                 if (m_ViewportHovered || m_ViewportFocused)
-                {
-                    m_CameraController.OnUpdate(ts);
                     m_EditorCamera.OnUpdate(ts);
-                }
 
-                m_Scene->OnUpdateEditor(ts, m_EditorCamera);
+                m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
                 break;
             }
             case SceneState::Play:
             {
-                m_Scene->OnUpdateRuntime(ts);
+                m_ActiveScene->OnUpdateRuntime(ts);
                 break;
             }
             default:
@@ -111,7 +108,7 @@ namespace Hazel
         if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y) //this happens every frame, maybe make it happen on mouse click
         {
             int pixelData = m_FrameBuffer->ReadPixel(1, mouseX, mouseY);
-            m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_Scene.get());
+            m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
         }
 
 
@@ -335,7 +332,6 @@ namespace Hazel
   
     void EditorLayer::OnEvent(Event& event)
     {
-        m_CameraController.OnEvent(event);
         m_EditorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
@@ -397,15 +393,15 @@ namespace Hazel
 
     void EditorLayer::NewScene()
     {
-        m_Scene = CreateRef<Scene>();
-        m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_Scene);
+        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OpenScene()
     {
                                                             //(allfiles ("*")) - the actual filter
-        std::string filepath = FileDialogs::OpenFile("Hazel Scene (*.hazel\0*.hazel\0");
+        std::string filepath = FileDialogs::OpenFile("Hazel Scene (*.hazel)\0*.hazel\0");
         if (!filepath.empty())
         {
             OpenScene(filepath);
@@ -414,20 +410,28 @@ namespace Hazel
 
     void EditorLayer::OpenScene(const std::filesystem::path& filepath)
     {
-        m_Scene = CreateRef<Scene>();
-        m_Scene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_Scene);
+        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
-        SceneSerializer serializer(m_Scene);
+        SceneSerializer serializer(m_ActiveScene);
         serializer.Deserialize(filepath.string()); //TODO: lets just use filesystem paths instead of strings
     }
 
-    void EditorLayer::SaveSceneAs()
+    void EditorLayer::SaveScene()
     {
-        std::string filepath = FileDialogs::SaveFile("Hazel Scene (*.hazel\0*.hazel\0");
+        //if (!m_EditorScenePath.empty())
+        //    SerializeScene(m_Scene, m_EditorScenePath);
+        //else
+        //    SaveSceneAs();
+    }
+
+    void EditorLayer::SaveSceneAs()
+    {                                                               
+        std::string filepath = FileDialogs::SaveFile("Hazel Scene (*.hazel)\0*.hazel\0");
         if (!filepath.empty())
         {
-            SceneSerializer serializer(m_Scene);
+            SceneSerializer serializer(m_ActiveScene);
             serializer.Serialize(filepath);
         }
     }
@@ -435,13 +439,13 @@ namespace Hazel
     void EditorLayer::OnScenePlay()
     {
         m_SceneState = SceneState::Play;
-        m_Scene->OnRuntimeStart();
+        m_ActiveScene->OnRuntimeStart();
     }
 
     void EditorLayer::OnSceneStop()
     {
         m_SceneState = SceneState::Edit;
-        m_Scene->OnRuntimeStop();
+        m_ActiveScene->OnRuntimeStop();
     }
 
 }

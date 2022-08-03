@@ -34,7 +34,9 @@ namespace Hazel
 		stbi_uc* data = nullptr;
 		{
 			HZ_PROFILE_SCOPE("OpenGLTexture2D::OpenGLTexture2D(const std::string&) - stbi_load");
+			Timer timer;
 			data = stbi_load(path.c_str(), &width, &height, &channels, 0);                        //stores texture on RAM
+			HZ_CORE_TRACE("Texture from path {0} took {1}ms", path, timer.ElapsedMilliseconds());
 		}
 		HZ_CORE_ASSERT(data, "Failed to load image!");
 		m_Width = width;
