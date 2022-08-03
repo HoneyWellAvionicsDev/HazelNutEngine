@@ -16,6 +16,8 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <atomic>
+
 
 #include "Hazel/Core/Log.h"
 #include "Hazel/Core/Timer.h"

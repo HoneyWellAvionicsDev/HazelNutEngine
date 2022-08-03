@@ -45,19 +45,22 @@ namespace Hazel
 			std::string filenameString = relativePath.filename().string();
 
 			Ref<Texture2D> icon = directoryEntry.is_directory() ? m_DirectoryIcon : m_FileIcon;
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 			ImGui::PushID(filenameString.c_str()); //we push an ID to each image so that identical images do not have dupe IDs
 			ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
-			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-			{
-				if (directoryEntry.is_directory())
-					m_CurrentDirectory /= path.filename();
-			}
 
 			if (ImGui::BeginDragDropSource())
 			{
 				const wchar_t* itemPath = relativePath.c_str();
 				ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t), ImGuiCond_Once); //our payload gets copied into imgui so be aware of what our payload is
 				ImGui::EndDragDropSource();
+			}
+
+			ImGui::PopStyleColor();
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			{
+				if (directoryEntry.is_directory())
+					m_CurrentDirectory /= path.filename();
 			}
 
 			ImGui::TextWrapped(filenameString.c_str());

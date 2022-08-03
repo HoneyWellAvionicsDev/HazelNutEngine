@@ -5,6 +5,8 @@
 #include "Scene.h"
 #include "entt.hpp"
 
+#include <glm/glm.hpp>
+
 namespace Hazel
 {
 	class Entity
@@ -22,6 +24,14 @@ namespace Hazel
 			m_Scene->OnComponentAdded<T>(*this, component);
 			return component;
 		}                                                         //dont unpack our args here, instead forward them to entt
+
+		template<typename T, typename... Args>
+		T& AddOrReplaceComponent(Args&&... args)
+		{
+			T& component = m_Scene->m_Registry.emplace_or_replace<T>(m_EntityHandle, std::forward<Args>(args)...);
+			m_Scene->OnComponentAdded<T>(*this, component);
+			return component;
+		}
 
 		template<typename T>
 		T& GetComponent()
@@ -44,6 +54,8 @@ namespace Hazel
 		}
 
 		UUID GetUUID() { return GetComponent<IDComponent>().ID; }
+		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
+		glm::mat4 GetTransform() { return GetComponent<TransformComponent>().GetTransform(); }
 
 		operator bool() const { return m_EntityHandle != entt::null; }
 		operator uint32_t() const { return (uint32_t)m_EntityHandle; }
