@@ -234,6 +234,7 @@ namespace Hazel
 			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
 			DisplayAddComponentEntry<RigidBody2DComponent>("2D Rigid Body");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("2D Box Collider");
+			DisplayAddComponentEntry<CircleCollider2DComponent>("2D Circle Collider");
 			ImGui::EndPopup();
 		}
 
@@ -368,6 +369,16 @@ namespace Hazel
 			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f); 
 			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f); //[0, 1] range but it doesnt have to be [0, 1]
+			ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
+		});
+
+		DrawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](auto& component)
+		{
+			ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
+			ImGui::DragFloat("Radius", &component.Radius);
+			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
 		});
 	}

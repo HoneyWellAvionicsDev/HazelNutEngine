@@ -247,6 +247,22 @@ namespace Hazel
 			out << YAML::EndMap; //box collider 2d comp
 		}
 
+		if (entity.HasComponent<CircleCollider2DComponent>())
+		{
+			out << YAML::Key << "CircleCollider2DComponent";
+			out << YAML::BeginMap; //circleCollider2DComponent
+
+			auto& cc2dComponent = entity.GetComponent<CircleCollider2DComponent>();
+			out << YAML::Key << "Offset" << YAML::Value << cc2dComponent.Offset;
+			out << YAML::Key << "Radius" << YAML::Value << cc2dComponent.Radius;
+			out << YAML::Key << "Density" << YAML::Value << cc2dComponent.Density;
+			out << YAML::Key << "Friction" << YAML::Value << cc2dComponent.Friction;
+			out << YAML::Key << "Restitution" << YAML::Value << cc2dComponent.Restitution;
+			out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc2dComponent.RestitutionThreshold;
+
+			out << YAML::EndMap; //circleCollider2DComponent
+		}
+
 		out << YAML::EndMap;//Entity
 	}
 
@@ -346,11 +362,7 @@ namespace Hazel
 					src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 					src.TileFactor = spriteRendererComponent["TileFactor"].as<float>();
 					if (spriteRendererComponent["TexturePath"])
-					{
-						//std::thread t1()
-						//std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 						src.Texture = Texture2D::Upload(spriteRendererComponent["TexturePath"].as<std::string>());
-					}
 				}
 
 				auto circleRendererComponent = entity["CircleRendererComponent"];
@@ -380,6 +392,18 @@ namespace Hazel
 					bcc.Friction = boxCollider2DComponent["Friction"].as<float>();
 					bcc.Restitution = boxCollider2DComponent["Restitution"].as<float>();
 					bcc.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
+				}
+
+				auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
+				if (circleCollider2DComponent)
+				{
+					auto& cc2d = deserializedEntity.AddComponent<CircleCollider2DComponent>();
+					cc2d.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
+					cc2d.Radius = circleCollider2DComponent["Radius"].as<float>();
+					cc2d.Density = circleCollider2DComponent["Density"].as<float>();
+					cc2d.Friction = circleCollider2DComponent["Friction"].as<float>();
+					cc2d.Restitution = circleCollider2DComponent["Restitution"].as<float>();
+					cc2d.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
 				}
 			}
 		}
