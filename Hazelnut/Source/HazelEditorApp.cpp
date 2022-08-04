@@ -8,8 +8,8 @@ namespace Hazel
 	class HazelEditor : public Application
 	{
 	public:
-		HazelEditor(ApplicationCommandLineArgs args)
-			: Application(args ,"Hazel Editor")
+		HazelEditor(const ApplicationSpecification& specification)
+			: Application(specification)
 		{
 			PushLayer(new EditorLayer());
 		}
@@ -22,6 +22,10 @@ namespace Hazel
 	
 	Application* CreateApplication(ApplicationCommandLineArgs args)
 	{
-		return new HazelEditor(args);
+		ApplicationSpecification spec;
+		spec.Name = "Hazelnut";
+		spec.CommandLineArgs = args;
+
+		return new HazelEditor(spec);
 	}
 }

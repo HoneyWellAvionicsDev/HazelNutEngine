@@ -9,20 +9,18 @@
 #include <GLFW/glfw3.h>
 namespace Hazel
 {
-#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
-
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application(ApplicationCommandLineArgs args, const std::string& name)
-		:m_CommandLineArgs(args)
+	Application::Application(const ApplicationSpecification& specification)
+	: m_Specification(specification)
 	{
 		HZ_PROFILE_FUNCTION();
 
 		HZ_CORE_ASSERT(!s_Instance, "Application already exsists!");
 		s_Instance = this;
 
-		m_Window = std::unique_ptr<Window>(Window::Create(WindowProps(name)));
-		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+		m_Window = Window::Create(WindowProps(m_Specification.Name));
+		m_Window->SetEventCallback(HZ_BIND_EVENT_FN(Application::OnEvent));
 		m_Window->SetVSync(false);
 
 		Renderer::Init();
@@ -56,8 +54,8 @@ namespace Hazel
 		HZ_PROFILE_FUNCTION();
 
 		EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));                 //if dispatcher recieves windowCloseEvent then we call OnWindowClose
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OnWindowResize));
+		dispatcher.Dispatch<WindowCloseEvent>(HZ_BIND_EVENT_FN(OnWindowClose));                 //if dispatcher recieves windowCloseEvent then we call OnWindowClose
+		dispatcher.Dispatch<WindowResizeEvent>(HZ_BIND_EVENT_FN(OnWindowResize));
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)                      //collects all events from the layer stack from TOP to DOWN
 		{

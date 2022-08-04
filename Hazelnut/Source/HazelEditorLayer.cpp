@@ -37,7 +37,7 @@ namespace Hazel
         m_EditorScene = CreateRef<Scene>();
         m_ActiveScene = m_EditorScene;
 
-        auto commandLineArgs = Application::Get().GetCommandLineArgs();
+        auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
         if (commandLineArgs.Count > 1)
         {
             auto sceneFilePath = commandLineArgs[1];
@@ -370,7 +370,8 @@ namespace Hazel
   
     void EditorLayer::OnEvent(Event& event)
     {
-        m_EditorCamera.OnEvent(event);
+        if(m_ViewportHovered)
+            m_EditorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); 
@@ -380,7 +381,7 @@ namespace Hazel
     bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
     {
         //file shortcuts
-        if (event.GetRepeatCount() > 0)
+        if (event.IsRepeat())
             return false;
 
         bool control = Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL);
@@ -507,6 +508,12 @@ namespace Hazel
                     Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.08f);
                 }
             }
+        }
+
+        if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
+        {
+            const auto& transform = selectedEntity.GetComponent<TransformComponent>();
+            Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
         }
 
         Renderer2D::EndScene();
