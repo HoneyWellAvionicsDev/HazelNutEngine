@@ -1,34 +1,8 @@
 #pragma once
 
-#include <memory>
+#include "Hazel/Core/PlatformDetection.h"
 
-#ifdef _WIN32
-	#ifdef _WIN64
-		#define HZ_PLATFORM_WINDOWS
-	#else
-		#error "x86 buikds are not supported. Get a modern system."
-	#endif
-#elif defined(__APPLE__) || defined(__MACH__)
-	#include <TargetConditionals.h>
-	#if TARGET_IPHONE_SIMULATOR == 1
-		#error "IOS simulator is not supported."
-	#elif TARGET_OS_PHONE
-		#define HZ_PLATFORM_IOS
-		#error "IOS is not supported. Stop wasting your money on apple products they're dogshit."
-	#elif TARGET_OS_MAC == 1
-		#define HZ_PLATFORM_MACOS
-		#error "MacOS is not supported"
-	#else
-		#error "Unknown Apple Platform"
-	#endif
-#elif defined(__ANDROID__)
-	#define HZ_PLATFORN_ANDROID
-	#error "Android is not currently supported yet"
-#elif defined(__linux__)
-	#define HZ_PLATFORM_LINUX
-#else
-	#define HAZEL_API
-#endif
+#include <memory>
 
 #ifdef HZ_DEBUG
 	#if defined(HZ_PLATFORM_WINDOWS)
@@ -44,28 +18,9 @@
 	#define HZ_DEBUGBREAK()
 #endif
 
-#ifdef HZ_PLATFORM_WINDOWS
-	#if HZ_DYNAMIC_LINK
-		#ifdef HZ_BUILD_DLL
-			#define HAZEL_API __declspec(dllexport)
-		#else
-			#define HAZEL_API __declspec(dllimport)
-		#endif
-	#else
-		#define HAZEL_API
-	#endif
-#else
-	#error Hazel only supports windows even though its a dogshit operationg system
-#endif
 
-//todo: assert macros with only condition argument
-#ifdef HZ_ENABLE_ASSERTS
-	#define HZ_ASSERT(x, ...)	{ if(!(x)) { HZ_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
-	#define HZ_CORE_ASSERT(x, ...) { if(!(x)) { HZ_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
-#else
-	#define HZ_ASSERT(x, ...)
-	#define HZ_CORE_ASSERT(x, ...)
-#endif
+#define HZ_EXPAND_MACRO(x) x
+#define HZ_STRINGIFY_MACRO(x) #x
 
 #define BIT(x) (1 << x)
 
@@ -89,6 +44,9 @@ namespace Hazel
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 }
+
+#include "Hazel/Core/Assert.h"
+#include "Hazel/Core/Log.h"
 
 
 

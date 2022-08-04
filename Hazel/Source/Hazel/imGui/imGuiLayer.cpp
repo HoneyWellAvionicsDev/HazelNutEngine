@@ -21,10 +21,6 @@ namespace Hazel
 	{
 	}
 
-	ImGuiLayer::~ImGuiLayer()
-	{
-	}
-
 	void ImGuiLayer::OnAttach()
 	{
 		HZ_PROFILE_FUNCTION();

@@ -4,6 +4,7 @@
 #include "Hazel/Core/Log.h"
 #include "Hazel/Core/Input.h"
 #include "Hazel/Renderer/Renderer.h"
+#include "Hazel/Utils/PlatfromUtils.h"
 
 //temp
 #include <GLFW/glfw3.h>
@@ -57,11 +58,11 @@ namespace Hazel
 		dispatcher.Dispatch<WindowCloseEvent>(HZ_BIND_EVENT_FN(OnWindowClose));                 //if dispatcher recieves windowCloseEvent then we call OnWindowClose
 		dispatcher.Dispatch<WindowResizeEvent>(HZ_BIND_EVENT_FN(OnWindowResize));
 
-		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)                      //collects all events from the layer stack from TOP to DOWN
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)                      //collects all events from the layer stack from TOP to DOWN
 		{
-			(*--it)->OnEvent(event);
 			if (event.Handled)
 				break;
+			(*it)->OnEvent(event);
 		}
 	}
 
@@ -74,7 +75,7 @@ namespace Hazel
 			Timer timer;
 			HZ_PROFILE_SCOPE("RunLoop");
 
-			float time = (float)glfwGetTime();                                                     //to go in the platform class Platform::GetTime()
+			float time = Time::GetTime();                                                   
 			Timestep timestep = time - m_LastFrameTime;
 			m_LastFrameTime = time;
 
@@ -91,8 +92,6 @@ namespace Hazel
 			m_ImGuiLayer->End();
 			m_Window->OnUpdate();
 			m_LastTime = timer.Elapsed();
-			//HZ_CORE_WARN("Frametime: {0}", timer.ElapsedMilliseconds());
-			//HZ_CORE_WARN("FPS: {0}", 1.f / timer.Elapsed());
 		}
 	}
 

@@ -35,7 +35,7 @@ namespace Hazel
 	{
 		std::string Name;
 		ShaderDataType Type;
-		uint32_t Offset;
+		size_t Offset;
 		uint32_t Size;
 		bool Normalized;
 
@@ -88,7 +88,7 @@ namespace Hazel
 	private:
 		void CalculateOffsetsAndStride()
 		{
-			uint32_t offset = 0;
+			size_t offset = 0;
 			m_Stride = 0;
 			for (auto& elements : m_Elements)
 			{
@@ -106,7 +106,7 @@ namespace Hazel
 	class VertexBuffer
 	{
 	public:
-		virtual ~VertexBuffer(){}
+		virtual ~VertexBuffer() = default;
 
 
 		virtual void Bind() const = 0;
@@ -125,7 +125,7 @@ namespace Hazel
 	class IndexBuffer
 	{
 	public:
-		virtual ~IndexBuffer(){}
+		virtual ~IndexBuffer() = default;
 
 		virtual void Bind() const = 0;
 		virtual void Unbind() const = 0;

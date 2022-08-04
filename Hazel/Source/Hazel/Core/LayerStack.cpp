@@ -11,7 +11,10 @@ namespace Hazel
 	LayerStack::~LayerStack()
 	{
 		for (Layer* layer : m_Layers)
+		{
+			layer->OnDetach();
 			delete layer;
+		}
 	}
 
 	//we want to push new layers behind to overlays and push the overlays at the very top

@@ -74,7 +74,7 @@ namespace Hazel
 						ShaderDataTypeToOpenGLBaseType(element.Type),
 						element.Normalized ? GL_TRUE : GL_FALSE,
 						layout.GetStride(),
-						(const void*)element.Offset); //(index, #of vars, data type, normalized?, size of data, pointer)
+						(const void*)(intptr_t)element.Offset); //(index, #of vars, data type, normalized?, size of data, pointer)
 					m_VertexBufferIndex++;
 					break;
 				}
@@ -89,7 +89,7 @@ namespace Hazel
 						element.GetComponentCount(),
 						ShaderDataTypeToOpenGLBaseType(element.Type),
 						layout.GetStride(),
-						(const void*)element.Offset); 
+						(const void*)(intptr_t)element.Offset);
 					m_VertexBufferIndex++;
 					break;
 				}
