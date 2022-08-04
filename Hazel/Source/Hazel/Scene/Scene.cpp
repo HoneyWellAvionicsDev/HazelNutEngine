@@ -35,7 +35,7 @@ namespace Hazel
 
 	Scene::~Scene()
 	{
-
+		delete m_PhysicsWorld;
 	}
 
 	template<typename Component>
@@ -131,6 +131,133 @@ namespace Hazel
 
 	void Scene::OnRuntimeStart()
 	{
+		OnPhysics2DStart();
+	}
+
+	void Scene::OnRuntimeStop()
+	{
+		OnPhysics2DStop();
+	}
+
+	void Scene::OnSimulationStart()
+	{
+		OnPhysics2DStart();
+	}
+
+	void Scene::OnSimulationStop()
+	{
+		OnPhysics2DStop();
+	}
+
+	void Scene::OnUpdateRuntime(Timestep ts)
+	{
+		{
+			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+			{
+				//todo move to Scene::OnScenePlay()
+				if (!nsc.Instance)
+				{
+					nsc.Instance = nsc.InstantiateScript();
+					nsc.Instance->m_Entity = Entity{ entity, this };
+					nsc.Instance->OnCreate();
+				}
+
+				nsc.Instance->OnUpdate(ts);
+			});
+		}
+
+		Update2DPhysics(ts);
+
+		Camera* mainCamera = nullptr;
+		glm::mat4 cameraTransform;
+		{
+			auto view = m_Registry.view<TransformComponent, CameraComponent>();
+			for (auto entity : view)
+			{
+				auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+
+				if (camera.Primary)
+				{
+					mainCamera = &camera.Camera;
+					cameraTransform = transform.GetTransform();
+					break;
+				}
+			}
+		}
+
+		if (mainCamera)
+		{
+			Renderer2D::BeginScene(*mainCamera, cameraTransform);
+
+			//Draw sprites
+			{
+				auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+				for (auto entity : group)
+				{
+					auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+
+					Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+				}
+			}
+
+			//Draw circles
+			{
+				auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
+				for (auto entity : view)
+				{
+					auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
+
+					Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
+				}
+			}
+
+			Renderer2D::EndScene();
+		}
+	}
+
+	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
+	{
+		RenderScene(camera);
+	}
+
+	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
+	{
+		Update2DPhysics(ts);
+
+		RenderScene(camera);
+	}
+
+
+	void Scene::OnViewportResize(uint32_t width, uint32_t height)
+	{
+		m_ViewportWidth = width;
+		m_ViewportHeight = height;
+
+		//resize our non fixed aspect ratio cameras
+		auto view = m_Registry.view<CameraComponent>();
+		for (auto entity : view)
+		{
+			auto& cameraComponent = view.get<CameraComponent>(entity);
+			if (!cameraComponent.FixedAspectRatio)
+				cameraComponent.Camera.SetViewportSize(width, height);
+		}
+	}
+
+
+	Entity Scene::GetPrimaryCameraEntity()
+	{
+		auto view = m_Registry.view<CameraComponent>();
+		for (auto entity : view)
+		{
+			const auto& camera = view.get<CameraComponent>(entity);
+			if (camera.Primary)
+				return Entity{entity, this};
+		}
+		return {};
+	}
+
+	void Scene::OnPhysics2DStart()
+	{
 		m_PhysicsWorld = new b2World({ 0.0f, -9.81f });
 		auto view = m_Registry.view<RigidBody2DComponent>();
 		for (auto e : view)
@@ -183,99 +310,31 @@ namespace Hazel
 		}
 	}
 
-	void Scene::OnRuntimeStop()
+	void Scene::OnPhysics2DStop()
 	{
-		delete m_PhysicsWorld;
-		m_PhysicsWorld = nullptr;
 	}
 
-	void Scene::OnUpdateRuntime(Timestep ts)
+	void Scene::Update2DPhysics(Timestep ts)
 	{
+		m_PhysicsWorld->Step(ts, m_VelocityIterations, m_PositionIterations);
+
+		//retrieve transfrom from box2d
+		auto view = m_Registry.view<RigidBody2DComponent>();
+		for (auto e : view)
 		{
-			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
-			{
-				//todo move to Scene::OnScenePlay()
-				if (!nsc.Instance)
-				{
-					nsc.Instance = nsc.InstantiateScript();
-					nsc.Instance->m_Entity = Entity{ entity, this };
-					nsc.Instance->OnCreate();
-				}
-
-				nsc.Instance->OnUpdate(ts);
-			});
-
-		}
-
-		{
-			const int32_t velocityIterations = 6; //the more iterations, the better the physics but worse preformance
-			const int32_t positionIterations = 2;
-			m_PhysicsWorld->Step(ts, velocityIterations, positionIterations);
-
-			//retrieve transfrom from box2d
-			auto view = m_Registry.view<RigidBody2DComponent>();
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				auto& transform = entity.GetComponent<TransformComponent>();
-				auto& rb2d = entity.GetComponent<RigidBody2DComponent>();
-				//here is where we could get the UUID of the entity and use a UUID to body map to get our body
-				b2Body* body = static_cast<b2Body*>(rb2d.RuntimeBody);
-				const auto& position = body->GetPosition();
-				transform.Translation.x = position.x; //this is where we get our updated x and y from box2d
-				transform.Translation.y = position.y;
-				transform.Rotation.z = body->GetAngle();
-			}
-		}
-
-		Camera* mainCamera = nullptr;
-		glm::mat4 cameraTransform;
-		{
-			auto view = m_Registry.view<TransformComponent, CameraComponent>();
-			for (auto entity : view)
-			{
-				auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
-
-				if (camera.Primary)
-				{
-					mainCamera = &camera.Camera;
-					cameraTransform = transform.GetTransform();
-					break;
-				}
-			}
-		}
-
-		if (mainCamera)
-		{
-			Renderer2D::BeginScene(*mainCamera, cameraTransform);
-
-			//Draw sprites
-			{
-				auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-				for (auto entity : group)
-				{
-					auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-					Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-				}
-			}
-
-			//Draw circles
-			{
-				auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
-				for (auto entity : view)
-				{
-					auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
-
-					Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
-				}
-			}
-
-			Renderer2D::EndScene();
+			Entity entity = { e, this };
+			auto& transform = entity.GetComponent<TransformComponent>();
+			auto& rb2d = entity.GetComponent<RigidBody2DComponent>();
+			//here is where we could get the UUID of the entity and use a UUID to body map to get our body
+			b2Body* body = static_cast<b2Body*>(rb2d.RuntimeBody);
+			const auto& position = body->GetPosition();
+			transform.Translation.x = position.x; //this is where we get our updated x and y from box2d
+			transform.Translation.y = position.y;
+			transform.Rotation.z = body->GetAngle();
 		}
 	}
 
-	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
+	void Scene::RenderScene(EditorCamera& camera)
 	{
 		Renderer2D::BeginScene(camera);
 
@@ -302,34 +361,6 @@ namespace Hazel
 		}
 
 		Renderer2D::EndScene();
-	}
-
-	void Scene::OnViewportResize(uint32_t width, uint32_t height)
-	{
-		m_ViewportWidth = width;
-		m_ViewportHeight = height;
-
-		//resize our non fixed aspect ratio cameras
-		auto view = m_Registry.view<CameraComponent>();
-		for (auto entity : view)
-		{
-			auto& cameraComponent = view.get<CameraComponent>(entity);
-			if (!cameraComponent.FixedAspectRatio)
-				cameraComponent.Camera.SetViewportSize(width, height);
-		}
-	}
-
-
-	Entity Scene::GetPrimaryCameraEntity()
-	{
-		auto view = m_Registry.view<CameraComponent>();
-		for (auto entity : view)
-		{
-			const auto& camera = view.get<CameraComponent>(entity);
-			if (camera.Primary)
-				return Entity{entity, this};
-		}
-		return {};
 	}
 
 	template<typename T>

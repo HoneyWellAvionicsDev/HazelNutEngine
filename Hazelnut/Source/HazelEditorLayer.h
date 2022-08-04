@@ -34,8 +34,8 @@ namespace Hazel
 		void SerializeScene(Ref<Scene> scene, const std::filesystem::path& path);
 
 		void OnScenePlay();
-		void OnSceneStop();
 		void OnSceneSimulate();
+		void OnSceneStop();
 
 		void OnDuplicateEntity();
 
@@ -44,8 +44,7 @@ namespace Hazel
 		Ref<FrameBuffer> m_FrameBuffer;
 		Ref<Scene> m_ActiveScene;
 		Ref<Scene> m_EditorScene, m_RuntimeScene;
-		Ref<Texture2D> m_IconPlay;
-		Ref<Texture2D> m_IconStop;
+		Ref<Texture2D> m_IconPlay, m_IconSimulate, m_IconStop;
 		Entity m_HoveredEntity;
 
 		EditorCamera m_EditorCamera;
