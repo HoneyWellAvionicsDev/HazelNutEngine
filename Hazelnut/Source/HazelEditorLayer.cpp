@@ -93,8 +93,6 @@ namespace Hazel
                 m_ActiveScene->OnUpdateRuntime(ts);
                 break;
             }
-            default:
-                break;
         }
         
        
@@ -111,6 +109,7 @@ namespace Hazel
             m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
         }
 
+        OnOverlayRender();
 
         m_FrameBuffer->Unbind();
     }
@@ -202,7 +201,6 @@ namespace Hazel
        // if (m_HoveredEntity)
        //     name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
        // ImGui::Text("Hovered Entity: %s", name.c_str());
-        ImGui::Text("Initial mouse pos x: %f %f", m_EditorCamera.m_InitialMousePosition.x, m_EditorCamera.m_InitialMousePosition.y);
 
         auto stats = Renderer2D::GetStats();
         ImGui::Text("Renderer2D Stats: ");
@@ -211,10 +209,15 @@ namespace Hazel
         ImGui::Text("Quads: %d", stats.QuadCount);
         ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
- 
+        
         ImGui::ShowDemoWindow(&dockspaceOpen);
         ImGui::End();
     
+        ImGui::Begin("Settings");
+        ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
+        ImGui::End();
+
+
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
         ImGui::Begin("Viewport");
         auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
@@ -347,6 +350,7 @@ namespace Hazel
 
         bool control = Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL);
         bool shift = Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT) || Input::IsKeyPressed(HZ_KEY_RIGHT_SHIFT);
+        bool alt = Input::IsKeyPressed(HZ_KEY_LEFT_ALT) || Input::IsKeyPressed(HZ_KEY_RIGHT_ALT);
         switch (event.GetKeyCode())
         {
             case HZ_KEY_N:
@@ -396,6 +400,11 @@ namespace Hazel
                 if (!control && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
+                //settings
+            case HZ_KEY_X:
+                if (alt)
+                    m_ShowPhysicsColliders = m_ShowPhysicsColliders == true ? false : true;
+                break;
         }
     }
 
@@ -409,11 +418,65 @@ namespace Hazel
         return false;
     }
 
+    void EditorLayer::OnOverlayRender()
+    {
+        if (m_SceneState == SceneState::Play)
+        {
+            Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
+            Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+        }
+        else
+        {
+            Renderer2D::BeginScene(m_EditorCamera);
+        }
+
+        if (m_ShowPhysicsColliders)
+        {
+            // Box Colliders
+            {
+                auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+                for (auto entity : view)
+                {
+                    auto [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
+
+                    glm::vec3 translation = tc.Translation + glm::vec3(bc2d.Offset, 0.001f);
+                    glm::vec3 scale = tc.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
+
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), translation)
+                        * glm::rotate(glm::mat4(1.0f), tc.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
+                        * glm::scale(glm::mat4(1.0f), scale);
+
+                    Renderer2D::DrawRect(transform, glm::vec4(0, 1, 0, 1));
+                }
+            }
+
+            // Circle Colliders
+            {
+                auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+                for (auto entity : view)
+                {
+                    auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
+
+                    glm::vec3 translation = tc.Translation + glm::vec3(cc2d.Offset, 0.001f);
+                    glm::vec3 scale = tc.Scale * glm::vec3(cc2d.Radius * 2.0f);
+
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), translation)
+                        * glm::scale(glm::mat4(1.0f), scale);
+
+                    Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.08f);
+                }
+            }
+        }
+
+        Renderer2D::EndScene();
+    }
+
     void EditorLayer::NewScene()
     {
-        m_ActiveScene = CreateRef<Scene>();
-        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_EditorScene = CreateRef<Scene>();
+        m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_EditorScene);
+        m_ActiveScene = m_EditorScene;
 
         m_EditorScenePath = std::filesystem::path();
     }

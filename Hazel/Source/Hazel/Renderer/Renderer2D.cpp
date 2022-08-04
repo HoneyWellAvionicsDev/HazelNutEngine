@@ -222,11 +222,11 @@ namespace Hazel
 	{
 		HZ_PROFILE_FUNCTION();
 
-		s_Data.QuadShader->Bind();
-		s_Data.QuadShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
+		//s_Data.QuadShader->Bind();
+		//s_Data.QuadShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
 
-		//s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2Ddata::CameraData));
-		//s_Data.CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
+		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2Ddata::CameraData));
+		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
 
 		StartBatch();
 	}
@@ -253,7 +253,7 @@ namespace Hazel
 	}
 
 	void Renderer2D::Flush()
-	{
+	{          //ideally we should split up lines circles and quads into their own functions so our renderer can flush a specific type
 		if (s_Data.QuadIndexCount)
 		{
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);

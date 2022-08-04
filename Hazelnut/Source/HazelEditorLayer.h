@@ -57,6 +57,7 @@ namespace Hazel
 	
 		std::filesystem::path m_EditorScenePath;
 		int m_GizmoType = -1;
+		bool m_ShowPhysicsColliders = false;
 		//panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		ContentViewPanel m_ContentBrowserPanel;
