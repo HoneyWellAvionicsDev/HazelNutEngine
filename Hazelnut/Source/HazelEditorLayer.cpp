@@ -46,6 +46,7 @@ namespace Hazel
         }
 
         m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+        Renderer2D::SetLineWidth(4.0f);
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
@@ -201,15 +202,13 @@ namespace Hazel
             ImGui::EndMenuBar();
         }
 
-        m_SceneHierarchyPanel.OnImGuiRender();
-        m_ContentBrowserPanel.OnImGuiRender();
 
         ImGui::Begin("Statistics");
 
-       // std::string name = "None";
-       // if (m_HoveredEntity)
-       //     name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
-       // ImGui::Text("Hovered Entity: %s", name.c_str());
+        std::string name = "None";
+        if (m_HoveredEntity)
+            name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
+        ImGui::Text("Hovered Entity: %s", name.c_str());
 
         auto stats = Renderer2D::GetStats();
         ImGui::Text("Renderer2D Stats: ");
@@ -355,7 +354,6 @@ namespace Hazel
         ImGui::SameLine();
         {
             Ref<Texture2D> icon = m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play ? m_IconSimulate : m_IconStop;
-            //ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
             if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
             {
                 if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play)
@@ -617,6 +615,7 @@ namespace Hazel
 
         m_SceneState = SceneState::Edit;
         m_ActiveScene = m_EditorScene;
+        m_HoveredEntity = {};
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
