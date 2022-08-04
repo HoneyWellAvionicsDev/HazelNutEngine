@@ -10,7 +10,7 @@ namespace Hazel
 	{
 		auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());            //gets our application window as a void pointer and casts it into a GLFWwindow pointer
 		auto state = glfwGetKey(window, keycode);
-		return state == GLFW_PRESS || state == GLFW_REPEAT;
+		return state == GLFW_PRESS;
 	}
 	bool Input::IsMouseButtonPressed(int button)
 	{
