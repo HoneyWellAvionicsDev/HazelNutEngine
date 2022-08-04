@@ -11,7 +11,7 @@ namespace Hazel
 	public:
 		ContentViewPanel();
 
-		void OnImGuiRender();
+		void OnImGuiRender(float padding, float thumbnailSize);
 
 	private:
 		std::filesystem::path m_CurrentDirectory;

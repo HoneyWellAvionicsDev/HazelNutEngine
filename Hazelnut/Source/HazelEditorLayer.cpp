@@ -223,9 +223,16 @@ namespace Hazel
         ImGui::End();
     
         ImGui::Begin("Settings");
+        static float padding = 16.f;
+        static float thumbnailSize = 128.f;
+
+        ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
+        ImGui::SliderFloat("Padding", &padding, 0, 32);
         ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
         ImGui::End();
 
+        m_SceneHierarchyPanel.OnImGuiRender();
+        m_ContentBrowserPanel.OnImGuiRender(padding, thumbnailSize);
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
         ImGui::Begin("Viewport");
