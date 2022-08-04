@@ -557,6 +557,9 @@ namespace Hazel
 
     void EditorLayer::SaveScene()
     {
+        if (m_SceneState != SceneState::Edit)
+            return;
+        //TODO: display a message somewhere to indicate a save
         if (!m_EditorScenePath.empty())
             SerializeScene(m_ActiveScene, m_EditorScenePath);
         else
