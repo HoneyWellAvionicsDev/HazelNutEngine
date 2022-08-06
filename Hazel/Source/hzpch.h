@@ -17,6 +17,7 @@
 #include <functional>
 
 #include <string>
+#include <string_view>
 #include <sstream>
 #include <fstream>
 #include <array>
@@ -28,6 +29,7 @@
 #include "Hazel/Core/Core.h"
 #include "Hazel/Core/Log.h"
 #include "Hazel/Core/Timer.h"
+#include "Hazel/Core/KeyCodes.h"
 #include "Hazel/Debug/Instrumentor.h"
 
 #ifdef HZ_PLATFORM_WINDOWS

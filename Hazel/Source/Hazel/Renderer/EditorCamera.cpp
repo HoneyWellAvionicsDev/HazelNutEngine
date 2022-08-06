@@ -21,9 +21,9 @@ namespace Hazel
 
 	void EditorCamera::OnUpdate(Timestep ts)
 	{
-			const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
-			glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
-			m_InitialMousePosition = mouse;
+		const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
+		glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
+		m_InitialMousePosition = mouse;
 
 		if (Input::IsMouseButtonPressed((HZ_MOUSE_BUTTON_5)))
 		{

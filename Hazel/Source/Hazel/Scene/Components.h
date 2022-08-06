@@ -56,9 +56,9 @@ namespace Hazel
 
 	struct SpriteRendererComponent
 	{
-		glm::vec4 Color{ 1.f };
+		glm::vec4 Color{ 1.0f };
 		Ref<Texture2D> Texture;
-		float TileFactor = 1.f;
+		float TileFactor = 1.0f;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -68,7 +68,7 @@ namespace Hazel
 
 	struct CircleRendererComponent
 	{
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 Color{ 1.0f };
 		float Thickness = 1.0f;
 		float Fade = 0.005f;
 
@@ -88,27 +88,35 @@ namespace Hazel
 	};
 
 	class ScriptableEntity;
+	enum class ScriptType : uint8_t
+	{
+		None = 0,
+		CameraController,
+		Test
+	};
 
 	struct NativeScriptComponent
 	{
 		ScriptableEntity* Instance = nullptr; //to use this pointer, must #include "ScriptableEntity.h"
-
+		
 		ScriptableEntity*(*InstantiateScript)();
 		void (*DestroyScript)(NativeScriptComponent*);
+
+		ScriptType Type = ScriptType::None;
 
 		template<typename T>
 		void Bind()
 		{
-			InstantiateScript = []() {return static_cast<ScriptableEntity*>(new T()); };
+			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
 			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
 		}
 	};
 
 	//Physics
-
+	
 	struct RigidBody2DComponent
 	{
-		enum class BodyType { Static = 0, Dynamic, Kinematic };
+		enum class BodyType : uint8_t { Static = 0, Dynamic, Kinematic };
 		BodyType Type = BodyType::Static;
 		bool FixedRotation = false;
 
@@ -151,6 +159,8 @@ namespace Hazel
 		CircleCollider2DComponent() = default;
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
+
+	//TODO: maybe add an editor camera component so it can be used during runtime
 
 	template<typename... Component>
 	struct ComponentGroup

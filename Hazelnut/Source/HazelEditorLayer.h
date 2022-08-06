@@ -46,6 +46,7 @@ namespace Hazel
 		Ref<Scene> m_EditorScene, m_RuntimeScene;
 		Ref<Texture2D> m_IconPlay, m_IconSimulate, m_IconStop;
 		Entity m_HoveredEntity;
+		Entity m_TestEnt;
 
 		EditorCamera m_EditorCamera;
 	

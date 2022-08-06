@@ -20,3 +20,4 @@ namespace Hazel
 		Ref<Texture2D> m_FileIcon;
 	};
 }
+

@@ -18,7 +18,6 @@
 	#define HZ_DEBUGBREAK()
 #endif
 
-
 #define HZ_EXPAND_MACRO(x) x
 #define HZ_STRINGIFY_MACRO(x) #x
 

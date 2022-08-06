@@ -1,5 +1,6 @@
 #include "SceneHierarchyPanel.h"
 #include "Hazel/Scene/Components.h"
+#include "Hazel/Scene/ScriptableEntity.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -229,9 +230,10 @@ namespace Hazel
 
 		if (ImGui::BeginPopup("AddComponent"))
 		{
-			DisplayAddComponentEntry<CameraComponent>("Camera");
 			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
 			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+			DisplayAddComponentEntry<NativeScriptComponent>("Native Script Component");
+			DisplayAddComponentEntry<CameraComponent>("Camera");
 			DisplayAddComponentEntry<RigidBody2DComponent>("2D Rigid Body");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("2D Box Collider");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("2D Circle Collider");
@@ -248,6 +250,73 @@ namespace Hazel
 		});
 
 		ImGui::PopItemWidth();
+
+		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
+		{
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+
+			ImGui::Button("Texture", ImVec2(100.f, 0.f)); //button can be used to clear
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::filesystem::path texturePath = std::filesystem::path(g_AssetPath) / path;
+					component.Texture = Texture2D::Upload(texturePath.string());
+				}
+			}
+
+			ImGui::DragFloat("Tiling Factor", &component.TileFactor, 0.1f, 0.0f, 100.f);
+		});
+
+		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
+		{
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+			ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
+			ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
+		});
+
+		DrawComponent<NativeScriptComponent>("Native Script", entity, [](auto& component)
+		{
+			auto currentClassType = component.Type;
+
+			if (ImGui::BeginCombo("Script Class", Utils::ScriptTypeToString(currentClassType)))
+			{
+				bool isSelected = currentClassType == ScriptType::None;
+				if (ImGui::Selectable("None", isSelected))
+				{
+					currentClassType = ScriptType::None;
+					component.Type = ScriptType::None;
+					if (component.DestroyScript)
+					{
+						component.DestroyScript(&component);
+						component.InstantiateScript = nullptr;
+					}
+				}
+
+				isSelected = currentClassType == ScriptType::CameraController;
+				if (ImGui::Selectable("Camera Controller", isSelected))
+				{
+					currentClassType = ScriptType::CameraController;
+					component.Type = ScriptType::CameraController;
+					component.Bind<CameraController>();
+				}
+
+				isSelected = currentClassType == ScriptType::Test;
+				if (ImGui::Selectable("Test", isSelected))
+				{
+					currentClassType = ScriptType::Test;
+					component.Type = ScriptType::Test;
+					component.Bind<Test>();
+				}
+
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+
+
+				ImGui::EndCombo();
+			}
+		});
 
 		DrawComponent<CameraComponent>("Camera", entity, [](auto& component)
 		{
@@ -311,31 +380,6 @@ namespace Hazel
 				ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
 			}
 		});
-
-		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
-		{
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-
-			ImGui::Button("Texture", ImVec2(100.f, 0.f)); //button can be used to clear
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-				{
-					const wchar_t* path = (const wchar_t*)payload->Data;
-					std::filesystem::path texturePath = std::filesystem::path(g_AssetPath) / path;
-					component.Texture = Texture2D::Upload(texturePath.string());
-				}
-			}
-
-			ImGui::DragFloat("Tiling Factor", &component.TileFactor, 0.1f, 0.0f, 100.f);
-		});
-
-		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
-		{
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-			ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
-			ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
-		});
 	
 		DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](auto& component)
 		{
@@ -381,6 +425,7 @@ namespace Hazel
 			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
 		});
+
 	}
 
 	template<typename T>

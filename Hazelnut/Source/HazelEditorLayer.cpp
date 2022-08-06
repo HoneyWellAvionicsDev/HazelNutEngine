@@ -311,6 +311,8 @@ namespace Hazel
 
         }
 
+      
+
         ImGui::End();
         ImGui::PopStyleVar();
 
@@ -438,7 +440,7 @@ namespace Hazel
                 //settings
             case HZ_KEY_X:
                 if (alt)
-                    m_ShowPhysicsColliders = m_ShowPhysicsColliders == true ? false : true;
+                    m_ShowPhysicsColliders ^= true;
                 break;
         }
     }
