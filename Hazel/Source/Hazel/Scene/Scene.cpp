@@ -179,7 +179,7 @@ namespace Hazel
 				}
 			});
 		}
-		//nsc.Instance->OnUpdate(ts);
+
 		Update2DPhysics(ts);
 
 		Camera* mainCamera = nullptr;
@@ -272,7 +272,7 @@ namespace Hazel
 
 	void Scene::OnPhysics2DStart()
 	{
-		m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
+		m_PhysicsWorld = new b2World({ 0.f, 0.f });
 		auto view = m_Registry.view<RigidBody2DComponent>();
 		for (auto e : view)
 		{
@@ -332,7 +332,9 @@ namespace Hazel
 
 	void Scene::Update2DPhysics(Timestep ts)
 	{
+		m_PhysicsWorld->SetGravity({ m_LocalGravity.x, m_LocalGravity.y });
 		m_PhysicsWorld->Step(ts, m_VelocityIterations, m_PositionIterations);
+		//HZ_CORE_TRACE("Timestep {0}", ts);
 
 		//retrieve transfrom from box2d
 		auto view = m_Registry.view<RigidBody2DComponent>();

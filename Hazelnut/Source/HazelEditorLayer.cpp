@@ -1,18 +1,23 @@
 #include "HazelEditorLayer.h"
-#include <imgui.h>
-#include "glm/gtc/type_ptr.hpp"
 
 #include "Hazel/Scene/SceneSerializer.h"
 #include "Hazel/Utils/PlatfromUtils.h"
 #include "Hazel/Math/Math.h"
 #include "Hazel/Core/Timer.h"
 
+#include "glm/gtc/type_ptr.hpp"
+#include <imgui.h>
 #include "ImGuizmo.h"
+
 
 namespace Hazel
 {
     
     extern const std::filesystem::path g_AssetPath;
+
+    static float grav[2] = { 0.f, -9.81f };
+    static int s_VeloctiyIterations = 6;
+    static int s_PositionIterations = 2;
 
     EditorLayer::EditorLayer()
     	: Layer("EditorLayer")
@@ -70,7 +75,9 @@ namespace Hazel
         }
 
     	//------------------Update----------------------------------
-    
+        m_ActiveScene->SetLevelGravity({ grav[0], grav[1] });
+        m_ActiveScene->SetVelocityIterations(s_VeloctiyIterations);
+        m_ActiveScene->SetPositionIterations(s_PositionIterations);
     	//------------------Render----------------------------------
     	Renderer2D::ResetStats();
         m_FrameBuffer->Bind();
@@ -92,14 +99,20 @@ namespace Hazel
             }
             case SceneState::Simulate:
             {
+                Timer timer;
                 m_EditorCamera.OnUpdate(ts);
 
                 m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
+                if (timer.ElapsedMilliseconds() > 200)
+                    OnSceneStop();
                 break;
             }
             case SceneState::Play:
             {
+                Timer timer;
                 m_ActiveScene->OnUpdateRuntime(ts);
+                if (timer.ElapsedMilliseconds() > 200)
+                    OnSceneStop();
                 break;
             }
         }
@@ -211,6 +224,7 @@ namespace Hazel
 
         auto stats = Renderer2D::GetStats();
         ImGui::Text("Renderer2D Stats: ");
+        ImGui::Text("Frametime: %f ms", Application::Get().GetLastFrameTime());
         ImGui::Text("FPS: %f", 1.f / Application::Get().GetLastFrameTime());
         ImGui::Text("Draw Calls: %d", stats.DrawCalls);
         ImGui::Text("Quads: %d", stats.QuadCount);
@@ -226,6 +240,9 @@ namespace Hazel
 
         ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
         ImGui::SliderFloat("Padding", &padding, 0, 32);
+        ImGui::SliderFloat2("Local Gravity", grav, -20, 20);
+        ImGui::SliderInt("Velocity Iterations", &s_VeloctiyIterations, 1, 500);
+        ImGui::SliderInt("Position Iterations", &s_PositionIterations, 1, 500);
         ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
         ImGui::End();
 
