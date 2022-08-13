@@ -28,6 +28,7 @@ namespace Hazel
 		void OnRuntimeStop();
 
 		void OnUpdateRuntime(Timestep ts);
+		void OnUpdateRuntime(Timestep ts, EditorCamera& camera);
 		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 		void OnUpdateSimulation(Timestep ts, EditorCamera& camera);
 
@@ -56,8 +57,9 @@ namespace Hazel
 		void OnPhysics2DStart();
 		void OnPhysics2DStop();
 		void Update2DPhysics(Timestep ts);
+		void UpdateScripts(Timestep ts);
 
-		void RenderScene(EditorCamera& camera);
+		void RenderSceneEntities();
 
 		entt::registry m_Registry;
 		uint32_t m_ViewportWidth = 0;

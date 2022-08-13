@@ -80,7 +80,7 @@ namespace Hazel
 	{
 		SceneCamera Camera;
 
-		bool Primary = false; //todo, move this to scene as we will only really have one primary camera
+		bool Primary = false; //TODO: move this to scene as we will only really have one primary camera
 		bool FixedAspectRatio = false;
 
 		CameraComponent() = default;

@@ -170,16 +170,7 @@ namespace Hazel
 
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
-		{
-			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
-			{
-				if (nsc.Instance)
-				{
-					nsc.Instance->OnUpdate(ts);
-				}
-			});
-		}
-
+		UpdateScripts(ts);
 		Update2DPhysics(ts);
 
 		Camera* mainCamera = nullptr;
@@ -202,43 +193,29 @@ namespace Hazel
 		if (mainCamera)
 		{
 			Renderer2D::BeginScene(*mainCamera, cameraTransform);
-
-			//Draw sprites
-			{
-				auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-				for (auto entity : group)
-				{
-					auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-					Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-				}
-			}
-
-			//Draw circles
-			{
-				auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
-				for (auto entity : view)
-				{
-					auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
-
-					Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
-				}
-			}
-
-			Renderer2D::EndScene();
+			RenderSceneEntities();
 		}
+	}
+
+	void Scene::OnUpdateRuntime(Timestep ts, EditorCamera& camera)
+	{
+		UpdateScripts(ts);
+		Update2DPhysics(ts);
+		Renderer2D::BeginScene(camera);
+		RenderSceneEntities();
 	}
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
 	{
-		RenderScene(camera);
+		Renderer2D::BeginScene(camera);
+		RenderSceneEntities();
 	}
 
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
 	{
 		Update2DPhysics(ts);
-
-		RenderScene(camera);
+		Renderer2D::BeginScene(camera);
+		RenderSceneEntities();
 	}
 
 
@@ -352,10 +329,19 @@ namespace Hazel
 		}
 	}
 
-	void Scene::RenderScene(EditorCamera& camera)
+	void Scene::UpdateScripts(Timestep ts)
 	{
-		Renderer2D::BeginScene(camera);
+		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+		{
+			if (nsc.Instance)
+			{
+				nsc.Instance->OnUpdate(ts);
+			}
+		});
+	}
 
+	void Scene::RenderSceneEntities()
+	{
 		//Draw sprites
 		{
 			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);

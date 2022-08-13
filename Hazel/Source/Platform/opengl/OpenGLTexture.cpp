@@ -28,7 +28,7 @@ namespace Hazel
 		: m_Path(path)
 	{
 		HZ_PROFILE_FUNCTION();
-		//should add a check to see if file path exsists
+		//TODO: add a check to see if file path exsists
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
 		stbi_uc* data = nullptr;
@@ -38,7 +38,7 @@ namespace Hazel
 			data = stbi_load(path.c_str(), &width, &height, &channels, 0);                        //stores texture on RAM
 			HZ_CORE_TRACE("Texture from path {0} took {1}ms", path, timer.ElapsedMilliseconds());
 		}
-		HZ_CORE_ASSERT(data, "Failed to load image!");
+		HZ_CORE_ASSERT(data, "Failed to load image!"); //maybe we could throw after asserting
 		m_Width = width;
 		m_Height = height;
 
