@@ -38,10 +38,15 @@ namespace Hazel
 
 		if (m_Context)
 		{
+			static ImGuiTextFilter filter;
+			filter.Draw("Search");
+			
+			//ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
 			m_Context->m_Registry.each([&](auto entityID)
 			{
 				Entity entity{ entityID, m_Context.get() };
-				DrawEntityNode(entity);
+				if(filter.PassFilter(entity.GetName().c_str()))
+					DrawEntityNode(entity);
 			});
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -71,9 +76,9 @@ namespace Hazel
 	{
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Leaf;
+		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)entity, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 			m_SelectionContext = entity;
 
@@ -88,10 +93,7 @@ namespace Hazel
 
 		if (opened)
 		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			bool opened = ImGui::TreeNodeEx((void*)98290348, flags, tag.c_str());
-			if(opened)
-				ImGui::TreePop();
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth;
 			ImGui::TreePop();
 		}
 
@@ -263,6 +265,7 @@ namespace Hazel
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path texturePath = std::filesystem::path(g_AssetPath) / path;
 					component.Texture = Texture2D::Upload(texturePath.string());
+					//handle failed to load image expection
 				}
 			}
 

@@ -15,9 +15,6 @@ namespace Hazel
     
     extern const std::filesystem::path g_AssetPath;
 
-    static float grav[2] = { 0.f, -9.81f };
-    static int s_VeloctiyIterations = 6;
-    static int s_PositionIterations = 2;
 
     EditorLayer::EditorLayer()
     	: Layer("EditorLayer")
@@ -47,7 +44,8 @@ namespace Hazel
         {
             auto sceneFilePath = commandLineArgs[1];
             SceneSerializer serializer(m_ActiveScene);
-            serializer.Deserialize(sceneFilePath);
+            if (!serializer.Deserialize(sceneFilePath))
+                HZ_CORE_ERROR("Could not deserialize scene from {0}", sceneFilePath);
         }
 
         m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
@@ -75,17 +73,17 @@ namespace Hazel
         }
 
     	//------------------Update----------------------------------
-        m_ActiveScene->SetLevelGravity({ grav[0], grav[1] });
-        m_ActiveScene->SetVelocityIterations(s_VeloctiyIterations);
-        m_ActiveScene->SetPositionIterations(s_PositionIterations);
+        m_ActiveScene->SetLevelGravity({ m_Gravity[0], m_Gravity[1] });
+        m_ActiveScene->SetVelocityIterations(m_VeloctiyIterations);
+        m_ActiveScene->SetPositionIterations(m_PositionIterations);
     	//------------------Render----------------------------------
     	Renderer2D::ResetStats();
         m_FrameBuffer->Bind();
     	RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
     	RenderCommand::Clear();
 
-        //------------------Clear ent ID to -1----------------------------------
-        m_FrameBuffer->ClearAttachment(1, -1);
+        
+        m_FrameBuffer->ClearAttachment(1, -1); //Clear ent ID to -1
         //------------------Scene----------------------------------
         switch (m_SceneState)
         {
@@ -110,7 +108,15 @@ namespace Hazel
             case SceneState::Play:
             {
                 Timer timer;
-                m_ActiveScene->OnUpdateRuntime(ts);
+                if (m_UseEditorCameraOnRuntime)
+                {
+                    m_EditorCamera.OnUpdate(ts);
+                    m_ActiveScene->OnUpdateRuntime(ts, m_EditorCamera);
+                }
+                else
+                {
+                    m_ActiveScene->OnUpdateRuntime(ts);
+                }
                 if (timer.ElapsedMilliseconds() > 200)
                     OnSceneStop();
                 break;
@@ -138,13 +144,13 @@ namespace Hazel
     
     void EditorLayer::OnImGuiRender()
     {
-    	HZ_PROFILE_FUNCTION();
-    
-    	static bool dockspaceOpen = true;
+        HZ_PROFILE_FUNCTION();
+
+        static bool dockspaceOpen = true;
         static bool opt_fullscreen = true;
         static bool opt_padding = false;
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-      
+
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
         if (opt_fullscreen)
         {
@@ -161,20 +167,20 @@ namespace Hazel
         {
             dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
         }
-    
+
         if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
             window_flags |= ImGuiWindowFlags_NoBackground;
-    
-        
+
+
         if (!opt_padding)
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
         if (!opt_padding)
             ImGui::PopStyleVar();
-    
+
         if (opt_fullscreen)
             ImGui::PopStyleVar(2);
-    
+
         ImGuiIO& io = ImGui::GetIO();
         ImGuiStyle& style = ImGui::GetStyle();
         float minWinSizeX = style.WindowMinSize.x;
@@ -186,7 +192,7 @@ namespace Hazel
         }
 
         style.WindowMinSize.x = minWinSizeX;
-    
+
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("File"))
@@ -194,7 +200,7 @@ namespace Hazel
                 //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
                 ImGui::MenuItem("Padding", NULL, &opt_padding);
                 ImGui::Separator();
-                
+
                 if (ImGui::MenuItem("New", "Ctrl+N"))
                     NewScene();
 
@@ -207,10 +213,10 @@ namespace Hazel
                     SaveSceneAs();
 
                 if (ImGui::MenuItem("Quit")) Application::Get().CloseWindow();
-                
+
                 ImGui::EndMenu();
             }
-    
+
             ImGui::EndMenuBar();
         }
 
@@ -230,20 +236,21 @@ namespace Hazel
         ImGui::Text("Quads: %d", stats.QuadCount);
         ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
-        
+
         ImGui::ShowDemoWindow(&dockspaceOpen);
         ImGui::End();
-    
+
         ImGui::Begin("Settings");
         static float padding = 16.f;
         static float thumbnailSize = 128.f;
 
         ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
         ImGui::SliderFloat("Padding", &padding, 0, 32);
-        ImGui::SliderFloat2("Local Gravity", grav, -20, 20);
-        ImGui::SliderInt("Velocity Iterations", &s_VeloctiyIterations, 1, 500);
-        ImGui::SliderInt("Position Iterations", &s_PositionIterations, 1, 500);
+        ImGui::SliderFloat2("Local Gravity", m_Gravity, -20, 20);
+        ImGui::SliderInt("Velocity Iterations", &m_VeloctiyIterations, 1, 500);
+        ImGui::SliderInt("Position Iterations", &m_PositionIterations, 1, 500);
         ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
+        ImGui::Checkbox("Use editor camera for runtime", &m_UseEditorCameraOnRuntime);
         ImGui::End();
 
         m_SceneHierarchyPanel.OnImGuiRender();
@@ -263,7 +270,7 @@ namespace Hazel
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-  
+
         uint32_t textureID = m_FrameBuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
@@ -311,35 +318,29 @@ namespace Hazel
 
             float snapValues[3] = { snapValue, snapValue, snapValue };
 
-            ImGuizmo:Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
-                nullptr, snap ? snapValues : nullptr);
+        ImGuizmo:Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+            (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+            nullptr, snap ? snapValues : nullptr);
 
-            if (ImGuizmo::IsUsing())
-            {
-                glm::vec3 translation, rotation, scale;
-                Math::DecomposeTransform(transform, translation, rotation, scale);
+        if (ImGuizmo::IsUsing())
+        {
+            glm::vec3 translation, rotation, scale;
+            Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                glm::vec3 deltaRotation = rotation - tc.Rotation;
-                tc.Translation = translation;
-                tc.Rotation += deltaRotation;
-                tc.Scale = scale;
-            }
+            glm::vec3 deltaRotation = rotation - tc.Rotation;
+            tc.Translation = translation;
+            tc.Rotation += deltaRotation;
+            tc.Scale = scale;
+        }
 
         }
 
-      
+
 
         ImGui::End();
         ImGui::PopStyleVar();
 
-        UIToolbar();
-
-        ImGui::End();
-    }
-    
-    void EditorLayer::UIToolbar()
-    {
+        // UI Tool bar
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -380,9 +381,12 @@ namespace Hazel
                     OnSceneStop();
             }
         }
-        
+
         ImGui::PopStyleVar(2);
         ImGui::PopStyleColor(3);
+        ImGui::End(); //UI tool bar end
+
+        //View port end
         ImGui::End();
     }
   
@@ -398,15 +402,16 @@ namespace Hazel
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
     {
-        //file shortcuts
         if (event.IsRepeat())
             return false;
 
         bool control = Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL);
         bool shift = Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT) || Input::IsKeyPressed(HZ_KEY_RIGHT_SHIFT);
         bool alt = Input::IsKeyPressed(HZ_KEY_LEFT_ALT) || Input::IsKeyPressed(HZ_KEY_RIGHT_ALT);
+
         switch (event.GetKeyCode())
         {
+            //file shortcuts
             case HZ_KEY_N:
             {
                 if (control)
@@ -439,22 +444,22 @@ namespace Hazel
             }
             //gizmo shortcuts
             case HZ_KEY_Q:
-                if(!control && !ImGuizmo::IsUsing())
+                if(!ImGuizmo::IsUsing())
                     m_GizmoType = -1;
                 break;
-            case HZ_KEY_W: //control is our FILE key so lets not do anything if control is pressed
-                if (!control && !ImGuizmo::IsUsing())
+            case HZ_KEY_W: 
+                if (!ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
                 break;
             case HZ_KEY_E:
-                if (!control && !ImGuizmo::IsUsing())
+                if (!ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::ROTATE;
                 break;
             case HZ_KEY_R:
-                if (!control && !ImGuizmo::IsUsing())
+                if (!ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
-                //settings
+            //settings
             case HZ_KEY_X:
                 if (alt)
                     m_ShowPhysicsColliders ^= true;
@@ -474,7 +479,7 @@ namespace Hazel
 
     void EditorLayer::OnOverlayRender()
     {
-        if (m_SceneState == SceneState::Play)
+        if (m_SceneState == SceneState::Play && !m_UseEditorCameraOnRuntime)
         {
             Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
             if (!camera)
@@ -564,7 +569,7 @@ namespace Hazel
 
         if (filepath.extension().string() != ".hazel")
         {
-            HZ_WARN("Could not load {0} - not a scene file", filepath.filename().string());
+            HZ_CORE_WARN("Could not load {0} - not a scene file", filepath.filename().string());
             return;
         }
 

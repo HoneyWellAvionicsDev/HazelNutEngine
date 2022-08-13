@@ -39,14 +39,12 @@ namespace Hazel
 
 		void OnDuplicateEntity();
 
-		void UIToolbar();
 	private:
 		Ref<FrameBuffer> m_FrameBuffer;
 		Ref<Scene> m_ActiveScene;
 		Ref<Scene> m_EditorScene, m_RuntimeScene;
 		Ref<Texture2D> m_IconPlay, m_IconSimulate, m_IconStop;
 		Entity m_HoveredEntity;
-		Entity m_TestEnt;
 
 		EditorCamera m_EditorCamera;
 	
@@ -58,6 +56,10 @@ namespace Hazel
 		std::filesystem::path m_EditorScenePath;
 		int m_GizmoType = -1;
 		bool m_ShowPhysicsColliders = false;
+		bool m_UseEditorCameraOnRuntime = false;
+		float m_Gravity[2] = { 0.f, -9.81f };
+		int m_VeloctiyIterations = 6;
+		int m_PositionIterations = 2;
 		//panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		ContentViewPanel m_ContentBrowserPanel;
