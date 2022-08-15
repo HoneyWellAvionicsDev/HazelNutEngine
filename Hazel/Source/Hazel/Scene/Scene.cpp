@@ -81,23 +81,25 @@ namespace Hazel
 		CopyComponentIfExists<Component...>(dst, src);
 	}
 
-	Ref<Scene> Scene::Copy(Ref<Scene> other)
+	Ref<Scene> Scene::Copy(Ref<Scene> source)
 	{
 		Ref<Scene> newScene = CreateRef<Scene>();
 
-		newScene->m_ViewportWidth = other->m_ViewportWidth;
-		newScene->m_ViewportHeight = other->m_ViewportHeight;
+		newScene->m_ViewportWidth = source->m_ViewportWidth;
+		newScene->m_ViewportHeight = source->m_ViewportHeight;
+		
 
-		auto& srcSceneRegistry = other->m_Registry;
+		auto& srcSceneRegistry = source->m_Registry;
 		auto& dstSceneRegistry = newScene->m_Registry;
 		std::unordered_map<UUID, entt::entity> enttMap;
 
 		// Create entities in new scene
 		auto idView = srcSceneRegistry.view<IDComponent>();
-		for (auto e : idView)
+		
+		for (auto it = idView.rbegin(); it != idView.rend(); it++)
 		{
-			UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
-			const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
+			UUID uuid = srcSceneRegistry.get<IDComponent>(*it).ID;
+			const auto& name = srcSceneRegistry.get<TagComponent>(*it).Tag;
 			Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
 			enttMap[uuid] = (entt::entity)newEntity;
 		}

@@ -626,7 +626,7 @@ namespace Hazel
         m_ActiveScene = Scene::Copy(m_EditorScene);
         m_ActiveScene->OnRuntimeStart();
 
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        CarrySelectionContext();
     }
 
     void EditorLayer::OnSceneSimulate()
@@ -635,9 +635,12 @@ namespace Hazel
             OnSceneStop();
 
         m_SceneState = SceneState::Simulate;
+        m_GizmoType = -1;
+
         m_ActiveScene = Scene::Copy(m_EditorScene);
         m_ActiveScene->OnSimulationStart();
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+        CarrySelectionContext();
     }
 
     void EditorLayer::OnSceneStop()
@@ -652,7 +655,8 @@ namespace Hazel
         m_SceneState = SceneState::Edit;
         m_ActiveScene = m_EditorScene;
         m_HoveredEntity = {};
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+        CarrySelectionContext();
     }
 
     void EditorLayer::OnDuplicateEntity()
@@ -663,5 +667,20 @@ namespace Hazel
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
             m_EditorScene->DuplicateEntity(selectedEntity);
+    }
+
+    void EditorLayer::CarrySelectionContext()
+    {
+        if (m_SceneHierarchyPanel.GetSelectedEntity() != Entity())
+        {
+            auto view = m_ActiveScene->GetAllEntitiesWith<IDComponent>();
+            auto newSelection = view.find((entt::entity)m_SceneHierarchyPanel.GetSelectedEntity());
+            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+            m_SceneHierarchyPanel.SetSelectionContext(Entity(*newSelection, m_ActiveScene.get()));
+        }
+        else
+        {
+            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        }
     }
 }

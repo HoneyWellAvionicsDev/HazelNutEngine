@@ -42,17 +42,11 @@ namespace Hazel
 			filter.Draw("Search");
 			
 			//ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
-			m_Context->m_Registry.each([&](auto entityID)
-			{
-				Entity entity{ entityID, m_Context.get() };
-				if(filter.PassFilter(entity.GetName().c_str()))
-					DrawEntityNode(entity);
-			});
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 				m_SelectionContext = {};
 
-			if (ImGui::BeginPopupContextWindow(0, 1, false))
+			if (ImGui::BeginPopupContextWindow(0, 1, false)) //TODO: only display this menu if SceneState == Edit
 			{
 				if (ImGui::MenuItem("Create Blank Entity"))
 						m_Context->CreateEntity("Blank Entity");
@@ -60,6 +54,13 @@ namespace Hazel
 
 				ImGui::EndPopup();
 			}
+
+			m_Context->m_Registry.each([&](auto entityID)
+			{
+				Entity entity{(entt::entity)((m_Context->m_Registry.size() - 1) - (int)entityID), m_Context.get() };
+				if(filter.PassFilter(entity.GetName().c_str()))
+					DrawEntityNode(entity);
+			});
 		}
 
 		ImGui::End();
@@ -83,7 +84,7 @@ namespace Hazel
 			m_SelectionContext = entity;
 
 		bool entityDeleted = false;
-		if (ImGui::BeginPopupContextItem())
+		if (ImGui::BeginPopupContextItem()) //TODO: only display this menu if SceneState == Edit (we dont wanna delete entities during runtime)
 		{
 			if (ImGui::MenuItem("Delete Entity"))
 				entityDeleted = true;
@@ -181,24 +182,31 @@ namespace Hazel
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
 			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.f;
 			ImGui::Separator();
-			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, label.c_str());
+			bool _open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, label.c_str());
 			ImGui::PopStyleVar();
 			ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
 			if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
 			{
 				ImGui::OpenPopup("ComponentSettings");
 			}
-
+			
 			bool removeComponent = false;
 			if (ImGui::BeginPopup("ComponentSettings"))
 			{
-				if (ImGui::MenuItem("Remove component"))
-					removeComponent = true;
+				if (typeid(T) != typeid(TransformComponent))
+				{
+					if (ImGui::MenuItem("Remove component"))
+						removeComponent = true;
+				}
+
+				
+					
+				//TODO: copy component for use in another entt
 
 				ImGui::EndPopup();
 			}
 
-			if (open)
+			if (_open)
 			{
 				function(component);
 				ImGui::TreePop();
@@ -227,7 +235,7 @@ namespace Hazel
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
 
-		if (ImGui::Button("Add Component"))
+		if (ImGui::Button("Add Component")) //TODO: hide button if SceneState != edit
 			ImGui::OpenPopup("AddComponent");
 
 		if (ImGui::BeginPopup("AddComponent"))

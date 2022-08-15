@@ -38,7 +38,7 @@ namespace Hazel
 		void OnSceneStop();
 
 		void OnDuplicateEntity();
-
+		void CarrySelectionContext();
 	private:
 		Ref<FrameBuffer> m_FrameBuffer;
 		Ref<Scene> m_ActiveScene;
@@ -64,7 +64,7 @@ namespace Hazel
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		ContentViewPanel m_ContentBrowserPanel;
 
-		enum class SceneState
+		enum class SceneState //TODO: scene state should really be stored in scene and accessed here
 		{
 			Edit = 0,
 			Play,

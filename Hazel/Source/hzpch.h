@@ -24,6 +24,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <iterator>
 #include <atomic>
 
 #include "Hazel/Core/Core.h"

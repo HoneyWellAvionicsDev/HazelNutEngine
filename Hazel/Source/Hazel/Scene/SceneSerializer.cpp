@@ -298,7 +298,7 @@ namespace Hazel
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 		m_Scene->m_Registry.each([&](auto entityID)
 		{
-			Entity entity = { entityID, m_Scene.get() };
+			Entity entity = { (entt::entity)((m_Scene->m_Registry.size() - 1) - (int)entityID), m_Scene.get() };
 			if (!entity)
 				return;
 
