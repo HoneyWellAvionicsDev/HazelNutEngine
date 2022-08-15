@@ -339,7 +339,7 @@ namespace Hazel
 
 	void Scene::OnPhysicsStart()
 	{
-		m_NewBodySystem = new Enyoo::RigidBodySystem;
+		m_NewBodySystem = new Enyoo::RigidBodySystem; //TODO: stop using new dumbass we have smart pointers
 		auto view = m_Registry.view<RigidBodyComponent>();
 		for (auto e : view)
 		{
@@ -366,7 +366,7 @@ namespace Hazel
 
 	void Scene::UpdatePhysics(Timestep ts)
 	{
-		m_NewBodySystem->Step(ts, 10);
+		m_NewBodySystem->Step(ts, 100);
 
 		auto view = m_Registry.view<RigidBodyComponent>();
 		for (auto e : view)

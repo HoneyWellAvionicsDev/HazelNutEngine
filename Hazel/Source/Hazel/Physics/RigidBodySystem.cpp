@@ -79,6 +79,7 @@ namespace Enyoo
         for (uint32_t i = 0; i < GetRigidBodyCount(); i++)
         {
             m_State.Force[i] = glm::dvec2{ 0.0 };
+            m_State.Acceleration[i] = glm::dvec2{ 0.0 };
             m_State.Torque[i] = 0.0;
         }
         //loop through force generators and apply their force to the state
