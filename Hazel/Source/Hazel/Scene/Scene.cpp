@@ -36,6 +36,7 @@ namespace Hazel
 	Scene::~Scene()
 	{
 		delete m_PhysicsWorld;
+		delete m_NewBodySystem;
 	}
 
 	template<typename... Component>
@@ -151,27 +152,32 @@ namespace Hazel
 		}
 
 		OnPhysics2DStart();
+		OnPhysicsStart();
 	}
 
 	void Scene::OnRuntimeStop()
 	{
 		OnPhysics2DStop();
+		OnPhysicsStop();
 	}
 
 	void Scene::OnSimulationStart()
 	{
 		OnPhysics2DStart();
+		OnPhysicsStart();
 	}
 
 	void Scene::OnSimulationStop()
 	{
 		OnPhysics2DStop();
+		OnPhysicsStop();
 	}
 
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
 		UpdateScripts(ts);
 		Update2DPhysics(ts);
+		UpdatePhysics(ts);
 
 		Camera* mainCamera = nullptr;
 		glm::mat4 cameraTransform;
@@ -201,6 +207,7 @@ namespace Hazel
 	{
 		UpdateScripts(ts);
 		Update2DPhysics(ts);
+		UpdatePhysics(ts);
 		Renderer2D::BeginScene(camera);
 		RenderSceneEntities();
 	}
@@ -214,6 +221,7 @@ namespace Hazel
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
 	{
 		Update2DPhysics(ts);
+		UpdatePhysics(ts);
 		Renderer2D::BeginScene(camera);
 		RenderSceneEntities();
 	}
@@ -329,6 +337,50 @@ namespace Hazel
 		}
 	}
 
+	void Scene::OnPhysicsStart()
+	{
+		m_NewBodySystem = new Enyoo::RigidBodySystem;
+		auto view = m_Registry.view<RigidBodyComponent>();
+		for (auto e : view)
+		{
+			Entity entity = { e, this };
+			auto& transform = entity.GetComponent<TransformComponent>();
+			auto& rbc = entity.GetComponent<RigidBodyComponent>();
+
+			Enyoo::RigidBody* body = new Enyoo::RigidBody;
+			Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
+			body->Position = { transform.Translation.x, transform.Translation.y };
+			body->Theta = transform.Rotation.z;
+			body->Velocity = glm::dvec2{ 0.0 };
+			body->AngularVelocity = 0.0;
+		
+			m_NewBodySystem->AddRigidBody(body);
+			m_NewBodySystem->AddForceGen(forceGen);
+			rbc.RuntimeBody = body;
+		}
+	}
+
+	void Scene::OnPhysicsStop()
+	{
+	}
+
+	void Scene::UpdatePhysics(Timestep ts)
+	{
+		m_NewBodySystem->Step(ts, 10);
+
+		auto view = m_Registry.view<RigidBodyComponent>();
+		for (auto e : view)
+		{
+			Entity entity = { e, this };
+			auto& transform = entity.GetComponent<TransformComponent>();
+			auto& rbc = entity.GetComponent<RigidBodyComponent>();
+			Enyoo::RigidBody* body = static_cast<Enyoo::RigidBody*>(rbc.RuntimeBody);
+			transform.Translation.x = body->Position.x;
+			transform.Translation.y = body->Position.y;
+			transform.Rotation.z = body->Theta;
+		}
+	}
+
 	void Scene::UpdateScripts(Timestep ts)
 	{
 		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
@@ -418,6 +470,12 @@ namespace Hazel
 
 	template<>
 	void Scene::OnComponentAdded<RigidBody2DComponent>(Entity entity, RigidBody2DComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentAdded<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
 	{
 
 	}

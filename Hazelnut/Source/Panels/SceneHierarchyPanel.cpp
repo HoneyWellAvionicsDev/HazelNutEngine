@@ -237,6 +237,7 @@ namespace Hazel
 			DisplayAddComponentEntry<NativeScriptComponent>("Native Script Component");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
 			DisplayAddComponentEntry<RigidBody2DComponent>("2D Rigid Body");
+			DisplayAddComponentEntry<RigidBodyComponent>("Rigid Body");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("2D Box Collider");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("2D Circle Collider");
 			ImGui::EndPopup();
@@ -408,6 +409,11 @@ namespace Hazel
 
 			ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
 		});
+
+		DrawComponent<RigidBodyComponent>("Rigid Body", entity, [](auto& component)
+			{
+				//ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
+			});
 
 		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
 		{

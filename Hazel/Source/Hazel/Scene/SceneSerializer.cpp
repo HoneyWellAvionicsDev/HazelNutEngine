@@ -244,6 +244,17 @@ namespace Hazel
 			out << YAML::EndMap; 
 		}
 
+		if (entity.HasComponent<RigidBodyComponent>())
+		{
+			out << YAML::Key << "RigidBodyComponent";
+			out << YAML::BeginMap;
+
+			auto& rigidBodyComponent = entity.GetComponent<RigidBodyComponent>();
+			
+
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<BoxCollider2DComponent>())
 		{
 			out << YAML::Key << "BoxCollider2DComponent";
@@ -409,6 +420,12 @@ namespace Hazel
 					rbc.FixedRotation = rigidBody2DComponent["FixedRotation"].as<bool>();
 				}
 				
+				auto rigidBodyComponent = entity["RigidBodyComponent"];
+				if (rigidBodyComponent)
+				{
+					auto& rbc = deserializedEntity.AddComponent<RigidBodyComponent>();
+				}
+
 				auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
 				if (boxCollider2DComponent)
 				{

@@ -80,9 +80,3 @@ namespace Hazel
 		
 	}
 }
-/*
-
-  pCraft=pCraft+Fnet*deltat
-
-  Craft.pos=Craft.pos+Vavg*deltat
-*/

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Hazel/Core/TimeStep.h"
-#include "Hazel/Renderer/EditorCamera.h"
 #include "Hazel/Core/UUID.h"
+#include "Hazel/Physics/RigidBodySystem.h"
+#include "Hazel/Renderer/EditorCamera.h"
 
 #include "entt.hpp"
 
@@ -57,6 +58,9 @@ namespace Hazel
 		void OnPhysics2DStart();
 		void OnPhysics2DStop();
 		void Update2DPhysics(Timestep ts);
+		void OnPhysicsStart();
+		void OnPhysicsStop();
+		void UpdatePhysics(Timestep ts);
 		void UpdateScripts(Timestep ts);
 
 		void RenderSceneEntities();
@@ -69,6 +73,7 @@ namespace Hazel
 		uint16_t m_PositionIterations = 2;
 		glm::vec2 m_LocalGravity{ 0.0f };
 		b2World* m_PhysicsWorld = nullptr;
+		Enyoo::RigidBodySystem* m_NewBodySystem = nullptr;
 
 		friend class Entity;
 		friend class SceneSerializer;
