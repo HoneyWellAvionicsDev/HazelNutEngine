@@ -6,14 +6,16 @@ namespace Enyoo
 	{
 		RigidBody() = default;
 
-		int Index;
+		double CalculateEnergy() const;
+
+		size_t Index;
 		glm::dvec2 Position;
 		glm::dvec2 Velocity;
 		double Theta;
 		
 		double AngularVelocity;
 		double Mass;
-		//monment of inertia
+		double MomentInertia;
 
 		bool IgnoreGravity;
 	};

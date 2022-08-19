@@ -43,7 +43,7 @@ namespace Enyoo
     void RigidBodySystem::AddRigidBody(RigidBody* body)
     {
         m_RigidBodies.push_back(body);
-        body->Index = (int)m_RigidBodies.size() - 1;
+        body->Index = m_RigidBodies.size() - 1;
     }
 
     void RigidBodySystem::RemoveRigidBody(RigidBody* body)
@@ -53,7 +53,13 @@ namespace Enyoo
     void RigidBodySystem::AddForceGen(ForceGenerator* forceGen)
     {
         m_ForceGenerators.push_back(forceGen);
-        forceGen->m_Index = (int)m_ForceGenerators.size() - 1;
+        forceGen->SetIndex(m_ForceGenerators.size() - 1);
+    }
+
+    void RigidBodySystem::AddConstraint(Constraint* constraint)
+    {
+        m_Constraints.push_back(constraint);
+        constraint->SetIndex(m_Constraints.size() - 1);
     }
 
     void RigidBodySystem::PopulateSystemState()
@@ -70,6 +76,8 @@ namespace Enyoo
             m_State.AngularAcceleration[i] = 0;
             m_State.AngularVelocity[i] = m_RigidBodies[i]->AngularVelocity;
             m_State.Theta[i] = m_RigidBodies[i]->Theta;
+
+            m_State.Mass[i] = m_RigidBodies[i]->Mass;
         }
     }
 

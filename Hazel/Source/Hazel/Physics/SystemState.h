@@ -17,16 +17,22 @@ namespace Enyoo
 		void Resize(uint32_t count);
 		void Destroy();
 
+		size_t* IndexMap; 
+
 		//data
 		glm::dvec2* Position;
 		glm::dvec2* Velocity;
-		glm::dvec2* Acceleration;
-		glm::dvec2* Force;
+		glm::dvec2* Acceleration; //accereration of a given body
+		glm::dvec2* Force; //applied force accumulator 
+		glm::dvec2* ConstraintForce; //constraint Force
 
 		double* Theta;
 		double* AngularVelocity;
 		double* AngularAcceleration;
 		double* Torque;
+		double* ConstraintTorque;
+
+		double* Mass;
 
 		uint32_t RigidBodyCount;
 		uint32_t ConstraintCount;

@@ -10,7 +10,10 @@ namespace Enyoo
 		ForceGenerator() = default;
 
 		void ApplyForce(SystemState& state);
-	//private:
-		int m_Index;
+
+		void SetIndex(size_t index) { m_Index = index; }
+		size_t GetIndex() const { return m_Index; }
+	private:
+		size_t m_Index;
 	};
 }

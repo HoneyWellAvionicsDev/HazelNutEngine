@@ -9,7 +9,7 @@
 #include <imgui.h>
 #include "ImGuizmo.h"
 
-
+#include "Hazel/Math/Matrix.h"
 namespace Hazel
 {
     
@@ -641,6 +641,35 @@ namespace Hazel
         m_ActiveScene->OnSimulationStart();
 
         CarrySelectionContext();
+
+        //matrix test
+        Math::Matrix A;
+        Math::Matrix B;
+        Math::Matrix Out;
+        A.Resize(3, 3);
+        A[0][0] = 7.0;
+        A[0][1] = 1.0;
+        A[0][2] = 8.0;
+        A[1][0] = 3.0;
+        A[1][1] = 2.0;
+        A[1][2] = 9.0;
+        A[2][0] = 5.0;
+        A[2][1] = 3.0;
+        A[2][2] = 8.0;
+
+        B.Resize(3, 3);
+        B[0][0] = 1.0;
+        B[0][1] = 8.0;
+        B[0][2] = 2.0;
+        B[1][0] = 5.0;
+        B[1][1] = 6.0;
+        B[1][2] = 3.0;
+        B[2][0] = 4.0;
+        B[2][1] = 3.0;
+        B[2][2] = 1.0;
+
+        Out = - A - B;
+        Out.Print();
     }
 
     void EditorLayer::OnSceneStop()

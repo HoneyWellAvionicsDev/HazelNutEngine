@@ -3,6 +3,7 @@
 #include "SystemState.h"
 #include "RigidBody.h"
 #include "ForceGenerator.h"
+#include "Constraint.h"
 #include "ODEIntegrator.h"
 
 #include <vector>
@@ -21,6 +22,7 @@ namespace Enyoo
 		void AddRigidBody(RigidBody* body);
 		void RemoveRigidBody(RigidBody* body);
 		void AddForceGen(ForceGenerator* forceGen);
+		void AddConstraint(Constraint* constraint);
 
 		uint32_t GetRigidBodyCount() const { return (uint32_t)m_RigidBodies.size(); }
 		uint32_t GetForceGenCount() const { return (uint32_t)m_ForceGenerators.size(); }
@@ -32,7 +34,7 @@ namespace Enyoo
 
 		std::vector<RigidBody*> m_RigidBodies;
 		std::vector<ForceGenerator*> m_ForceGenerators;
-		//std::vector<Constraint*> m_Constraints;
+		std::vector<Constraint*> m_Constraints;
 
 		ODEIntegrator m_Solver;
 	};
