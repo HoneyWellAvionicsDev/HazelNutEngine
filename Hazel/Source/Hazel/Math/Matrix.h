@@ -23,7 +23,7 @@ namespace Hazel::Math
         size_t Columns() const { return m_Columns; }
 
         void Resize(size_t rows, size_t columns);
-        void Initialize(size_t rows, size_t columns, double value);
+        void Initialize(size_t rows, size_t columns, double value = 0.0);
         void Destroy();
 
         //operators
@@ -68,6 +68,8 @@ namespace Hazel::Math
         Matrix ScaleByLeftDiagonal(const Matrix& vector);
         Matrix MultiplyVector(const Matrix& vector);
         Matrix TransposeMultiplyVector(const Matrix& vector); 
+        Matrix TransposeMultiply(const Matrix& matrix);
+
         //Debug methods
         void Print() 
         {
@@ -76,7 +78,6 @@ namespace Hazel::Math
                 HZ_CORE_TRACE("Index {0}: {1}", i, m_Matrix[i]);
             }
         }
-
     
         //Matrix operations
         Matrix Multiply(const Matrix &B);

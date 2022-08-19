@@ -9,12 +9,16 @@ namespace Enyoo
         Velocity = nullptr;
         Acceleration = nullptr;
         Force = nullptr;
+        ConstraintForce = nullptr;
         Theta = nullptr;
         AngularVelocity = nullptr;
         AngularAcceleration = nullptr;
         Torque = nullptr;
+        ConstraintTorque = nullptr;
+        Mass = nullptr;
 
         RigidBodyCount = 0;
+        ConstraintCount = 0;
         dt = 0.0;
     }
 
@@ -23,7 +27,7 @@ namespace Enyoo
         
     }
 
-    glm::vec2 SystemState::LocalToWorld(glm::dvec2 point, int index)
+    glm::dvec2 SystemState::LocalToWorld(glm::dvec2 point, int index)
     {
         glm::dvec2 world;
         double theta = this->Theta[index];
@@ -32,7 +36,7 @@ namespace Enyoo
         return world;
     }
 
-    glm::vec2 SystemState::VelocityAtPoint(glm::dvec2 point, int index)
+    glm::dvec2 SystemState::VelocityAtPoint(glm::dvec2 point, int index)
     {
         return glm::vec2();
     }
@@ -63,10 +67,13 @@ namespace Enyoo
         Velocity = new glm::dvec2[RigidBodyCount];
         Acceleration = new glm::dvec2[RigidBodyCount];
         Force = new glm::dvec2[RigidBodyCount];
+        ConstraintForce = new glm::dvec2[RigidBodyCount];
         Theta = new double[RigidBodyCount];
         AngularVelocity = new double[RigidBodyCount];
         AngularAcceleration = new double[RigidBodyCount];
         Torque = new double[RigidBodyCount];
+        ConstraintTorque = new double[RigidBodyCount];
+        Mass = new double[RigidBodyCount];
     }
 
     void SystemState::Destroy()
