@@ -25,6 +25,11 @@
 
 #define HZ_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
+#define HZ_FORCE_INLINE
+#ifdef HZ_FORCE_INLINE 
+#define FORCEINLINE __forceinline
+#endif
+
 namespace Hazel
 {
 	template<typename T>
