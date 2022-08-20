@@ -11,7 +11,7 @@ namespace Hazel::Math
 	Matrix::Matrix(size_t rows, size_t columns, double value)
 		: m_Matrix(nullptr), m_Rows(rows), m_Columns(columns)
 	{
-		Initialize(rows, rows, value);
+		Initialize(rows, columns, value);
 	}
 
 	Matrix::Matrix(const Matrix& other)
@@ -55,16 +55,66 @@ namespace Hazel::Math
 			m_Matrix[i] = value;
 	}
 
-	void Matrix::Destroy()
+	Matrix& Matrix::ScaleRightDiagonal(const Matrix& vector)
 	{
+		HZ_CORE_ASSERT(vector.m_Columns < 2);
+		HZ_CORE_ASSERT(vector.m_Rows == this->m_Columns);
 
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			for (size_t j = 0; j < m_Columns; j++)
+			{
+				(*this)[i][j] *= vector[j][0];
+			}
+		}
+
+		return *this;
+	}
+
+	Matrix& Matrix::ScaleLeftDiagonal(const Matrix& vector)
+	{
+		HZ_CORE_ASSERT(vector.m_Columns < 2);
+		HZ_CORE_ASSERT(vector.m_Rows == this->m_Rows);
+
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			for (size_t j = 0; j < m_Columns; j++)
+			{
+				(*this)[i][j] *= vector[i][0];
+			}
+		}
+
+		return *this;
+	}
+
+	Matrix Matrix::TransposeMultiply(const Matrix& B)
+	{
+		HZ_CORE_ASSERT(m_Rows == B.Rows()); //AB so width of A must equal Height of B
+		Matrix output(m_Rows, B.m_Columns);
+
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			for (size_t j = 0; j < B.m_Columns; j++)
+			{
+				double v = 0.0;
+				for (size_t k = 0; k < m_Columns; k++)
+					v += (*this)[k][i] * B[k][j];
+
+				output[i][j] = v;
+			}
+		}
+		return output;
+	}
+
+	Matrix& Matrix::Transpose(const Matrix& matrix)
+	{
+		return *this;
 	}
 
 	Matrix Matrix::Multiply(const Matrix& B)
 	{
 		HZ_CORE_ASSERT(m_Columns == B.Rows()); //AB so width of A must equal Height of B
-		Matrix output;
-		output.Resize(m_Rows, B.Columns()); //Resize matrix A to height of A and weight of B
+		Matrix output(m_Rows, B.m_Columns);
 
 		for (size_t i = 0; i < m_Rows; i++)
 		{

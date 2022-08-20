@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <iostream> //temp for debug
 namespace Hazel::Math
 {
     /*
@@ -24,7 +25,6 @@ namespace Hazel::Math
 
         void Resize(size_t rows, size_t columns);
         void Initialize(size_t rows, size_t columns, double value = 0.0);
-        void Destroy();
 
         //operators
         FORCEINLINE double* operator[](size_t row) const { HZ_CORE_ASSERT(row < m_Rows); return row * m_Columns + m_Matrix.get(); }
@@ -36,8 +36,8 @@ namespace Hazel::Math
 
         FORCEINLINE Matrix& operator=(const Matrix& other)
         {
-            m_Rows = other.Rows();
-            m_Columns = other.Rows();
+            m_Rows = other.m_Rows;
+            m_Columns = other.m_Columns;
 
             m_Matrix = CreateScope<double[]>(other.m_Rows * other.m_Columns);
 
@@ -56,30 +56,28 @@ namespace Hazel::Math
         inline Matrix& operator*(double scale) { return Scale(scale); }
         Matrix operator+(Matrix& B) { return Add(B); }
         Matrix operator-(Matrix& B) { return Add(-B); }
-        Matrix& operator-() 
-        { 
-            //Matrix B; 
-            //B = *this;
-            //B.Negate();
-            Negate();
-            return *this; 
-        }
-        Matrix ScaleByRightDiagonal(const Matrix& vector);
-        Matrix ScaleByLeftDiagonal(const Matrix& vector);
-        Matrix MultiplyVector(const Matrix& vector);
-        Matrix TransposeMultiplyVector(const Matrix& vector); 
-        Matrix TransposeMultiply(const Matrix& matrix);
+        Matrix& operator-() { Negate(); return *this; }
+
 
         //Debug methods
         void Print() 
         {
-            for (size_t i = 0; i < m_Rows * m_Columns; i++)
+            for (size_t i = 0; i < m_Rows; i++)
             {
-                HZ_CORE_TRACE("Index {0}: {1}", i, m_Matrix[i]);
+                for (size_t j = 0; j < m_Columns; j++)
+                {
+                    std::cout << (*this)[i][j] << '\t';
+                }
+                std::cout << '\n';
             }
+            std::cout << "\n";
         }
     
         //Matrix operations
+        Matrix& ScaleRightDiagonal(const Matrix& vector);
+        Matrix& ScaleLeftDiagonal(const Matrix& vector);
+        Matrix TransposeMultiply(const Matrix& matrix);
+        Matrix& Transpose(const Matrix& matrix);
         Matrix Multiply(const Matrix &B);
         Matrix Add(const Matrix &B);
         Matrix& Scale(double scale);
@@ -138,7 +136,8 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
     const int m = getConstraintCount(); //#number of contraints placed on the system?
 
     m_iv.q_dot.resize(1, n * 3); //three slots so that we can store the x, y, and theta velocities
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) 
+    {
         m_iv.q_dot.set(0, i * 3 + 0, m_state.v_x[i]);
         m_iv.q_dot.set(0, i * 3 + 1, m_state.v_y[i]);
         m_iv.q_dot.set(0, i * 3 + 2, m_state.v_theta[i]);
@@ -189,7 +188,8 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
     }
 
     m_iv.J_sparse.multiply(m_iv.q_dot, &m_iv.reg0);
-    for (int i = 0; i < m_f; ++i) {
+    for (int i = 0; i < m_f; ++i) 
+    {
         m_iv.kd.set(0, i, m_iv.kd.get(0, i) * m_iv.reg0.get(0, i));
         m_iv.ks.set(0, i, m_iv.ks.get(0, i) * m_iv.C.get(0, i));
     }
@@ -270,62 +270,13 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
     }
 }
 
-void atg_scs::FixedPositionConstraint::calculate(
-    Output* output,
-    SystemState* state)
-{
-    const int body = m_bodies[0]->index;
-
-    const double q1 = state->p_x[body];
-    const double q2 = state->p_y[body];
-    const double q3 = state->theta[body];
-
-    const double q3_dot = state->v_theta[body];
-
-    const double cos_q3 = std::cos(q3);
-    const double sin_q3 = std::sin(q3);
-
-    const double current_x = q1 + cos_q3 * m_local_x - sin_q3 * m_local_y;
-    const double current_y = q2 + sin_q3 * m_local_x + cos_q3 * m_local_y;
-
-    const double dx_dq1 = 1.0;
-    const double dx_dq2 = 0.0;
-    const double dx_dq3 = -sin_q3 * m_local_x - cos_q3 * m_local_y;
-
-    const double dy_dq1 = 0.0;
-    const double dy_dq2 = 1.0;
-    const double dy_dq3 = cos_q3 * m_local_x - sin_q3 * m_local_y;
-
-    const double C1 = current_x - m_world_x;
-    const double C2 = current_y - m_world_y;
-
-    output->J[0][0] = dx_dq1;
-    output->J[0][1] = dx_dq2;
-    output->J[0][2] = dx_dq3;
-
-    output->J[1][0] = dy_dq1;
-    output->J[1][1] = dy_dq2;
-    output->J[1][2] = dy_dq3;
-
-    output->J_dot[0][0] = 0;
-    output->J_dot[0][1] = 0;
-    output->J_dot[0][2] = -cos_q3 * q3_dot * m_local_x + sin_q3 * q3_dot * m_local_y;
-
-    output->J_dot[1][0] = 0;
-    output->J_dot[1][1] = 0;
-    output->J_dot[1][2] = -sin_q3 * q3_dot * m_local_x - cos_q3 * q3_dot * m_local_y;
-
-    output->ks[0] = m_ks;
-    output->ks[1] = m_ks;
-
-    output->kd[0] = output->kd[1] = m_kd;
-
-    output->C[0] = C1;
-    output->C[1] = C2;
-
-    output->v_bias[0] = 0;
-    output->v_bias[1] = 0;
-
-    noLimits(output);
-}
 #endif
+
+/*
+TODO:
+SLE solver (conjugate gradient method)
+Better ODE solver (RK4)
+more constraint classes
+Solve the matrix equation (requires SLE solver)
+Figure out creation of objects (entities with constraints)
+*/
