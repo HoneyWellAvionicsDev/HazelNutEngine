@@ -11,9 +11,9 @@ namespace Enyoo
 		SystemState();
 		~SystemState();
 
-		glm::dvec2 LocalToWorld(glm::dvec2 point, int index);
-		glm::dvec2 VelocityAtPoint(glm::dvec2 point, int index);
-		void ApplyForce(glm::dvec2 point, glm::dvec2 force, int index);
+		glm::dvec2 LocalToWorld(glm::dvec2 point, size_t index);
+		glm::dvec2 VelocityAtPoint(glm::dvec2 point, size_t index);
+		void ApplyForce(glm::dvec2 point, glm::dvec2 force, size_t index);
 		void Resize(uint32_t count);
 		void Destroy();
 

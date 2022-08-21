@@ -15,6 +15,7 @@ namespace Enyoo
 	class RigidBodySystem
 	{
 		using Matrix = Hazel::Math::Matrix;
+		using Vector = Hazel::Math::Matrix;
 
 	public:
 		RigidBodySystem() = default;
@@ -28,8 +29,10 @@ namespace Enyoo
 		void AddForceGen(ForceGenerator* forceGen);
 		void AddConstraint(Constraint* constraint);
 
-		uint32_t GetRigidBodyCount() const { return (uint32_t)m_RigidBodies.size(); }
-		uint32_t GetForceGenCount() const { return (uint32_t)m_ForceGenerators.size(); }
+		size_t GetRigidBodyCount() const { return m_RigidBodies.size(); }
+		size_t GetForceGenCount() const { return m_ForceGenerators.size(); }
+		size_t GetConstraintCount() const { return m_Constraints.size(); }
+		size_t GetTotalConstraintCount() const;
 	private:
 		void PopulateSystemState();
 		void PopulateMassMatrices(Matrix& Mass, Matrix& massInverse);
@@ -46,14 +49,24 @@ namespace Enyoo
 
 		struct Matrices
 		{
-			//Spare Matrices: Jacobian, Jdot
+			struct BlockMatrix
+			{
+				size_t i; //coords into the block-sparse jacobian
+				size_t j; 
+				size_t rows;
+				size_t columns;
+				Matrix BlockJacobian;
+			};
+			std::vector<BlockMatrix> SparseJacobian;
+			std::vector<BlockMatrix> JacobianDot;
 			Matrix Jc_Transpose;
 			Matrix Mass, W; //inverse of mass matrix 
-			Matrix Constraints;
-			Matrix C_ks, C_kd;
-			Matrix qdot;
+			Vector C;
+			Vector C_ks, C_kd;
+			Vector Q;
+			Vector qdot;
 
-			Matrix Lambda;
+			Vector Lambda;
 
 
 		} m_MatricesData;

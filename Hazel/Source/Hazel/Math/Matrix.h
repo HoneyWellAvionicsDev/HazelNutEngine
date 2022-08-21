@@ -194,6 +194,7 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
         m_iv.ks.set(0, i, m_iv.ks.get(0, i) * m_iv.C.get(0, i));
     }
 
+    //JWJT ∏ = − ̇J  ̇q − JWQ − k s C − k d  ̇C
     m_iv.F_ext.initialize(1, 3 * n, 0.0);
     for (int i = 0; i < n; ++i) 
     {
@@ -202,20 +203,20 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
         m_iv.F_ext.set(0, i * 3 + 2, m_state.t[i]);
     }
 
-    m_iv.F_ext.leftScale(m_iv.M_inv, &m_iv.reg2);
-    m_iv.J_sparse.multiply(m_iv.reg2, &m_iv.reg0);
+    m_iv.F_ext.leftScale(m_iv.M_inv, &m_iv.reg2); //W * Q
+    m_iv.J_sparse.multiply(m_iv.reg2, &m_iv.reg0); //J * (W * Q)
 
-    m_iv.J_dot_sparse.multiply(m_iv.q_dot, &m_iv.reg2);
-    m_iv.reg2.negate(&m_iv.reg1);
+    m_iv.J_dot_sparse.multiply(m_iv.q_dot, &m_iv.reg2); //Jdot * qdot
+    m_iv.reg2.negate(&m_iv.reg1); //-Jdot * qdot
 
-    m_iv.reg1.subtract(m_iv.reg0, &m_iv.reg2);
-    m_iv.reg2.subtract(m_iv.ks, &m_iv.reg0);
-    m_iv.reg0.subtract(m_iv.kd, &m_iv.right);
+    m_iv.reg1.subtract(m_iv.reg0, &m_iv.reg2); //-JDot * qdot - JWQ
+    m_iv.reg2.subtract(m_iv.ks, &m_iv.reg0);   //-JDot * qdot - JWQ - Cks
+    m_iv.reg0.subtract(m_iv.kd, &m_iv.right);  ////-JDot * qdot - JWQ - Cks - Cdot*kd
 
-    //solve matrix equation A lambda = B for lambda
+    //solve matrix equation A lambda = B
     const bool solvable =//(Jacobian,     W         ,− ̇J  ̇q − JWQ, lambda, previous lambda)
-        m_sleSolver->solve(m_iv.J_sparse, m_iv.M_inv, m_iv.right, &m_iv.lambda, &m_iv.lambda);
     assert(solvable);
+        m_sleSolver->solve(m_iv.J_sparse, m_iv.M_inv, m_iv.right, &m_iv.lambda, &m_iv.lambda);
 
     // Constraint force derivation
     //  R = J_T * lambda_scale //R is All vectors that satisfy ˆQ ·  ̇x = 0, ∀ ̇x | J ̇x = 0 for all xdot such that J xdot = 0
@@ -227,7 +228,7 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
 
     for (int i = 0; i < m_f; ++i) 
     {
-        for (int j = 0; j < 2; ++j) 
+        for (int j = 0; j < 2; ++j) //2 the number of bodies per constraint
         {
             m_state.r_x[i * 2 + j] = m_iv.sreg0.get(i, j, 0);
             m_state.r_y[i * 2 + j] = m_iv.sreg0.get(i, j, 1);
@@ -274,9 +275,9 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
 
 /*
 TODO:
+Solve the matrix equation (requires SLE solver)
 SLE solver (conjugate gradient method)
+Figure out creation of objects (entities with constraints)
 Better ODE solver (RK4)
 more constraint classes
-Solve the matrix equation (requires SLE solver)
-Figure out creation of objects (entities with constraints)
 */

@@ -645,7 +645,9 @@ namespace Hazel
         //matrix test
         Math::Matrix A;
         Math::Matrix B;
-        Math::Matrix Out;
+        Math::Matrix Vector;
+        Math::Matrix Vector2;
+        Math::Matrix Out(3, 1);
         A.Resize(3, 3);
         A[0][0] = 7.0;
         A[0][1] = 1.0;
@@ -656,7 +658,7 @@ namespace Hazel
         A[2][0] = 5.0;
         A[2][1] = 3.0;
         A[2][2] = 8.0;
-
+       
         B.Resize(3, 3);
         B[0][0] = 1.0;
         B[0][1] = 8.0;
@@ -668,8 +670,21 @@ namespace Hazel
         B[2][1] = 3.0;
         B[2][2] = 1.0;
 
-        Out = - A - B;
-        Out.Print();
+        Vector.Resize(3, 1);
+        Vector[0][0] = 3.0;
+        Vector[1][0] = 4.0;
+        Vector[2][0] = 2.0;
+
+        Vector2.Resize(3, 1);
+        Vector2[0][0] = 2.0;
+        Vector2[1][0] = 8.0;
+        Vector2[2][0] = 5.0;
+
+        B.Print();
+        Vector.Print();
+        //Vector2.Print();
+        B.ScaleLeftDiagonal(Vector);
+        B.Print();
     }
 
     void EditorLayer::OnSceneStop()

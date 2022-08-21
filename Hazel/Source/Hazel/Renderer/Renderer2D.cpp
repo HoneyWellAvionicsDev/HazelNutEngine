@@ -334,7 +334,6 @@ namespace Hazel
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
 		HZ_PROFILE_FUNCTION();
-
 		glm::mat4 transform = glm::translate(glm::mat4(1.f), position)
 			* glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
 

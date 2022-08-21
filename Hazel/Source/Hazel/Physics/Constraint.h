@@ -10,16 +10,17 @@
 namespace Enyoo
 {
 	using Matrix = Hazel::Math::Matrix;
+	using Vector = Hazel::Math::Matrix;
 
 	struct ConstraintOutput
 	{
-		Matrix C;
+		Vector C;
 		Matrix J;
 		Matrix Jdot;
 		//vbias
 		//limits
-		Matrix ks;
-		Matrix kd;
+		Vector ks;
+		Vector kd;
 
 	};
 
@@ -32,16 +33,16 @@ namespace Enyoo
 		virtual void Calculate(ConstraintOutput& output, SystemState* state) = 0;
 
 		void SetIndex(size_t index) { m_Index = index; }
-		size_t GetConstraintCount() const { return (size_t)m_ConstraintCount; }
+		size_t GetConstraintCount() const { return m_ConstraintCount; }
 		size_t GetBodyCount() const { return m_Bodies.size(); }
 		size_t GetIndex() const { return m_Index; }
-	public:
+	public: //TODO: do something about this maybe
 		Matrix ConstraintForceX;
 		Matrix ConstraintForceY;
 		Matrix ConstraintTorque;
 	protected:
 		std::vector<RigidBody*> m_Bodies;
 		size_t m_Index;
-		uint32_t m_ConstraintCount;
+		size_t m_ConstraintCount;
 	};
 }
