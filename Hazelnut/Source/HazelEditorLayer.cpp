@@ -8,8 +8,9 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <imgui.h>
 #include "ImGuizmo.h"
-
+//temp
 #include "Hazel/Math/Matrix.h"
+#include "Hazel/Physics/ConjugateGradientMethod.h"
 namespace Hazel
 {
     
@@ -649,42 +650,42 @@ namespace Hazel
         Math::Matrix Vector2;
         Math::Matrix Out(3, 1);
         A.Resize(3, 3);
-        A[0][0] = 7.0;
-        A[0][1] = 1.0;
-        A[0][2] = 8.0;
-        A[1][0] = 3.0;
-        A[1][1] = 2.0;
-        A[1][2] = 9.0;
-        A[2][0] = 5.0;
-        A[2][1] = 3.0;
-        A[2][2] = 8.0;
+        A[0][0] = 3;
+        A[0][1] = 4;
+        A[0][2] = 0;
+        A[1][0] = 4;
+        A[1][1] = 2;
+        A[1][2] = 4;
+        A[2][0] = 0;
+        A[2][1] = 4;
+        A[2][2] = 1;
        
-        B.Resize(3, 3);
-        B[0][0] = 1.0;
-        B[0][1] = 8.0;
-        B[0][2] = 2.0;
-        B[1][0] = 5.0;
-        B[1][1] = 6.0;
-        B[1][2] = 3.0;
-        B[2][0] = 4.0;
-        B[2][1] = 3.0;
-        B[2][2] = 1.0;
+        B.Resize(2, 2);
+        B[0][0] = 2.5409;
+        B[0][1] = 2.0113;
+        B[1][0] = 2.0113;
+        B[1][1] = 0.5287;
 
         Vector.Resize(3, 1);
-        Vector[0][0] = 3.0;
-        Vector[1][0] = 4.0;
-        Vector[2][0] = 2.0;
+        Vector[0][0] = -11.3864;
+        Vector[1][0] = 0.1108;
+        Vector[2][0] = 345.1108;
+        //Vector[2][0] = 0.3719;
+        
 
         Vector2.Resize(3, 1);
-        Vector2[0][0] = 2.0;
-        Vector2[1][0] = 8.0;
-        Vector2[2][0] = 5.0;
+        //Vector2[0][0] = 2.0;
+        //Vector2[1][0] = 8.0;
+        //Vector2[2][0] = 5.0;
 
-        B.Print();
+        A.Print();
         Vector.Print();
         //Vector2.Print();
-        B.ScaleLeftDiagonal(Vector);
-        B.Print();
+        Enyoo::ConjugateGradientMethod solver;
+        solver.SetMaxIterations(50);
+        solver.SetTolerance(1E-5);
+        solver.Solve(A, Vector, &Vector2);
+        Vector2.Print();
     }
 
     void EditorLayer::OnSceneStop()

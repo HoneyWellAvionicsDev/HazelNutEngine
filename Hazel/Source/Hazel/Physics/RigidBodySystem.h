@@ -7,6 +7,7 @@
 #include "ForceGenerator.h"
 #include "Constraint.h"
 #include "ODEIntegrator.h"
+#include "ConjugateGradientMethod.h"
 
 #include <vector>
 
@@ -25,9 +26,11 @@ namespace Enyoo
 		void Step(double dt, int steps = 1);
 
 		void AddRigidBody(RigidBody* body);
-		void RemoveRigidBody(RigidBody* body);
 		void AddForceGen(ForceGenerator* forceGen);
 		void AddConstraint(Constraint* constraint);
+		void RemoveRigidBody(RigidBody* body);
+		void RemoveForceGen(ForceGenerator* forceGen);
+		void RemoveConstraint(Constraint* constraint);
 
 		size_t GetRigidBodyCount() const { return m_RigidBodies.size(); }
 		size_t GetForceGenCount() const { return m_ForceGenerators.size(); }
@@ -46,13 +49,14 @@ namespace Enyoo
 		std::vector<Constraint*> m_Constraints;
 
 		ODEIntegrator m_Solver;
+		ConjugateGradientMethod m_LinearEquationSolver;
 
 		struct Matrices
 		{
 			struct BlockMatrix
 			{
 				size_t i; //coords into the block-sparse jacobian
-				size_t j; 
+				size_t j;
 				size_t rows;
 				size_t columns;
 				Matrix BlockJacobian;

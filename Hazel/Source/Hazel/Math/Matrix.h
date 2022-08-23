@@ -20,8 +20,8 @@ namespace Hazel::Math
         Matrix(const Matrix&);
         ~Matrix();
 
-        size_t Rows() const { return m_Rows; }
-        size_t Columns() const { return m_Columns; }
+        constexpr size_t Rows() const { return m_Rows; }
+        constexpr size_t Columns() const { return m_Columns; }
 
         void Resize(size_t rows, size_t columns);
         void Initialize(size_t rows, size_t columns, double value = 0.0);
@@ -53,10 +53,11 @@ namespace Hazel::Math
         }
         
         Matrix operator*(Matrix& B) { return Multiply(B); }
-        inline Matrix& operator*(double scale) { return Scale(scale); }
+        //inline Matrix operator*(double scale) { Matrix scaled; scaled.Resize(this->m_Rows, this->m_Columns); scaled.Scale(scale); return scaled; }
+        inline Matrix operator*(double scale) { return Scale(*this, scale); }
         Matrix operator+(Matrix& B) { return Add(B); }
         Matrix operator-(Matrix& B) { return Add(-B); }
-        Matrix& operator-() { Negate(); return *this; }
+        Matrix operator-() { return Negate(); } //this operator should return a new instance (not this)
 
 
         //Debug methods
@@ -76,20 +77,27 @@ namespace Hazel::Math
         //Matrix operations
         Matrix& ScaleRightDiagonal(const Matrix& vector);
         Matrix& ScaleLeftDiagonal(const Matrix& vector);
-        Matrix TransposeMultiply(const Matrix& matrix);
         Matrix& Transpose(const Matrix& matrix);
+        Matrix TransposeMultiply(const Matrix& matrix);
         Matrix Multiply(const Matrix &B);
-        Matrix Add(const Matrix &B);
-        Matrix& Scale(double scale);
-        void Negate();
+
+        //Vector operations
+        double Magnitude() const;
+        double MagnitudeSquared() const;
+        double Dot(const Matrix& vector) const;
+
+        //Matrix and vector
+        Matrix Add(const Matrix& B);
+        Matrix Scale(const Matrix& B, double scale);
+        Matrix Negate();
 
     private:
-        friend Matrix& operator* (double scale, Matrix& mat);
+        friend Matrix operator* (double scale, Matrix& mat);
         size_t m_Rows, m_Columns;
         Scope<double[]> m_Matrix;
     };
 
-    inline Matrix& operator*(double scale, Matrix& mat) { return mat.Scale(scale); } //since this definition is inside a header file it needs to be marked as inline
+    inline Matrix operator*(double scale, Matrix& mat) { return mat.Scale(mat, scale); } //since this definition is inside a header file it needs to be marked as inline
 }
 
 #if 0 //Notes
@@ -276,7 +284,7 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
 /*
 TODO:
 Solve the matrix equation (requires SLE solver)
-SLE solver (conjugate gradient method)
+Done: SLE solver (conjugate gradient method)
 Figure out creation of objects (entities with constraints)
 Better ODE solver (RK4)
 more constraint classes

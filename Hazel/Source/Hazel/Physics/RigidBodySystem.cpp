@@ -194,7 +194,7 @@ namespace Enyoo
 
         Matrix Cdot;
         Cdot.Initialize(n * 3, 1);
-        for (auto& block : m_MatricesData.SparseJacobian)
+        for (const auto& block : m_MatricesData.SparseJacobian)
         {
             for (size_t i = 0; i < block.rows; i++)
             {
@@ -220,13 +220,12 @@ namespace Enyoo
             m_MatricesData.Q[i * 3 + 2][0] = m_State.Torque[i];
         }
 
-        //Matrix WQ = m_MatricesData.Q.ScaleLeftDiagonal(m_MatricesData.W);
         m_MatricesData.Q.ScaleLeftDiagonal(m_MatricesData.W); //W * Q
 
         //set up matrix equation
         Matrix JWQ;
         JWQ.Initialize(n * 3, 1);
-        for (auto& block : m_MatricesData.SparseJacobian)
+        for (const auto& block : m_MatricesData.SparseJacobian)
         {
             for (size_t i = 0; i < block.rows; i++)
             {
@@ -241,7 +240,7 @@ namespace Enyoo
 
         Matrix JdotQdot;
         JdotQdot.Initialize(n * 3, 1);
-        for (auto& block : m_MatricesData.JacobianDot)
+        for (const auto& block : m_MatricesData.JacobianDot)
         {
             for (size_t i = 0; i < block.rows; i++)
             {
@@ -254,7 +253,7 @@ namespace Enyoo
 
         }
 
-        Matrix right = - JdotQdot - JWQ;
+        Vector right = - JdotQdot - JWQ;
         //solve matrix equation
 
 

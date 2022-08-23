@@ -108,10 +108,11 @@ namespace Hazel::Math
 
 	Matrix& Matrix::Transpose(const Matrix& matrix)
 	{
+		HZ_CORE_ASSERT(false, "implement me");
 		return *this;
 	}
 
-	Matrix Matrix::Multiply(const Matrix& B)
+	Matrix Matrix::Multiply(const Matrix& B) 
 	{
 		HZ_CORE_ASSERT(m_Columns == B.Rows()); //AB so width of A must equal Height of B
 		Matrix output(m_Rows, B.m_Columns);
@@ -130,7 +131,33 @@ namespace Hazel::Math
 		return output;
 	}
 
-	Matrix Matrix::Add(const Matrix& B)
+	double Matrix::MagnitudeSquared() const
+	{
+		HZ_CORE_ASSERT(this->m_Columns == 1);
+
+		double mag = 0.0;
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			mag += (*this)[i][0] * (*this)[i][0];
+		}
+		return mag;
+	}
+
+	double Matrix::Dot(const Matrix& b) const
+	{
+		HZ_CORE_ASSERT(this->m_Columns == 1);
+		HZ_CORE_ASSERT(this->m_Columns == b.m_Columns);
+		HZ_CORE_ASSERT(this->m_Rows == b.m_Rows);
+
+		double dot = 0.0;
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			dot += (*this)[i][0] * b[i][0];
+		}
+		return dot;
+	}
+
+	Matrix Matrix::Add(const Matrix& B) 
 	{
 		HZ_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
 		
@@ -144,26 +171,29 @@ namespace Hazel::Math
 		return *this;
 	}
 
-	Matrix& Matrix::Scale(double scale)
+	Matrix Matrix::Scale(const Matrix& B, double scale)
 	{
+		Matrix scaled(m_Rows, m_Columns);
 		for (size_t i = 0; i < m_Rows; i++)
 		{
 			for (size_t j = 0; j < m_Columns; j++)
 			{
-				(*this)[i][j] *= scale;
+				scaled[i][j] = scale * B[i][j];
 			}
 		}
-		return *this;
+		return scaled;
 	}
 
-	void Matrix::Negate()
+	Matrix Matrix::Negate()
 	{
+		Matrix negated(m_Rows, m_Columns);
 		for (size_t i = 0; i < m_Rows; i++)
 		{
 			for (size_t j = 0; j < m_Columns; j++)
 			{
-				(*this)[i][j] = -(*this)[i][j];
+				negated[i][j] = -(*this)[i][j];
 			}
 		}
+		return negated;
 	}
 }
