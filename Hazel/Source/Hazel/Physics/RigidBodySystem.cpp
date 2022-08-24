@@ -22,7 +22,7 @@ namespace Enyoo
             {
                 const bool done = m_Solver.Step(m_State);
                 UpdateForces();
-                //ResolveConstraints();
+                ResolveConstraints();
                 m_Solver.Integrate(m_State);
 
                 if (done) break;
@@ -61,6 +61,14 @@ namespace Enyoo
     }
 
     void RigidBodySystem::RemoveRigidBody(RigidBody* body)
+    {
+    }
+
+    void RigidBodySystem::RemoveForceGen(ForceGenerator* forceGen)
+    {
+    }
+
+    void RigidBodySystem::RemoveConstraint(Constraint* constraint)
     {
     }
 
@@ -140,6 +148,8 @@ namespace Enyoo
 
     void RigidBodySystem::ResolveConstraints()
     {
+        static int iteration = 0;
+
         size_t n = GetRigidBodyCount();
         size_t m = GetConstraintCount();
         size_t m_t = GetTotalConstraintCount();
@@ -156,6 +166,8 @@ namespace Enyoo
 
         //m_MatricesData.SparseJacobian.reserve(m);
         //m_MatricesData.JacobianDot.reserve(m);
+        m_MatricesData.SparseJacobian.Initialize(m_t, n * 3);
+        m_MatricesData.SparseJacobianDot.Initialize(m_t, n * 3);
         m_MatricesData.Q.Initialize(n * 3, 1);
         m_MatricesData.C_ks.Initialize(m_t, 1);
         m_MatricesData.C_kd.Initialize(m_t, 1);
@@ -171,18 +183,21 @@ namespace Enyoo
             c->Calculate(constraintSlice, &m_State);
 
             Matrices::BlockMatrix currentBlock;
-            currentBlock.BlockJacobian = constraintSlice.J;
+            //currentBlock.BlockJacobian = constraintSlice.J;
             currentBlock.i = currentConstraintIndex;
             currentBlock.j = currentBodyIndex;
             currentBlock.rows = c->GetConstraintCount();
             currentBlock.columns = c->GetBodyCount();
+
             currentConstraintIndex += c->GetConstraintCount();
             currentBodyIndex += c->GetBodyCount();
 
-            m_MatricesData.SparseJacobian.push_back(currentBlock);
+            //m_MatricesData.SparseJacobian.push_back(currentBlock);
+            m_MatricesData.SparseJacobian.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.J);
+            m_MatricesData.SparseJacobianDot.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.Jdot);
 
-            currentBlock.BlockJacobian = constraintSlice.Jdot;
-            m_MatricesData.JacobianDot.push_back(currentBlock);
+            //currentBlock.BlockJacobian = constraintSlice.Jdot;
+            //m_MatricesData.JacobianDot.push_back(currentBlock);
 
             for (size_t i = 0; i < c->GetConstraintCount(); i++, currentIndex++)
             {
@@ -192,24 +207,24 @@ namespace Enyoo
             }
         }
 
-        Matrix Cdot;
-        Cdot.Initialize(n * 3, 1);
-        for (const auto& block : m_MatricesData.SparseJacobian)
-        {
-            for (size_t i = 0; i < block.rows; i++)
-            {
-                for (size_t j = 0; j < m_MatricesData.qdot.Columns(); j++)
-                {
-                    for (size_t k = 0; k < block.columns; k++)
-                        Cdot[block.i + i][j] += block.BlockJacobian[i][k] * m_MatricesData.qdot[block.i + i][j];
-                }
-            }
-
-        }
+        //Matrix Cdot;
+        //Cdot.Initialize(n * 3, 1);
+        //for (const auto& block : m_MatricesData.SparseJacobian)
+        //{
+        //    for (size_t i = 0; i < block.rows; i++)
+        //    {
+        //        for (size_t j = 0; j < m_MatricesData.qdot.Columns(); j++)
+        //        {
+        //            for (size_t k = 0; k < block.columns; k++)
+        //                Cdot[block.i + i][j] += block.BlockJacobian[i][k] * m_MatricesData.qdot[block.i + i][j];
+        //        }
+        //    }
+        //
+        //}
 
         for (size_t i = 0; i < m_t; i++)
         {
-            m_MatricesData.C_ks[i][0] *= Cdot[i][0];
+            //m_MatricesData.C_ks[i][0] *= Cdot[i][0];
             m_MatricesData.C_kd[i][0] *= m_MatricesData.C[i][0];
         }
 
@@ -223,41 +238,19 @@ namespace Enyoo
         m_MatricesData.Q.ScaleLeftDiagonal(m_MatricesData.W); //W * Q
 
         //set up matrix equation
-        Matrix JWQ;
-        JWQ.Initialize(n * 3, 1);
-        for (const auto& block : m_MatricesData.SparseJacobian)
-        {
-            for (size_t i = 0; i < block.rows; i++)
-            {
-                for (size_t j = 0; j < m_MatricesData.Q.Columns(); j++)
-                {
-                    for (size_t k = 0; k < block.columns; k++)
-                        JWQ[block.i + i][j] += block.BlockJacobian[i][k] * m_MatricesData.Q[block.i + i][j];
-                }
-            }
-            
-        }
+        
+        Matrix JWQ = m_MatricesData.SparseJacobian * m_MatricesData.Q;
+        Matrix JdotQdot = m_MatricesData.SparseJacobianDot * m_MatricesData.qdot;
+        Matrix SparseJacobianTranspose = m_MatricesData.SparseJacobian.Transpose();
 
-        Matrix JdotQdot;
-        JdotQdot.Initialize(n * 3, 1);
-        for (const auto& block : m_MatricesData.JacobianDot)
-        {
-            for (size_t i = 0; i < block.rows; i++)
-            {
-                for (size_t j = 0; j < m_MatricesData.qdot.Columns(); j++)
-                {
-                    for (size_t k = 0; k < block.columns; k++)
-                        JdotQdot[block.i + i][j] += block.BlockJacobian[i][k] * m_MatricesData.qdot[block.i + i][j];
-                }
-            }
-
-        }
-
-        Vector right = - JdotQdot - JWQ;
+        Vector b = - JdotQdot - JWQ;
+        Matrix A = m_MatricesData.SparseJacobian * SparseJacobianTranspose.ScaleLeftDiagonal(m_MatricesData.W);
         //solve matrix equation
-
+        HZ_CORE_TRACE("Iteration: {0}", iteration);
+        A.Print();
+        m_LinearEquationSolver.Solve(A, b, &m_MatricesData.Lambda);
 
         //disperse matrices to state
-
+        iteration++;
     }
 }

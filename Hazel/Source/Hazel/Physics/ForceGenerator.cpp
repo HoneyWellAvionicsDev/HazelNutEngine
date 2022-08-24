@@ -6,6 +6,9 @@ namespace Enyoo
 {
 	void ForceGenerator::ApplyForce(SystemState& state)
 	{
-		state.ApplyForce({ 0,0 }, { 0,-9.81 }, 0); //test
+		for (int i = 0; i < state.RigidBodyCount; i++)
+		{
+			state.ApplyForce({ 0,0 }, { 0,-9.81 }, i); //test
+		}
 	}
 }

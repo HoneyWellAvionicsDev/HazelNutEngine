@@ -25,6 +25,7 @@ namespace Hazel::Math
 
         void Resize(size_t rows, size_t columns);
         void Initialize(size_t rows, size_t columns, double value = 0.0);
+        void InsertMatrix(size_t row, size_t column, const Matrix& subMatrix);
 
         //operators
         FORCEINLINE double* operator[](size_t row) const { HZ_CORE_ASSERT(row < m_Rows); return row * m_Columns + m_Matrix.get(); }
@@ -53,11 +54,11 @@ namespace Hazel::Math
         }
         
         Matrix operator*(Matrix& B) { return Multiply(B); }
-        //inline Matrix operator*(double scale) { Matrix scaled; scaled.Resize(this->m_Rows, this->m_Columns); scaled.Scale(scale); return scaled; }
         inline Matrix operator*(double scale) { return Scale(*this, scale); }
         Matrix operator+(Matrix& B) { return Add(B); }
         Matrix operator-(Matrix& B) { return Add(-B); }
-        Matrix operator-() { return Negate(); } //this operator should return a new instance (not this)
+        Matrix operator-() { return Negate(); } 
+        Matrix& operator+=(Matrix B) { return Add(B); }
 
 
         //Debug methods
@@ -77,7 +78,7 @@ namespace Hazel::Math
         //Matrix operations
         Matrix& ScaleRightDiagonal(const Matrix& vector);
         Matrix& ScaleLeftDiagonal(const Matrix& vector);
-        Matrix& Transpose(const Matrix& matrix);
+        Matrix Transpose();
         Matrix TransposeMultiply(const Matrix& matrix);
         Matrix Multiply(const Matrix &B);
 
@@ -87,7 +88,7 @@ namespace Hazel::Math
         double Dot(const Matrix& vector) const;
 
         //Matrix and vector
-        Matrix Add(const Matrix& B);
+        Matrix& Add(const Matrix& B);
         Matrix Scale(const Matrix& B, double scale);
         Matrix Negate();
 

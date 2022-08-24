@@ -57,14 +57,14 @@ namespace Hazel
 
 		void OnPhysics2DStart();
 		void OnPhysics2DStop();
-		void Update2DPhysics(Timestep ts);
 		void OnPhysicsStart();
 		void OnPhysicsStop();
+		void Update2DPhysics(Timestep ts);
 		void UpdatePhysics(Timestep ts);
 		void UpdateScripts(Timestep ts);
 
 		void RenderSceneEntities();
-
+	private:
 		entt::registry m_Registry;
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;

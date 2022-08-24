@@ -5,9 +5,9 @@
 
 #include "RigidBody.h"
 #include "ForceGenerator.h"
-#include "Constraint.h"
 #include "ODEIntegrator.h"
 #include "ConjugateGradientMethod.h"
+#include "FixedPositionConstraint.h"
 
 #include <vector>
 
@@ -61,9 +61,11 @@ namespace Enyoo
 				size_t columns;
 				Matrix BlockJacobian;
 			};
-			std::vector<BlockMatrix> SparseJacobian;
-			std::vector<BlockMatrix> JacobianDot;
-			Matrix Jc_Transpose;
+			std::vector<BlockMatrix> JacobianBlocks;
+			std::vector<BlockMatrix> JacobianDotBlocks;
+			
+			Matrix SparseJacobian;
+			Matrix SparseJacobianDot;
 			Matrix Mass, W; //inverse of mass matrix 
 			Vector C;
 			Vector C_ks, C_kd;
@@ -72,7 +74,7 @@ namespace Enyoo
 
 			Vector Lambda;
 
-
+			
 		} m_MatricesData;
 	};
 }

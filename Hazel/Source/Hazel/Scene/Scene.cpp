@@ -350,16 +350,19 @@ namespace Hazel
 			auto& rbc = entity.GetComponent<RigidBodyComponent>();
 
 			Enyoo::RigidBody* body = new Enyoo::RigidBody;
-			Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
 			body->Position = { transform.Translation.x, transform.Translation.y };
 			body->Theta = transform.Rotation.z;
 			body->Velocity = glm::dvec2{ 0.0 };
 			body->AngularVelocity = 0.0;
 		
 			m_NewBodySystem->AddRigidBody(body);
-			m_NewBodySystem->AddForceGen(forceGen);
 			rbc.RuntimeBody = body;
 		}
+		Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
+		Enyoo::FixedPositionConstraint* fixed = new Enyoo::FixedPositionConstraint;
+		fixed->SetBody(0);
+		m_NewBodySystem->AddForceGen(forceGen);
+		m_NewBodySystem->AddConstraint(fixed);
 	}
 
 	void Scene::OnPhysicsStop()
@@ -368,7 +371,7 @@ namespace Hazel
 
 	void Scene::UpdatePhysics(Timestep ts)
 	{
-		m_NewBodySystem->Step(ts, 100);
+		m_NewBodySystem->Step(ts, 10);
 
 		auto view = m_Registry.view<RigidBodyComponent>();
 		for (auto e : view)
@@ -388,9 +391,7 @@ namespace Hazel
 		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
 		{
 			if (nsc.Instance)
-			{
 				nsc.Instance->OnUpdate(ts);
-			}
 		});
 	}
 

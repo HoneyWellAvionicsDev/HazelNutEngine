@@ -1,4 +1,4 @@
-#include "HazelEditorLayer.h"
+﻿#include "HazelEditorLayer.h"
 
 #include "Hazel/Scene/SceneSerializer.h"
 #include "Hazel/Utils/PlatfromUtils.h"
@@ -72,7 +72,7 @@ namespace Hazel
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
-
+        
     	//------------------Update----------------------------------
         m_ActiveScene->SetLevelGravity({ m_Gravity[0], m_Gravity[1] });
         m_ActiveScene->SetVelocityIterations(m_VeloctiyIterations);
@@ -646,6 +646,7 @@ namespace Hazel
         //matrix test
         Math::Matrix A;
         Math::Matrix B;
+        Math::Matrix C;
         Math::Matrix Vector;
         Math::Matrix Vector2;
         Math::Matrix Out(3, 1);
@@ -660,32 +661,41 @@ namespace Hazel
         A[2][1] = 4;
         A[2][2] = 1;
        
-        B.Resize(2, 2);
-        B[0][0] = 2.5409;
-        B[0][1] = 2.0113;
-        B[1][0] = 2.0113;
-        B[1][1] = 0.5287;
+        B.Resize(3, 3);
+        B[0][0] = 1;
+        B[0][1] = 6;
+        B[0][2] = 2;
+        B[1][0] = 0;
+        B[1][1] = 6;
+        B[1][2] = 1;
+        B[2][0] = 4;
+        B[2][1] = 6;
+        B[2][2] = 3;
+
+        C.Resize(2, 2);
+        C[0][0] = 7;
+        C[0][1] = 7;
+        C[1][0] = 7;
+        C[1][1] = 7;
 
         Vector.Resize(3, 1);
         Vector[0][0] = -11.3864;
         Vector[1][0] = 0.1108;
         Vector[2][0] = 345.1108;
-        //Vector[2][0] = 0.3719;
-        
 
         Vector2.Resize(3, 1);
-        //Vector2[0][0] = 2.0;
-        //Vector2[1][0] = 8.0;
-        //Vector2[2][0] = 5.0;
 
-        A.Print();
-        Vector.Print();
+        //A.Print();
+        //Vector.Print();
         //Vector2.Print();
-        Enyoo::ConjugateGradientMethod solver;
-        solver.SetMaxIterations(50);
-        solver.SetTolerance(1E-5);
-        solver.Solve(A, Vector, &Vector2);
-        Vector2.Print();
+        //Enyoo::ConjugateGradientMethod solver;
+        //solver.SetMaxIterations(50);
+        //solver.SetTolerance(1E-5);
+        //solver.Solve(A, Vector, &Vector2);
+        //Vector2.Print();
+        B.Print();
+        B.InsertMatrix(1, 1, C);
+        B.Print();
     }
 
     void EditorLayer::OnSceneStop()

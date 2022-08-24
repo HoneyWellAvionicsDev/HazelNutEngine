@@ -28,7 +28,7 @@ namespace Enyoo
 	{
 	public:
 		Constraint(uint32_t ConstraintCount, uint32_t BodyCount);
-		virtual ~Constraint();
+		virtual ~Constraint() {}
 
 		virtual void Calculate(ConstraintOutput& output, SystemState* state) = 0;
 

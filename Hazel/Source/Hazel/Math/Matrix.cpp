@@ -55,6 +55,19 @@ namespace Hazel::Math
 			m_Matrix[i] = value;
 	}
 
+	void Matrix::InsertMatrix(size_t row, size_t column, const Matrix& subMatrix)
+	{
+		HZ_CORE_ASSERT(row < m_Rows && column < m_Columns);
+
+		for (size_t i = 0; i < subMatrix.m_Rows; i++)
+		{
+			for (size_t j = 0; j < subMatrix.m_Columns; j++)
+			{
+				(*this)[i + row][j + column] = subMatrix[i][j];
+			}
+		}
+	}
+
 	Matrix& Matrix::ScaleRightDiagonal(const Matrix& vector)
 	{
 		HZ_CORE_ASSERT(vector.m_Columns < 2);
@@ -106,10 +119,18 @@ namespace Hazel::Math
 		return output;
 	}
 
-	Matrix& Matrix::Transpose(const Matrix& matrix)
+	Matrix Matrix::Transpose()
 	{
-		HZ_CORE_ASSERT(false, "implement me");
-		return *this;
+		Matrix output(m_Rows, m_Columns);
+
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			for (size_t j = 0; j < m_Columns; j++)
+			{
+				output[j][i] = (*this)[i][j];
+			}
+		}
+		return output;
 	}
 
 	Matrix Matrix::Multiply(const Matrix& B) 
@@ -131,6 +152,20 @@ namespace Hazel::Math
 		return output;
 	}
 
+	double Matrix::Magnitude() const
+	{
+		HZ_CORE_ASSERT(this->m_Columns == 1);
+
+		double mag = 0.0;
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			mag += (*this)[i][0] * (*this)[i][0];
+		}
+
+		return glm::sqrt(mag);
+	}
+
+	//returns the magnituge squared
 	double Matrix::MagnitudeSquared() const
 	{
 		HZ_CORE_ASSERT(this->m_Columns == 1);
@@ -157,7 +192,7 @@ namespace Hazel::Math
 		return dot;
 	}
 
-	Matrix Matrix::Add(const Matrix& B) 
+	Matrix& Matrix::Add(const Matrix& B) 
 	{
 		HZ_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
 		
