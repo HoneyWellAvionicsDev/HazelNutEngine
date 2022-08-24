@@ -75,12 +75,12 @@ namespace Enyoo
         Velocity = new glm::dvec2[RigidBodyCount];
         Acceleration = new glm::dvec2[RigidBodyCount];
         Force = new glm::dvec2[RigidBodyCount];
-        ConstraintForce = new glm::dvec2[RigidBodyCount];
+        ConstraintForce = new glm::dvec2[ConstraintCount];
         Theta = new double[RigidBodyCount];
         AngularVelocity = new double[RigidBodyCount];
         AngularAcceleration = new double[RigidBodyCount];
         Torque = new double[RigidBodyCount];
-        ConstraintTorque = new double[RigidBodyCount];
+        ConstraintTorque = new double[ConstraintCount];
         Mass = new double[RigidBodyCount];
     }
 

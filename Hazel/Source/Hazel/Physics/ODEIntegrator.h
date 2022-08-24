@@ -2,8 +2,6 @@
 
 #include "SystemState.h"
 
-#include <glm/glm.hpp>
-
 
 namespace Enyoo
 {
@@ -13,11 +11,11 @@ namespace Enyoo
 		ODEIntegrator() = default;
 		virtual ~ODEIntegrator() = default;
 
-		void Start(SystemState& initalState, double dt);
-		bool Step(SystemState& state);
-		void Integrate(SystemState& state);
+		virtual void Start(SystemState& initalState, double dt) = 0;
+		virtual bool Step(SystemState& state) = 0;
+		virtual void Integrate(SystemState& state) = 0;
 		void End();
-	private:
+	protected:
 		double m_dt;
 	};
 }

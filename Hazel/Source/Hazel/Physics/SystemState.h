@@ -14,7 +14,7 @@ namespace Enyoo
 		glm::dvec2 LocalToWorld(glm::dvec2 point, size_t index);
 		glm::dvec2 VelocityAtPoint(glm::dvec2 point, size_t index);
 		void ApplyForce(glm::dvec2 point, glm::dvec2 force, size_t index);
-		void Resize(uint32_t count);
+		void Resize(size_t bodyCount, size_t constraintCount);
 		void Destroy();
 
 		size_t* IndexMap; 

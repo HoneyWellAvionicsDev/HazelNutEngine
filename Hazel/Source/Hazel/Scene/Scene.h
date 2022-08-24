@@ -76,6 +76,7 @@ namespace Hazel
 		Enyoo::RigidBodySystem* m_NewBodySystem = nullptr;
 
 		friend class Entity;
+		friend class EditorLayer;
 		friend class SceneSerializer;
 		friend class SceneHierarchyPanel;
 	};

@@ -1,15 +1,16 @@
 #include "hzpch.h"
 #include "Constraint.h"
 
+
 namespace Enyoo
 {
 	Constraint::Constraint(uint32_t constraintCount, uint32_t bodyCount)
 		: m_ConstraintCount(constraintCount)
 	{
-		m_Bodies.reserve(bodyCount);
+		m_Bodies.resize(bodyCount);
 		m_Index = -1;
 
-		memset(&m_Bodies[0], 0, sizeof(int) * bodyCount);
+		std::fill(m_Bodies.begin(), m_Bodies.end(), nullptr);
 		
 		ConstraintForceX.Initialize(constraintCount,bodyCount);
 		ConstraintForceY.Initialize(constraintCount, bodyCount);

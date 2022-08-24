@@ -1,9 +1,11 @@
-#include "hzpch.h"
+#include <hzpch.h>
+
+#include "Hazel/Renderer/Renderer2D.h"
+
 #include "Scene.h"
 #include "Components.h"
 #include "Entity.h"
 #include "ScriptableEntity.h"
-#include "Hazel/Renderer/Renderer2D.h"
 
 #include <glm/glm.hpp>
 
@@ -341,28 +343,25 @@ namespace Hazel
 
 	void Scene::OnPhysicsStart()
 	{
-		m_NewBodySystem = new Enyoo::RigidBodySystem; //TODO: stop using new dumbass we have smart pointers
-		auto view = m_Registry.view<RigidBodyComponent>();
-		for (auto e : view)
-		{
-			Entity entity = { e, this };
-			auto& transform = entity.GetComponent<TransformComponent>();
-			auto& rbc = entity.GetComponent<RigidBodyComponent>();
-
-			Enyoo::RigidBody* body = new Enyoo::RigidBody;
-			body->Position = { transform.Translation.x, transform.Translation.y };
-			body->Theta = transform.Rotation.z;
-			body->Velocity = glm::dvec2{ 0.0 };
-			body->AngularVelocity = 0.0;
-		
-			m_NewBodySystem->AddRigidBody(body);
-			rbc.RuntimeBody = body;
-		}
-		Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
-		Enyoo::FixedPositionConstraint* fixed = new Enyoo::FixedPositionConstraint;
-		fixed->SetBody(0);
-		m_NewBodySystem->AddForceGen(forceGen);
-		m_NewBodySystem->AddConstraint(fixed);
+		//m_NewBodySystem = new Enyoo::RigidBodySystem; //TODO: stop using new dumbass we have smart pointers
+		//auto view = m_Registry.view<RigidBodyComponent>();
+		//for (auto e : view)
+		//{
+		//	Entity entity = { e, this };
+		//	auto& transform = entity.GetComponent<TransformComponent>();
+		//	auto& rbc = entity.GetComponent<RigidBodyComponent>();
+		//
+		//	Enyoo::RigidBody* body = new Enyoo::RigidBody;
+		//	body->Position = { transform.Translation.x, transform.Translation.y };
+		//	body->Theta = transform.Rotation.z;
+		//	body->Velocity = glm::dvec2{ 0.0 };
+		//	body->AngularVelocity = 0.0;
+		//	body->Mass = 3.0;
+		//	body->MomentInertia = 1.0;
+		//
+		//	m_NewBodySystem->AddRigidBody(body);
+		//	rbc.RuntimeBody = body;
+		//}
 	}
 
 	void Scene::OnPhysicsStop()
@@ -371,19 +370,21 @@ namespace Hazel
 
 	void Scene::UpdatePhysics(Timestep ts)
 	{
-		m_NewBodySystem->Step(ts, 10);
-
-		auto view = m_Registry.view<RigidBodyComponent>();
-		for (auto e : view)
-		{
-			Entity entity = { e, this };
-			auto& transform = entity.GetComponent<TransformComponent>();
-			auto& rbc = entity.GetComponent<RigidBodyComponent>();
-			Enyoo::RigidBody* body = static_cast<Enyoo::RigidBody*>(rbc.RuntimeBody);
-			transform.Translation.x = body->Position.x;
-			transform.Translation.y = body->Position.y;
-			transform.Rotation.z = body->Theta;
-		}
+		//Timer time;
+		//m_NewBodySystem->Step(0.01667, 10);
+		//
+		//auto view = m_Registry.view<RigidBodyComponent>();
+		//for (auto e : view)
+		//{
+		//	Entity entity = { e, this };
+		//	auto& transform = entity.GetComponent<TransformComponent>();
+		//	auto& rbc = entity.GetComponent<RigidBodyComponent>();
+		//	Enyoo::RigidBody* body = static_cast<Enyoo::RigidBody*>(rbc.RuntimeBody);
+		//	transform.Translation.x = body->Position.x;
+		//	transform.Translation.y = body->Position.y;
+		//	transform.Rotation.z = body->Theta;
+		//}
+		//HZ_CORE_TRACE("Time: {0}ms", time.ElapsedMilliseconds());
 	}
 
 	void Scene::UpdateScripts(Timestep ts)

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <iostream> //temp for debug
+#include <iomanip>
 namespace Hazel::Math
 {
     /*
@@ -68,7 +69,7 @@ namespace Hazel::Math
             {
                 for (size_t j = 0; j < m_Columns; j++)
                 {
-                    std::cout << (*this)[i][j] << '\t';
+                    std::cout << std::setw(8) << std::left << (*this)[i][j] << " ";
                 }
                 std::cout << '\n';
             }
@@ -102,7 +103,7 @@ namespace Hazel::Math
 }
 
 #if 0 //Notes
-#pragma region matricies
+
 struct IntermediateValues 
 {
     //J is the Jocobian of C where C is a global state vector of all Constriant functions
@@ -126,83 +127,8 @@ struct IntermediateValues
     Matrix lambda;
 } m_iv;
 
-struct Constraint::Output 
-{
-    double C[MaxConstraintCount];
-    double J[MaxConstraintCount][3 * MaxBodyCount];
-    double J_dot[MaxConstraintCount][3 * MaxBodyCount];
-    double v_bias[MaxConstraintCount];
-    double limits[MaxConstraintCount][2];
-    double ks[MaxConstraintCount]; //these should be std::vectors
-    double kd[MaxConstraintCount];
-};
-#pragma endregion
-
 void atg_scs::GenericRigidBodySystem::processConstraints()
 {
-    const int n = getRigidBodyCount(); //for every particle, there are three things to keep track of: x, y, theta
-    const int m_f = getFullConstraintCount(); //sum of constraints each indivual constraint contains
-    const int m = getConstraintCount(); //#number of contraints placed on the system?
-
-    m_iv.q_dot.resize(1, n * 3); //three slots so that we can store the x, y, and theta velocities
-    for (int i = 0; i < n; ++i) 
-    {
-        m_iv.q_dot.set(0, i * 3 + 0, m_state.v_x[i]);
-        m_iv.q_dot.set(0, i * 3 + 1, m_state.v_y[i]);
-        m_iv.q_dot.set(0, i * 3 + 2, m_state.v_theta[i]);
-    }
-
-    m_iv.J_sparse.initialize(3 * n, m_f);
-    m_iv.J_dot_sparse.initialize(3 * n, m_f);
-    m_iv.ks.initialize(1, m_f);
-    m_iv.kd.initialize(1, m_f);
-    m_iv.C.initialize(1, m_f);
-
-    Constraint::Output constraintOutput;
-    for (int j = 0, j_f = 0; j < m; ++j) //for every constraint object in the system
-    {
-        m_constraints[j]->calculate(&constraintOutput, &m_state); // for all contraints calculate J and J dot based on their constraint functions
-                                                                  //where J is the jacobian of the constraint function (with respect to system state)
-
-        const int n_f = m_constraints[j]->getConstraintCount();//a single constraint will add a block for every body it depends on
-        for (int k = 0; k < n_f; ++k, ++j_f) //for all blocks in the master matrix (for all constraints in a single constraint)
-        {
-            for (int i = 0; i < m_constraints[j]->m_bodyCount; ++i) //for each body a given constraint object concerns (max 2)
-            {
-                const int index = m_constraints[j]->m_bodies[i]->index;
-
-                if (index == -1) continue;
-
-                m_iv.J_sparse.setBlock(j_f, i, index);//store bodies index in master matrix
-                m_iv.J_dot_sparse.setBlock(j_f, i, index);
-            }
-
-            for (int i = 0; i < m_constraints[j]->m_bodyCount * 3; ++i) 
-            {
-                const int index = m_constraints[j]->m_bodies[i / 3]->index;
-
-                if (index == -1) continue;
-
-                m_iv.J_sparse.set(j_f, i / 3, i % 3, //take the precomputed J from each constraint and add a block to master matrix
-                    constraintOutput.J[k][i]);       //we need to make a block for every body that the constraint depends on
-
-                m_iv.J_dot_sparse.set(j_f, i / 3, i % 3,
-                    constraintOutput.J_dot[k][i]);
-
-                m_iv.ks.set(0, j_f, constraintOutput.ks[k]);
-                m_iv.kd.set(0, j_f, constraintOutput.kd[k]);
-                m_iv.C.set(0, j_f, constraintOutput.C[k]);
-            }
-        }
-    }
-
-    m_iv.J_sparse.multiply(m_iv.q_dot, &m_iv.reg0);
-    for (int i = 0; i < m_f; ++i) 
-    {
-        m_iv.kd.set(0, i, m_iv.kd.get(0, i) * m_iv.reg0.get(0, i));
-        m_iv.ks.set(0, i, m_iv.ks.get(0, i) * m_iv.C.get(0, i));
-    }
-
     //JWJT ∏ = − ̇J  ̇q − JWQ − k s C − k d  ̇C
     m_iv.F_ext.initialize(1, 3 * n, 0.0);
     for (int i = 0; i < n; ++i) 
@@ -220,7 +146,7 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
 
     m_iv.reg1.subtract(m_iv.reg0, &m_iv.reg2); //-JDot * qdot - JWQ
     m_iv.reg2.subtract(m_iv.ks, &m_iv.reg0);   //-JDot * qdot - JWQ - Cks
-    m_iv.reg0.subtract(m_iv.kd, &m_iv.right);  ////-JDot * qdot - JWQ - Cks - Cdot*kd
+    m_iv.reg0.subtract(m_iv.kd, &m_iv.right);  //-JDot * qdot - JWQ - Cks - Cdot*kd
 
     //solve matrix equation A lambda = B
     const bool solvable =//(Jacobian,     W         ,− ̇J  ̇q − JWQ, lambda, previous lambda)

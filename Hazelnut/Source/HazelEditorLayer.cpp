@@ -13,7 +13,7 @@
 #include "Hazel/Physics/ConjugateGradientMethod.h"
 namespace Hazel
 {
-    
+#define TEST
     extern const std::filesystem::path g_AssetPath;
 
 
@@ -49,9 +49,72 @@ namespace Hazel
                 HZ_CORE_ERROR("Could not deserialize scene from {0}", sceneFilePath);
         }
 
-        m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+        m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 100000.0f);
         Renderer2D::SetLineWidth(4.0f);
+#ifdef TEST //Test
+        m_ActiveScene->m_NewBodySystem = new Enyoo::RigidBodySystem;
+        test1 = m_ActiveScene->CreateEntity("1");
+        test2 = m_ActiveScene->CreateEntity("2");
+        test3 = m_ActiveScene->CreateEntity("3");
+        test1.AddComponent<SpriteRendererComponent>();
+        test2.AddComponent<SpriteRendererComponent>();
+        test3.AddComponent<SpriteRendererComponent>();
+        test1.AddComponent<RigidBodyComponent>();
+        test2.AddComponent<RigidBodyComponent>();
+        test3.AddComponent<RigidBodyComponent>();
 
+        Enyoo::RigidBody* testbody1 = new Enyoo::RigidBody;
+        testbody1->Position = { 0, 0 };
+        testbody1->Theta = 0;
+        testbody1->Velocity = glm::dvec2{ 0.0 };
+        testbody1->AngularVelocity = 0.0;
+        testbody1->Mass = 3.0;
+        testbody1->MomentInertia = 1.0;
+        auto& rbc1 = test1.GetComponent<RigidBodyComponent>();
+        rbc1.RuntimeBody = testbody1;
+        glm::dvec2 local1 = testbody1->WorldToLocal(testbody1->Position);
+        Enyoo::RigidBody* testbody2 = new Enyoo::RigidBody;
+        testbody2->Position = { 1, 3 };
+        testbody2->Theta = 3;
+        testbody2->Velocity = glm::dvec2{ 2.3 };
+        testbody2->AngularVelocity = 0.0;
+        testbody2->Mass = 3.0;
+        testbody2->MomentInertia = 1.0;
+        auto& rbc2 = test2.GetComponent<RigidBodyComponent>();
+        rbc2.RuntimeBody = testbody2;
+        glm::dvec2 local2 = testbody2->WorldToLocal(testbody2->Position);
+        Enyoo::RigidBody* testbody3 = new Enyoo::RigidBody;
+        testbody3->Position = { -3, 3 };
+        testbody3->Theta = 0;
+        testbody3->Velocity = glm::dvec2{ 0.0 };
+        testbody3->AngularVelocity = 0.0;
+        testbody3->Mass = 3.0;
+        testbody3->MomentInertia = 1.0;
+        auto& rbc3 = test3.GetComponent<RigidBodyComponent>();
+        rbc3.RuntimeBody = testbody3;
+        glm::dvec2 local3 = testbody3->WorldToLocal(testbody3->Position);
+        Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
+        Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
+        Enyoo::FixedPositionConstraint* fixed2 = new Enyoo::FixedPositionConstraint;
+        Enyoo::FixedPositionConstraint* fixed3 = new Enyoo::FixedPositionConstraint;
+        fixed1->SetBody(testbody1);
+        fixed1->SetLocalPosition(local1);
+        fixed1->SetWorldPosition(testbody1->Position);
+        fixed2->SetBody(testbody2);
+        fixed2->SetLocalPosition(local2);
+        fixed2->SetWorldPosition(testbody2->Position);
+        fixed3->SetBody(testbody3);
+        fixed3->SetLocalPosition(local3);
+        fixed3->SetWorldPosition(testbody3->Position);
+        m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody1);
+        m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody2);
+        m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody3);
+        m_ActiveScene->m_NewBodySystem->AddForceGen(forceGen);
+        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed1);
+        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed2);
+        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed3);
+        m_EditorCamera.SetDistance(80.f);
+#endif
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
     
@@ -77,6 +140,21 @@ namespace Hazel
         m_ActiveScene->SetLevelGravity({ m_Gravity[0], m_Gravity[1] });
         m_ActiveScene->SetVelocityIterations(m_VeloctiyIterations);
         m_ActiveScene->SetPositionIterations(m_PositionIterations);
+#ifdef TEST
+        m_ActiveScene->m_NewBodySystem->Step(0.01667, 10);
+
+        auto view = m_ActiveScene->m_Registry.view<RigidBodyComponent>();
+        for (auto e : view)
+        {
+            Entity entity = { e,  m_ActiveScene.get() };
+            auto& transform = entity.GetComponent<TransformComponent>();
+            auto& rbc = entity.GetComponent<RigidBodyComponent>();
+            Enyoo::RigidBody* body = static_cast<Enyoo::RigidBody*>(rbc.RuntimeBody);
+            transform.Translation.x = body->Position.x;
+            transform.Translation.y = body->Position.y;
+            transform.Rotation.z = body->Theta;
+        }
+#endif
     	//------------------Render----------------------------------
     	Renderer2D::ResetStats();
         m_FrameBuffer->Bind();
@@ -102,8 +180,8 @@ namespace Hazel
                 m_EditorCamera.OnUpdate(ts);
 
                 m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
-                if (timer.ElapsedMilliseconds() > 200)
-                    OnSceneStop();
+                //if (timer.ElapsedMilliseconds() > 200)
+                //    OnSceneStop();
                 break;
             }
             case SceneState::Play:

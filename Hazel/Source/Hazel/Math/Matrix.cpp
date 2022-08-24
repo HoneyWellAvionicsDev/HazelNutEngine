@@ -121,7 +121,7 @@ namespace Hazel::Math
 
 	Matrix Matrix::Transpose()
 	{
-		Matrix output(m_Rows, m_Columns);
+		Matrix output(m_Columns, m_Rows);
 
 		for (size_t i = 0; i < m_Rows; i++)
 		{

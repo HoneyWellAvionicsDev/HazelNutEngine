@@ -5,7 +5,7 @@
 
 #include "RigidBody.h"
 #include "ForceGenerator.h"
-#include "ODEIntegrator.h"
+#include "EulersMethodIntegrator.h"
 #include "ConjugateGradientMethod.h"
 #include "FixedPositionConstraint.h"
 
@@ -23,7 +23,7 @@ namespace Enyoo
 
 		void Init(/*later we can specify the integrator*/);
 
-		void Step(double dt, int steps = 1);
+		void Step(double dt, uint32_t steps = 1);
 
 		void AddRigidBody(RigidBody* body);
 		void AddForceGen(ForceGenerator* forceGen);
@@ -48,7 +48,7 @@ namespace Enyoo
 		std::vector<ForceGenerator*> m_ForceGenerators;
 		std::vector<Constraint*> m_Constraints;
 
-		ODEIntegrator m_Solver;
+		EulersMethodIntegrator m_TimeIntegrator;
 		ConjugateGradientMethod m_LinearEquationSolver;
 
 		struct Matrices

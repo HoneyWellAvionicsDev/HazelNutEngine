@@ -7,7 +7,7 @@
 namespace Enyoo
 {
 	ConjugateGradientMethod::ConjugateGradientMethod()
-		: m_MaxIterations(300), m_Tolerance(1E-5)
+		: m_MaxIterations(30), m_Tolerance(1E-5)
 	{
 	}
 
@@ -38,6 +38,8 @@ namespace Enyoo
 			if (rkrk < m_Tolerance * m_Tolerance)
 			{
 				*x = x0;
+				//HZ_CORE_WARN("Converged!");
+				//x0.Print();
 				return true;
 			}
 
@@ -45,8 +47,7 @@ namespace Enyoo
 			const double beta = rk1_mag / rkrk;
 
 			p_k = p_k * beta - r0; //d(i + 1) = r(i + 1) + Bi * di
-			HZ_CORE_TRACE("Iteration: {0}", i + 1);
-			x0.Print();
+			//x0.Print();
 		}
 
 		return false;
