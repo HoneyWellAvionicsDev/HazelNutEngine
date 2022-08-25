@@ -13,7 +13,7 @@ namespace Enyoo
         //p(t) = R(t)p0 + x(t) where R is some rotation matrix, x is the translation vector, p0 is a point on the rigidbody
         glm::dvec2 world;
         world.x = glm::cos(Theta) * point.x - glm::sin(Theta) * point.y + Position.x;
-        world.x = glm::sin(Theta) * point.x + glm::cos(Theta) * point.y + Position.y;
+        world.y = glm::sin(Theta) * point.x + glm::cos(Theta) * point.y + Position.y;
         return world;
     }
     

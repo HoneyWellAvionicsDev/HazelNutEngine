@@ -215,4 +215,27 @@ Done: SLE solver (conjugate gradient method)
 Figure out creation of objects (entities with constraints)
 Better ODE solver (RK4)
 more constraint classes
+
+const double dx2 = 8.0 / 3.0 - lastPosition.x;
+        const double dy2 = 1.0 - lastPosition.y;
+        const double length2 = glm::sqrt(dx2 * dx2 + dy2 * dy2);
+
+        const double theta2 = (dy2 > 0) ? glm::acos(dx2 / length2) : glm::two_pi<double>() - glm::acos(dx2 / length2);
+        m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody3);
+        testbody3->Theta = theta2;
+
+        glm::dvec2 world2 = testbody3->LocalToWorld({ -length2 / 2, 0 });
+        testbody3->Position = lastPosition - world2;
+        testbody3->Mass = length * 1.0;
+
+        glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
+        Enyoo::LinkConstraint* link1 = new Enyoo::LinkConstraint;
+        m_ActiveScene->m_NewBodySystem->AddConstraint(link1);
+        link1->SetFirstBody(testbody3);
+        link1->SetSecondBody(testbody1);
+        link1->SetFirstBodyLocal({ -length / 2, 0 });
+        link1->SetSecondBodyLocal(locallink2);
+
+        lastPosition = testbody3->LocalToWorld({ length / 2, 0 });
 */
+

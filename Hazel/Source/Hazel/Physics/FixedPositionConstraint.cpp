@@ -39,8 +39,8 @@ namespace Enyoo
         const double C1 = current_x - m_WorldPosition.x;
         const double C2 = current_y - m_WorldPosition.y;
 
-        output.J.Initialize(m_ConstraintCount, 3 * m_Bodies.size());
-        output.Jdot.Initialize(m_ConstraintCount, 3 * m_Bodies.size());
+        output.J.Initialize(m_ConstraintCount, 3 * m_BodyCount);
+        output.Jdot.Initialize(m_ConstraintCount, 3 * m_BodyCount);
         output.ks.Initialize(m_ConstraintCount, 1);
         output.kd.Initialize(m_ConstraintCount, 1);
         output.C.Initialize(m_ConstraintCount, 1);

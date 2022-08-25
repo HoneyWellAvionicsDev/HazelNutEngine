@@ -8,6 +8,7 @@
 #include "EulersMethodIntegrator.h"
 #include "ConjugateGradientMethod.h"
 #include "FixedPositionConstraint.h"
+#include "LinkConstraint.h"
 
 #include <vector>
 

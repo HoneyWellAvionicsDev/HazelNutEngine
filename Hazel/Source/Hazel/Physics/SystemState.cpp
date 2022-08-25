@@ -62,25 +62,26 @@ namespace Enyoo
                             +  (world.x - this->Position[index].x) * force.y;
     }
 
-    void SystemState::Resize(uint32_t count)
+    void SystemState::Resize(size_t bodyCount, size_t constraintCount)
     {
-        if (this->RigidBodyCount >= count)
+        if (this->RigidBodyCount >= bodyCount && this->ConstraintCount >= constraintCount)
             return;
 
         Destroy();
 
-        RigidBodyCount = count;
+        this->RigidBodyCount = bodyCount;
+        this->ConstraintCount = constraintCount;
 
         Position = new glm::dvec2[RigidBodyCount];
         Velocity = new glm::dvec2[RigidBodyCount];
         Acceleration = new glm::dvec2[RigidBodyCount];
         Force = new glm::dvec2[RigidBodyCount];
-        ConstraintForce = new glm::dvec2[ConstraintCount];
+        ConstraintForce = new glm::dvec2[2 * ConstraintCount];
         Theta = new double[RigidBodyCount];
         AngularVelocity = new double[RigidBodyCount];
         AngularAcceleration = new double[RigidBodyCount];
         Torque = new double[RigidBodyCount];
-        ConstraintTorque = new double[ConstraintCount];
+        ConstraintTorque = new double[2 * ConstraintCount];
         Mass = new double[RigidBodyCount];
     }
 

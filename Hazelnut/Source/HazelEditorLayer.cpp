@@ -24,9 +24,9 @@ namespace Hazel
     
     void EditorLayer::OnAttach()
     {
-    	HZ_PROFILE_FUNCTION();
-    	
-    
+        HZ_PROFILE_FUNCTION();
+
+
         FrameBufferSpecification FrameBufferSpec;
         FrameBufferSpec.Attachments = { FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::RED_INTEGER, FrameBufferTextureFormat::Depth };
         FrameBufferSpec.Width = 1280;
@@ -57,63 +57,102 @@ namespace Hazel
         test2 = m_ActiveScene->CreateEntity("2");
         test3 = m_ActiveScene->CreateEntity("3");
         test1.AddComponent<SpriteRendererComponent>();
-        test2.AddComponent<SpriteRendererComponent>();
+        test2.AddComponent<CircleRendererComponent>();
         test3.AddComponent<SpriteRendererComponent>();
         test1.AddComponent<RigidBodyComponent>();
         test2.AddComponent<RigidBodyComponent>();
         test3.AddComponent<RigidBodyComponent>();
 
         Enyoo::RigidBody* testbody1 = new Enyoo::RigidBody;
-        testbody1->Position = { 0, 0 };
+        testbody1->Position = { 0, 1 };
         testbody1->Theta = 0;
         testbody1->Velocity = glm::dvec2{ 0.0 };
         testbody1->AngularVelocity = 0.0;
-        testbody1->Mass = 3.0;
+        testbody1->Mass = 8.0;
         testbody1->MomentInertia = 1.0;
         auto& rbc1 = test1.GetComponent<RigidBodyComponent>();
         rbc1.RuntimeBody = testbody1;
-        glm::dvec2 local1 = testbody1->WorldToLocal(testbody1->Position);
         Enyoo::RigidBody* testbody2 = new Enyoo::RigidBody;
-        testbody2->Position = { 1, 3 };
-        testbody2->Theta = 3;
-        testbody2->Velocity = glm::dvec2{ 2.3 };
+        testbody2->Position = { 0, 1 };
+        testbody2->Theta = 0;
+        testbody2->Velocity = glm::dvec2{ 0.0 };
         testbody2->AngularVelocity = 0.0;
-        testbody2->Mass = 3.0;
+        testbody2->Mass = 10.0;
         testbody2->MomentInertia = 1.0;
         auto& rbc2 = test2.GetComponent<RigidBodyComponent>();
         rbc2.RuntimeBody = testbody2;
         glm::dvec2 local2 = testbody2->WorldToLocal(testbody2->Position);
         Enyoo::RigidBody* testbody3 = new Enyoo::RigidBody;
         testbody3->Position = { -3, 3 };
-        testbody3->Theta = 0;
+        testbody3->Theta = 1.98;
         testbody3->Velocity = glm::dvec2{ 0.0 };
         testbody3->AngularVelocity = 0.0;
-        testbody3->Mass = 3.0;
+        testbody3->Mass = 4.0;
         testbody3->MomentInertia = 1.0;
         auto& rbc3 = test3.GetComponent<RigidBodyComponent>();
         rbc3.RuntimeBody = testbody3;
         glm::dvec2 local3 = testbody3->WorldToLocal(testbody3->Position);
         Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
         Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
-        Enyoo::FixedPositionConstraint* fixed2 = new Enyoo::FixedPositionConstraint;
+        //Enyoo::FixedPositionConstraint* fixed2 = new Enyoo::FixedPositionConstraint;
         Enyoo::FixedPositionConstraint* fixed3 = new Enyoo::FixedPositionConstraint;
-        fixed1->SetBody(testbody1);
-        fixed1->SetLocalPosition(local1);
-        fixed1->SetWorldPosition(testbody1->Position);
-        fixed2->SetBody(testbody2);
-        fixed2->SetLocalPosition(local2);
-        fixed2->SetWorldPosition(testbody2->Position);
+        //fixed2->SetBody(testbody2);
+        //fixed2->SetLocalPosition(local2);
+        //fixed2->SetWorldPosition(testbody2->Position);
         fixed3->SetBody(testbody3);
         fixed3->SetLocalPosition(local3);
         fixed3->SetWorldPosition(testbody3->Position);
+        //m_ActiveScene->m_NewBodySystem->AddConstraint(fixed2);
+        //m_ActiveScene->m_NewBodySystem->AddConstraint(fixed3);
+
+        glm::dvec2 lastPosition{ 0.0, 1.0 };
+        //create bar
+        const double dx = 4.0 / 3.0 - lastPosition.x;
+        const double dy = 1.0 - lastPosition.y;
+        const double length = glm::sqrt(dx * dx + dy * dy);
+
+        const double theta = (dy > 0) ? glm::acos(dx / length) : glm::two_pi<double>() - glm::acos(dx / length);
         m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody1);
+        testbody1->Theta = theta;
+
+        glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2, 0 });
+        testbody1->Position = lastPosition - world1;
+        testbody1->Mass = length * 1.0;
+
+        //glm::dvec2 locallink = testbody2->WorldToLocal(lastPosition);
+        //Enyoo::LinkConstraint* link1 = new Enyoo::LinkConstraint;
+        //m_ActiveScene->m_NewBodySystem->AddConstraint(link1);
+        //link1->SetFirstBody(testbody1);
+        //link1->SetSecondBody(testbody2);
+        //link1->SetFirstBodyLocal({ -length / 2, 0 });
+        //link1->SetSecondBodyLocal(locallink);
+
+        lastPosition = testbody1->LocalToWorld({ length / 2, 0 });
+
+
+        //end bar
+
+        //fix 0, 1
+        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed1); //order matters
+        glm::dvec2 local1 = testbody1->WorldToLocal({0.0, 1.0});
+        fixed1->SetBody(testbody1);
+        fixed1->SetLocalPosition(local1);
+        fixed1->SetWorldPosition({0.0, 1.0});
+
+        //end
         m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody2);
+        testbody2->Position = lastPosition;
+        glm::dvec2 locallink = testbody1->WorldToLocal(lastPosition);
+        Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
+        m_ActiveScene->m_NewBodySystem->AddConstraint(link2);
+        link2->SetFirstBody(testbody1);
+        link2->SetSecondBody(testbody2);
+        link2->SetFirstBodyLocal(locallink);
+        link2->SetSecondBodyLocal({0, 0});
         m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody3);
         m_ActiveScene->m_NewBodySystem->AddForceGen(forceGen);
-        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed1);
-        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed2);
-        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed3);
-        m_EditorCamera.SetDistance(80.f);
+
+        m_EditorCamera.SetDistance(50.f);
 #endif
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
@@ -160,7 +199,7 @@ namespace Hazel
         m_FrameBuffer->Bind();
     	RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
     	RenderCommand::Clear();
-
+        //HZ_CORE_TRACE("X: {0} Y: {1}", test1.GetComponent<TransformComponent>().Translation.x, test1.GetComponent<TransformComponent>().Translation.y);
         
         m_FrameBuffer->ClearAttachment(1, -1); //Clear ent ID to -1
         //------------------Scene----------------------------------

@@ -96,7 +96,7 @@ namespace Enyoo
 
     void RigidBodySystem::PopulateSystemState()
     {
-        m_State.Resize(GetRigidBodyCount());
+        m_State.Resize(GetRigidBodyCount(), GetTotalConstraintCount());
 
         for (size_t i = 0; i < GetRigidBodyCount(); i++)
         {
@@ -209,7 +209,7 @@ namespace Enyoo
             currentConstraintIndex += c->GetConstraintCount();
             currentBodyIndex += 3 * c->GetBodyCount();
         }
-        m_MatricesData.SparseJacobian.Print();
+        //m_MatricesData.SparseJacobian.Print();
 
         //Matrix Cdot;
         //Cdot.Initialize(n * 3, 1);
@@ -251,10 +251,71 @@ namespace Enyoo
         //A.Print();
         //solve matrix equation
         //HZ_CORE_TRACE("Iteration: {0} Time: {1}ms", iteration++, fulltime.ElapsedMilliseconds());
-        m_LinearEquationSolver.Solve(A, b, &m_MatricesData.Lambda);
+        const bool solved = m_LinearEquationSolver.Solve(A, b, &m_MatricesData.Lambda);
+        HZ_CORE_ASSERT(solved);
 
         //disperse matrices to state
-        Vector Jlambda = SparseJacobianTranspose * m_MatricesData.Lambda;
+        //adotdot = (AppiliedForce + ConstraintForce) / m
+        Vector Qhat = SparseJacobianTranspose * m_MatricesData.Lambda;
+        for (size_t i = 0; i < n; i++)
+        {
+            m_State.ConstraintForce[i].x = Qhat[i * 3 + 0][0];
+            m_State.ConstraintForce[i].y = Qhat[i * 3 + 1][0];
+            m_State.ConstraintTorque[i]  = Qhat[i * 3 + 2][0];
+        }
+        //m_MatricesData.Q.Print();
+        //Qhat.Print();
+#if 1
+        for (size_t i = 0; i < n; i++)
+        {
+            m_State.Acceleration[i].x      = m_MatricesData.Q[i * 3 + 0][0] + Qhat[i * 3 + 0][0];
+            m_State.Acceleration[i].y      = m_MatricesData.Q[i * 3 + 1][0] + Qhat[i * 3 + 1][0];
+            m_State.AngularAcceleration[i] = m_MatricesData.Q[i * 3 + 2][0] + Qhat[i * 3 + 2][0];
+        }
+#endif
+#if 0
+        for (Constraint* c : m_Constraints)
+        {
+            size_t constraintIndex = 0;
+            for (size_t i = 0; i < c->GetConstraintCount(); i++, constraintIndex++)
+            {
+                for (size_t j = 0; j < c->GetBodyCount(); j++)
+                {
+                    size_t index = c->GetBody(j)->Index;
+                    m_State.Acceleration[index].x += m_State.ConstraintForce[constraintIndex + j].x;
+                    m_State.Acceleration[index].y += m_State.ConstraintForce[constraintIndex + j].y;
+                    m_State.Torque[index]         += m_State.ConstraintTorque[constraintIndex + j];
+                }
+            }
+        }
+#endif
+#if 0
+        size_t i = 0;
+        size_t j = 1;
+        size_t k = 2;
+        size_t l = 0;
+        size_t mt = 1;
+        size_t nt = 2;
+        size_t o = 0;
+        size_t p = 1;
+        size_t q = 2;
 
+        m_State.Acceleration[i].x = m_MatricesData.Q[l * 3 + 0][0] + Qhat[o * 3 + 0][0];
+        m_State.Acceleration[i].y = m_MatricesData.Q[l * 3 + 1][0] + Qhat[o * 3 + 1][0];
+        m_State.AngularAcceleration[i] = m_MatricesData.Q[l * 3 + 2][0] + Qhat[o * 3 + 2][0];
+        m_State.Acceleration[j].x = m_MatricesData.Q[mt * 3 + 0][0] + Qhat[p * 3 + 0][0];
+        m_State.Acceleration[j].y = m_MatricesData.Q[mt * 3 + 1][0] + Qhat[p * 3 + 1][0];
+        m_State.AngularAcceleration[j] = m_MatricesData.Q[mt * 3 + 2][0] + Qhat[p * 3 + 2][0];
+        m_State.Acceleration[k].x = m_MatricesData.Q[nt * 3 + 0][0] + Qhat[q * 3 + 0][0];
+        m_State.Acceleration[k].y = m_MatricesData.Q[nt * 3 + 1][0] + Qhat[q * 3 + 1][0];
+        m_State.AngularAcceleration[k] = m_MatricesData.Q[nt * 3 + 2][0] + Qhat[q * 3 + 2][0];
+#endif
+
+
+        for (size_t i = 0; i < n; i++)
+        {
+            m_State.Acceleration[i] *= m_MatricesData.W[i * 3 + 0][0];
+            m_State.AngularAcceleration[i] *= m_MatricesData.W[i * 3 + 2][0];
+        }
     }
 }

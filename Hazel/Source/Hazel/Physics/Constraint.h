@@ -34,15 +34,17 @@ namespace Enyoo
 
 		void SetIndex(size_t index) { m_Index = index; }
 		size_t GetConstraintCount() const { return m_ConstraintCount; }
-		size_t GetBodyCount() const { return m_Bodies.size(); }
+		size_t GetBodyCount() const { return m_BodyCount; }
 		size_t GetIndex() const { return m_Index; }
+		RigidBody* GetBody(size_t index) { return m_Bodies[index]; }
 	public: //TODO: do something about this maybe
 		Matrix ConstraintForceX;
 		Matrix ConstraintForceY;
 		Matrix ConstraintTorque;
 	protected:
-		std::vector<RigidBody*> m_Bodies;
+		RigidBody** m_Bodies;
 		size_t m_Index;
+		size_t m_BodyCount;
 		size_t m_ConstraintCount;
 	};
 }

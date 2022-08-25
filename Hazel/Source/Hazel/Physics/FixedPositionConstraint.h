@@ -15,8 +15,8 @@ namespace Enyoo
 
 		void SetBody(RigidBody* body, size_t index = 0) { m_Bodies[index] = body; }
 
-		void SetWorldPosition(glm::dvec2 position) { m_LocalPosition = position; }
-		void SetLocalPosition(glm::dvec2 position) { m_WorldPosition = position; }
+		void SetWorldPosition(glm::dvec2 position) { m_WorldPosition = position; }
+		void SetLocalPosition(glm::dvec2 position) { m_LocalPosition = position; }
 
 		virtual void Calculate(ConstraintOutput& output, SystemState* state) override;
 	private:

@@ -5,12 +5,12 @@
 namespace Enyoo
 {
 	Constraint::Constraint(uint32_t constraintCount, uint32_t bodyCount)
-		: m_ConstraintCount(constraintCount)
+		: m_ConstraintCount(constraintCount), m_BodyCount(bodyCount)
 	{
-		m_Bodies.resize(bodyCount);
+		m_Bodies = new RigidBody*[bodyCount];
 		m_Index = -1;
-
-		std::fill(m_Bodies.begin(), m_Bodies.end(), nullptr);
+		memset(&m_Bodies[0], 0, sizeof(int) * bodyCount);
+		//std::fill(m_Bodies.begin(), m_Bodies.end(), nullptr);
 		
 		ConstraintForceX.Initialize(constraintCount,bodyCount);
 		ConstraintForceY.Initialize(constraintCount, bodyCount);
