@@ -12,6 +12,7 @@ namespace Enyoo
 		m_Ks = 0.0;
 		m_Kd = 0.0;
 	}
+
 	void Enyoo::LinkConstraint::Calculate(ConstraintOutput& output, SystemState* state)
 	{
 		const size_t body = m_Bodies[0]->Index;
@@ -25,7 +26,7 @@ namespace Enyoo
 
 		const double sinQ3 = glm::sin(q3);
 		const double cosQ3 = glm::cos(q3);
-
+							 
 		const double sinQ6 = glm::sin(q6);
 		const double cosQ6 = glm::cos(q6);
 
@@ -43,7 +44,7 @@ namespace Enyoo
 
 		output.J[0][0] = 1.0;
 		output.J[0][1] = 0.0;
-		output.J[0][2] = - sinQ3 * m_FirstBodyLocal.x - cosQ3 * m_FirstBodyLocal.y;
+		output.J[0][2] = -sinQ3 * m_FirstBodyLocal.x - cosQ3 * m_FirstBodyLocal.y;
 
 		output.J[0][3] = -1.0;
 		output.J[0][4] = 0.0;

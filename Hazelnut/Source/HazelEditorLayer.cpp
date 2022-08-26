@@ -84,7 +84,7 @@ namespace Hazel
         glm::dvec2 local2 = testbody2->WorldToLocal(testbody2->Position);
         Enyoo::RigidBody* testbody3 = new Enyoo::RigidBody;
         testbody3->Position = { -3, 3 };
-        testbody3->Theta = 1.98;
+        testbody3->Theta = 0;
         testbody3->Velocity = glm::dvec2{ 0.0 };
         testbody3->AngularVelocity = 0.0;
         testbody3->Mass = 4.0;
@@ -95,27 +95,27 @@ namespace Hazel
         Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
         Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
         //Enyoo::FixedPositionConstraint* fixed2 = new Enyoo::FixedPositionConstraint;
-        Enyoo::FixedPositionConstraint* fixed3 = new Enyoo::FixedPositionConstraint;
+        //Enyoo::FixedPositionConstraint* fixed3 = new Enyoo::FixedPositionConstraint;
         //fixed2->SetBody(testbody2);
         //fixed2->SetLocalPosition(local2);
         //fixed2->SetWorldPosition(testbody2->Position);
-        fixed3->SetBody(testbody3);
-        fixed3->SetLocalPosition(local3);
-        fixed3->SetWorldPosition(testbody3->Position);
+        //fixed3->SetBody(testbody3);
+        //fixed3->SetLocalPosition(local3);
+        //fixed3->SetWorldPosition(testbody3->Position);
         //m_ActiveScene->m_NewBodySystem->AddConstraint(fixed2);
         //m_ActiveScene->m_NewBodySystem->AddConstraint(fixed3);
 
         glm::dvec2 lastPosition{ 0.0, 1.0 };
-        //create bar
-        const double dx = 4.0 / 3.0 - lastPosition.x;
+        //bar1
+        const double dx = 16.0 / 3.0 - lastPosition.x;
         const double dy = 1.0 - lastPosition.y;
         const double length = glm::sqrt(dx * dx + dy * dy);
-
         const double theta = (dy > 0) ? glm::acos(dx / length) : glm::two_pi<double>() - glm::acos(dx / length);
+
         m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody1);
         testbody1->Theta = theta;
 
-        glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2, 0 });
+        glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2.0, 0.0 });
         testbody1->Position = lastPosition - world1;
         testbody1->Mass = length * 1.0;
 
@@ -127,33 +127,45 @@ namespace Hazel
         //link1->SetFirstBodyLocal({ -length / 2, 0 });
         //link1->SetSecondBodyLocal(locallink);
 
-        lastPosition = testbody1->LocalToWorld({ length / 2, 0 });
-
-
-        //end bar
+        lastPosition = testbody1->LocalToWorld({ length / 2.0, 0.0 });
+        //end bar1
 
         //fix 0, 1
-        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed1); //order matters
         glm::dvec2 local1 = testbody1->WorldToLocal({0.0, 1.0});
+        m_ActiveScene->m_NewBodySystem->AddConstraint(fixed1); 
         fixed1->SetBody(testbody1);
         fixed1->SetLocalPosition(local1);
         fixed1->SetWorldPosition({0.0, 1.0});
+        //end fix
 
-        //end
+        //bar2
+        const double dx2 = 32.0 / 3.0 - lastPosition.x;
+        const double dy2 = 1.0 - lastPosition.y;
+        const double length2 = glm::sqrt(dx2 * dx2 + dy2 * dy2);
+        const double theta2 = (dy2 > 0) ? glm::acos(dx2 / length2) : glm::two_pi<double>() - glm::acos(dx2 / length2);
+        
         m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody2);
-        testbody2->Position = lastPosition;
-        glm::dvec2 locallink = testbody1->WorldToLocal(lastPosition);
+        testbody2->Theta = theta2;
+        
+        glm::dvec2 world2 = testbody2->LocalToWorld({ -length2 / 2.0, 0.0 });
+        testbody2->Position = lastPosition - world2;
+        testbody2->Mass = length2 * 1.0;
+        
+        glm::dvec2 locallink2 = testbody2->WorldToLocal(lastPosition);
         Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
         m_ActiveScene->m_NewBodySystem->AddConstraint(link2);
-        link2->SetFirstBody(testbody1);
-        link2->SetSecondBody(testbody2);
-        link2->SetFirstBodyLocal(locallink);
-        link2->SetSecondBodyLocal({0, 0});
-        m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody3);
+        link2->SetFirstBody(testbody2);
+        link2->SetSecondBody(testbody1);
+        link2->SetFirstBodyLocal({ -length2 / 2.0, 0.0 });
+        link2->SetSecondBodyLocal(locallink2);
+        
+        lastPosition = testbody2->LocalToWorld({ length / 2.0, 0.0 });
+        //end bar2
+        
         m_ActiveScene->m_NewBodySystem->AddForceGen(forceGen);
-
-        m_EditorCamera.SetDistance(50.f);
+        m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody3);
 #endif
+        m_EditorCamera.SetDistance(50.f);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
     
@@ -180,7 +192,7 @@ namespace Hazel
         m_ActiveScene->SetVelocityIterations(m_VeloctiyIterations);
         m_ActiveScene->SetPositionIterations(m_PositionIterations);
 #ifdef TEST
-        m_ActiveScene->m_NewBodySystem->Step(0.01667, 10);
+        m_ActiveScene->m_NewBodySystem->Step(0.01667, 30);
 
         auto view = m_ActiveScene->m_Registry.view<RigidBodyComponent>();
         for (auto e : view)
@@ -810,9 +822,8 @@ namespace Hazel
         //solver.SetTolerance(1E-5);
         //solver.Solve(A, Vector, &Vector2);
         //Vector2.Print();
-        B.Print();
-        B.InsertMatrix(1, 1, C);
-        B.Print();
+        Out = -A - B;
+        Out.Print();
     }
 
     void EditorLayer::OnSceneStop()

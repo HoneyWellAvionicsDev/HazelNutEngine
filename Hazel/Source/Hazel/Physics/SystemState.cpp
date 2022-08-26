@@ -5,6 +5,7 @@ namespace Enyoo
 {
     SystemState::SystemState()
     {
+        IndexMap = nullptr;
         Position = nullptr;
         Velocity = nullptr;
         Acceleration = nullptr;
@@ -55,8 +56,6 @@ namespace Enyoo
 
         this->Force[index].x += force.x;
         this->Force[index].y += force.y;
-        this->Acceleration[index].x += force.x;
-        this->Acceleration[index].y += force.y;
 
         this->Torque[index] += (world.y - this->Position[index].y) * -force.x
                             +  (world.x - this->Position[index].x) * force.y;
@@ -72,6 +71,7 @@ namespace Enyoo
         this->RigidBodyCount = bodyCount;
         this->ConstraintCount = constraintCount;
 
+        IndexMap = new size_t[constraintCount];
         Position = new glm::dvec2[RigidBodyCount];
         Velocity = new glm::dvec2[RigidBodyCount];
         Acceleration = new glm::dvec2[RigidBodyCount];

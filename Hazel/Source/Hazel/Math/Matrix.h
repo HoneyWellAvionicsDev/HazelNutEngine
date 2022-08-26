@@ -59,7 +59,7 @@ namespace Hazel::Math
         Matrix operator+(Matrix& B) { return Add(B); }
         Matrix operator-(Matrix& B) { return Add(-B); }
         Matrix operator-() { return Negate(); } 
-        Matrix& operator+=(Matrix B) { return Add(B); }
+        Matrix& operator+=(const Matrix& B) { return AddToThis(B); }
 
 
         //Debug methods
@@ -69,7 +69,7 @@ namespace Hazel::Math
             {
                 for (size_t j = 0; j < m_Columns; j++)
                 {
-                    std::cout << std::setw(8) << std::left << (*this)[i][j] << " ";
+                    std::cout << std::setw(14) << std::left << (*this)[i][j] << " ";
                 }
                 std::cout << '\n';
             }
@@ -77,8 +77,8 @@ namespace Hazel::Math
         }
     
         //Matrix operations
-        Matrix& ScaleRightDiagonal(const Matrix& vector);
-        Matrix& ScaleLeftDiagonal(const Matrix& vector);
+        Matrix ScaleRightDiagonal(const Matrix& vector);
+        Matrix ScaleLeftDiagonal(const Matrix& vector);
         Matrix Transpose();
         Matrix TransposeMultiply(const Matrix& matrix);
         Matrix Multiply(const Matrix &B);
@@ -89,7 +89,8 @@ namespace Hazel::Math
         double Dot(const Matrix& vector) const;
 
         //Matrix and vector
-        Matrix& Add(const Matrix& B);
+        Matrix Add(const Matrix& B);
+        Matrix& AddToThis(const Matrix& B);
         Matrix Scale(const Matrix& B, double scale);
         Matrix Negate();
 
@@ -205,6 +206,50 @@ void atg_scs::GenericRigidBodySystem::processConstraints()
         m_state.a_theta[i] *= invInertia;
     }
 }
+
+Vector Qhat = SparseJacobianTranspose * m_MatricesData.Lambda;
+
+for (size_t i = 0; i < n; i++)
+{
+    m_State.ConstraintForce[i].x = Qhat[i * 3 + 0][0];
+    m_State.ConstraintForce[i].y = Qhat[i * 3 + 1][0];
+    m_State.ConstraintTorque[i] = Qhat[i * 3 + 2][0];
+}
+//POS 
+Vector Qhat = m_MatricesData.SparseJacobian.ScaleLeftDiagonal(m_MatricesData.Lambda);
+
+for (size_t i = 0; i < m_t; i++)
+{
+    for (size_t j = 0; j < 2; j++)
+    {
+        m_State.ConstraintForce[i * 2 + j].x = Qhat[i][j * 3 + 0];
+        m_State.ConstraintForce[i * 2 + j].y = Qhat[i][j * 3 + 1];
+        m_State.ConstraintTorque[i * 2 + j] = Qhat[i][j * 3 + 2];
+    }
+}
+
+for (Constraint* c : m_Constraints)
+{
+    size_t constraintIndex = 0;
+    for (size_t i = 0; i < c->GetConstraintCount(); i++, constraintIndex++)
+    {
+        for (size_t j = 0; j < c->GetBodyCount(); j++)
+        {
+            size_t index = c->GetBody(j)->Index;
+            m_State.Acceleration[index].x += m_State.ConstraintForce[constraintIndex * 2 + j].x;
+            m_State.Acceleration[index].y += m_State.ConstraintForce[constraintIndex * 2 + j].y;
+            m_State.Torque[index] += m_State.ConstraintTorque[constraintIndex * 2 + j];
+        }
+    }
+}
+
+glm::dvec2 locallink = testbody1->WorldToLocal(lastPosition);
+Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
+m_ActiveScene->m_NewBodySystem->AddConstraint(link2);
+link2->SetFirstBody(testbody1);
+link2->SetSecondBody(testbody2);
+link2->SetFirstBodyLocal(locallink);
+link2->SetSecondBodyLocal({ 0.0, 0.0 })
 
 #endif
 

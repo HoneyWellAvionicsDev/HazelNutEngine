@@ -7,7 +7,7 @@
 namespace Enyoo
 {
 	ConjugateGradientMethod::ConjugateGradientMethod()
-		: m_MaxIterations(30), m_Tolerance(1E-5)
+		: m_MaxIterations(300), m_Tolerance(1E-5)
 	{
 	}
 
@@ -17,8 +17,8 @@ namespace Enyoo
 
 		const size_t n = b.Rows();
 
-		static Vector r0;
-		static Vector p_k;
+		Vector r0;
+		Vector p_k;
 		p_k.Resize(n, 1);
 		r0.Resize(n, 1);
 		Vector x0(n, 1); // inital guess
@@ -47,7 +47,6 @@ namespace Enyoo
 			const double beta = rk1_mag / rkrk;
 
 			p_k = p_k * beta - r0; //d(i + 1) = r(i + 1) + Bi * di
-			//x0.Print();
 		}
 
 		return false;

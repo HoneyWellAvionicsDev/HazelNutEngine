@@ -25,8 +25,8 @@ namespace Enyoo
         const double cos_q3 = glm::cos(q3);
         const double sin_q3 = glm::sin(q3);
 
-        const double current_x = q1 + cos_q3 * m_LocalPosition.x - sin_q3 * m_LocalPosition.x;
-        const double current_y = q2 + sin_q3 * m_LocalPosition.y + cos_q3 * m_LocalPosition.y;
+        const double current_x = q1 + cos_q3 * m_LocalPosition.x - sin_q3 * m_LocalPosition.y;
+        const double current_y = q2 + sin_q3 * m_LocalPosition.x + cos_q3 * m_LocalPosition.y;
 
         const double dx_dq1 = 1.0;
         const double dx_dq2 = 0.0;

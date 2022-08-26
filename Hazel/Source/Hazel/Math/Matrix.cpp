@@ -68,36 +68,40 @@ namespace Hazel::Math
 		}
 	}
 
-	Matrix& Matrix::ScaleRightDiagonal(const Matrix& vector)
+	Matrix Matrix::ScaleRightDiagonal(const Matrix& vector)
 	{
 		HZ_CORE_ASSERT(vector.m_Columns < 2);
 		HZ_CORE_ASSERT(vector.m_Rows == this->m_Columns);
 
+		Matrix output = *this;
+
 		for (size_t i = 0; i < m_Rows; i++)
 		{
 			for (size_t j = 0; j < m_Columns; j++)
 			{
-				(*this)[i][j] *= vector[j][0];
+				output[i][j] *= vector[j][0];
 			}
 		}
 
-		return *this;
+		return output;
 	}
 
-	Matrix& Matrix::ScaleLeftDiagonal(const Matrix& vector)
+	Matrix Matrix::ScaleLeftDiagonal(const Matrix& vector)
 	{
 		HZ_CORE_ASSERT(vector.m_Columns < 2);
 		HZ_CORE_ASSERT(vector.m_Rows == this->m_Rows);
 
+		Matrix output = *this;
+
 		for (size_t i = 0; i < m_Rows; i++)
 		{
 			for (size_t j = 0; j < m_Columns; j++)
 			{
-				(*this)[i][j] *= vector[i][0];
+				output[i][j] *= vector[i][0];
 			}
 		}
 
-		return *this;
+		return output;
 	}
 
 	Matrix Matrix::TransposeMultiply(const Matrix& B)
@@ -192,10 +196,26 @@ namespace Hazel::Math
 		return dot;
 	}
 
-	Matrix& Matrix::Add(const Matrix& B) 
+	Matrix Matrix::Add(const Matrix& B) 
 	{
 		HZ_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
 		
+		Matrix output = *this;
+
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			for (size_t j = 0; j < m_Columns; j++)
+			{
+				output[i][j] += B[i][j];
+			}
+		}
+		return output;
+	}
+
+	Matrix& Matrix::AddToThis(const Matrix& B)
+	{
+		HZ_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
+
 		for (size_t i = 0; i < m_Rows; i++)
 		{
 			for (size_t j = 0; j < m_Columns; j++)

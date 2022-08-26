@@ -6,9 +6,9 @@ namespace Enyoo
 {
 	void ForceGenerator::ApplyForce(SystemState& state)
 	{
-		for (int i = 0; i < state.RigidBodyCount; i++)
+		for (size_t i = 0; i < state.RigidBodyCount; i++)
 		{
-			state.ApplyForce({ 0,0 }, { 0,-9.81 }, i); //test
+			state.Force[i] += state.Mass[i] * glm::dvec2{ 0.0, -9.81 };
 		}
 	}
 }
