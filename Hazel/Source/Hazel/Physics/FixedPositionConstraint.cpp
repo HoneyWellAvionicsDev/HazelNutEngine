@@ -39,27 +39,30 @@ namespace Enyoo
         const double C1 = current_x - m_WorldPosition.x;
         const double C2 = current_y - m_WorldPosition.y;
 
-        output.J.Initialize(m_ConstraintCount, 3 * m_BodyCount);
-        output.Jdot.Initialize(m_ConstraintCount, 3 * m_BodyCount);
+        Matrix J1;
+        Matrix J1dot;
+
+        J1.Initialize(m_ConstraintCount, 3); //TODO: instead of reinitailizing these each frame, lets just do it once in the constructor
+        J1dot.Initialize(m_ConstraintCount, 3);
         output.ks.Initialize(m_ConstraintCount, 1);
         output.kd.Initialize(m_ConstraintCount, 1);
         output.C.Initialize(m_ConstraintCount, 1);
 
-        output.J[0][0] = dx_dq1;
-        output.J[0][1] = dx_dq2;
-        output.J[0][2] = dx_dq3;
-              
-        output.J[1][0] = dy_dq1;
-        output.J[1][1] = dy_dq2;
-        output.J[1][2] = dy_dq3;
-              
-        output.Jdot[0][0] = 0;
-        output.Jdot[0][1] = 0;
-        output.Jdot[0][2] = -cos_q3 * q3dot * m_LocalPosition.x + sin_q3 * q3dot * m_LocalPosition.y;
-              
-        output.Jdot[1][0] = 0;
-        output.Jdot[1][1] = 0;
-        output.Jdot[1][2] = -sin_q3 * q3dot * m_LocalPosition.x - cos_q3 * q3dot * m_LocalPosition.y;
+        J1[0][0] = dx_dq1;
+        J1[0][1] = dx_dq2;
+        J1[0][2] = dx_dq3;
+        
+        J1[1][0] = dy_dq1;
+        J1[1][1] = dy_dq2;
+        J1[1][2] = dy_dq3;
+        
+        J1dot[0][0] = 0;
+        J1dot[0][1] = 0;
+        J1dot[0][2] = -cos_q3 * q3dot * m_LocalPosition.x + sin_q3 * q3dot * m_LocalPosition.y;
+        
+        J1dot[1][0] = 0;
+        J1dot[1][1] = 0;
+        J1dot[1][2] = -sin_q3 * q3dot * m_LocalPosition.x - cos_q3 * q3dot * m_LocalPosition.y;
               
         output.ks[0][0] = m_ks;
         output.ks[1][0] = m_ks;
@@ -69,6 +72,10 @@ namespace Enyoo
               
         output.C[0][0] = C1;
         output.C[1][0] = C2;
-      
+
+        output.J.clear();
+        output.Jdot.clear();
+        output.J.push_back(J1);
+        output.Jdot.push_back(J1dot);
 	}
 }

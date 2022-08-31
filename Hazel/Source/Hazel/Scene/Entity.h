@@ -55,7 +55,7 @@ namespace Hazel
 
 		UUID GetUUID() { return GetComponent<IDComponent>().ID; }
 		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
-		glm::mat4 GetTransform() { return GetComponent<TransformComponent>().GetTransform(); }
+		glm::mat4 GetTransform() { return GetComponent<TransformComponent>().GetTransform(); } //TODO: this should return a reference
 
 		operator bool() const { return m_EntityHandle != entt::null; }
 		operator uint32_t() const { return (uint32_t)m_EntityHandle; }

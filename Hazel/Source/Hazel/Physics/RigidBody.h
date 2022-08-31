@@ -4,7 +4,7 @@ namespace Enyoo
 {
 	struct RigidBody
 	{
-		RigidBody() = default;
+		RigidBody();
 
 		double CalculateEnergy() const;
 		glm::dvec2 LocalToWorld(glm::dvec2 point);

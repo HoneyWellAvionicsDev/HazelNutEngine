@@ -15,8 +15,12 @@ namespace Enyoo
 	struct ConstraintOutput
 	{
 		Vector C;
-		Matrix J;
-		Matrix Jdot;
+		//Matrix J1;
+		//Matrix J2;
+		//Matrix J1dot;
+		//Matrix J2dot;
+		std::vector<Matrix> J;
+		std::vector<Matrix> Jdot;
 		//vbias
 		//limits
 		Vector ks;
@@ -42,9 +46,9 @@ namespace Enyoo
 		Matrix ConstraintForceY;
 		Matrix ConstraintTorque;
 	protected:
-		RigidBody** m_Bodies;
+		RigidBody** m_Bodies; //and this
 		size_t m_Index;
-		size_t m_BodyCount;
-		size_t m_ConstraintCount;
+		uint32_t m_BodyCount;
+		uint32_t m_ConstraintCount;
 	};
 }
