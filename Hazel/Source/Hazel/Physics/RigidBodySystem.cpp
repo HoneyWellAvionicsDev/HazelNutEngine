@@ -23,6 +23,8 @@ namespace Enyoo
                 const bool done = m_TimeIntegrator.Step(m_State);
                 UpdateForces();
                 ResolveConstraints();
+                //SystemState test;
+                //test = m_State;
                 m_TimeIntegrator.Integrate(m_State);
 
                 if (done) break;
@@ -114,7 +116,6 @@ namespace Enyoo
 
         for (size_t i = 0, constraintCount = 0; i < GetConstraintCount(); i++)
         {
-            m_State.IndexMap[i] = constraintCount;
             constraintCount += m_Constraints[i]->GetConstraintCount();
         }
     }

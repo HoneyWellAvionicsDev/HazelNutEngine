@@ -5,7 +5,6 @@ namespace Enyoo
 {
     SystemState::SystemState()
     {
-        IndexMap = nullptr;
         Position = nullptr;
         Velocity = nullptr;
         Acceleration = nullptr;
@@ -23,9 +22,69 @@ namespace Enyoo
         dt = 0.0;
     }
 
+    SystemState::SystemState(const SystemState& state)
+    {
+        Resize(state.RigidBodyCount, state.ConstraintCount);
+
+        this->dt = state.dt;
+
+        for (uint32_t i = 0; i < state.RigidBodyCount; i++)
+        {
+            this->Position[i] = state.Position[i];
+            this->Velocity[i] = state.Velocity[i];
+            this->Acceleration[i] = state.Acceleration[i];
+
+            this->Theta[i] = state.Theta[i];
+            this->AngularVelocity[i] = state.AngularVelocity[i];
+            this->AngularAcceleration[i] = state.AngularAcceleration[i];
+
+            this->Force[i] = state.Force[i];
+            this->Torque[i] = state.Torque[i];
+
+            this->Mass[i] = state.Mass[i];
+        }
+
+        for (uint32_t i = 0; i < state.ConstraintCount; i++)
+        {
+            this->ConstraintForce[i] = state.ConstraintForce[i];
+            this->ConstraintTorque[i] = state.ConstraintTorque[i];
+        }
+    }
+
     SystemState::~SystemState()
     {
         
+    }
+
+    SystemState& SystemState::operator=(const SystemState& state)
+    {
+        Resize(state.RigidBodyCount, state.ConstraintCount);
+
+        this->dt = state.dt;
+
+        for (uint32_t i = 0; i < state.RigidBodyCount; i++)
+        {
+            this->Position[i] = state.Position[i];
+            this->Velocity[i] = state.Velocity[i];
+            this->Acceleration[i] = state.Acceleration[i];
+
+            this->Theta[i] = state.Theta[i];
+            this->AngularVelocity[i] = state.AngularVelocity[i];
+            this->AngularAcceleration[i] = state.AngularAcceleration[i];
+
+            this->Force[i] = state.Force[i];
+            this->Torque[i] = state.Torque[i];
+
+            this->Mass[i] = state.Mass[i];
+        }
+
+        for (uint32_t i = 0; i < state.ConstraintCount; i++)
+        {
+            this->ConstraintForce[i] = state.ConstraintForce[i];
+            this->ConstraintTorque[i] = state.ConstraintTorque[i];
+        }
+
+        return *this;
     }
 
     glm::dvec2 SystemState::LocalToWorld(glm::dvec2 point, size_t index)
@@ -71,31 +130,21 @@ namespace Enyoo
         this->RigidBodyCount = bodyCount;
         this->ConstraintCount = constraintCount;
 
-        IndexMap = new size_t[constraintCount];
-        Position = new glm::dvec2[RigidBodyCount];
-        Velocity = new glm::dvec2[RigidBodyCount];
-        Acceleration = new glm::dvec2[RigidBodyCount];
-        Force = new glm::dvec2[RigidBodyCount];
-        ConstraintForce = new glm::dvec2[2 * ConstraintCount];
-        Theta = new double[RigidBodyCount];
-        AngularVelocity = new double[RigidBodyCount];
-        AngularAcceleration = new double[RigidBodyCount];
-        Torque = new double[RigidBodyCount];
-        ConstraintTorque = new double[2 * ConstraintCount];
-        Mass = new double[RigidBodyCount];
+        this->Position            = Hazel::CreateScope<glm::dvec2[]>(RigidBodyCount);
+        this->Velocity            = Hazel::CreateScope<glm::dvec2[]>(RigidBodyCount);
+        this->Acceleration        = Hazel::CreateScope<glm::dvec2[]>(RigidBodyCount);
+        this->Force               = Hazel::CreateScope<glm::dvec2[]>(RigidBodyCount);
+        this->ConstraintForce     = Hazel::CreateScope<glm::dvec2[]>(ConstraintCount * 2);
+        this->Theta               = Hazel::CreateScope<double[]>(RigidBodyCount);
+        this->AngularVelocity     = Hazel::CreateScope<double[]>(RigidBodyCount);
+        this->AngularAcceleration = Hazel::CreateScope<double[]>(RigidBodyCount);
+        this->Torque              = Hazel::CreateScope<double[]>(RigidBodyCount);
+        this->ConstraintTorque    = Hazel::CreateScope<double[]>(ConstraintCount * 2);
+        this->Mass                = Hazel::CreateScope<double[]>(RigidBodyCount);
     }
 
     void SystemState::Destroy()
     {
-        delete[] Position;
-        delete[] Velocity;
-        delete[] Acceleration;
-        delete[] Force;
-        delete[] Theta;
-        delete[] AngularVelocity;
-        delete[] AngularAcceleration;
-        delete[] Torque;
-
         Position = nullptr;
         Velocity = nullptr;
         Acceleration = nullptr;

@@ -5,6 +5,8 @@ namespace Enyoo
 {
     void RungeKutta4thIntegrator::Start(SystemState& initalState, double dt)
     {
+        ODEIntegrator::Start(initalState, dt);
+        SystemState t = initalState;
     }
     
     bool RungeKutta4thIntegrator::Step(SystemState& state)

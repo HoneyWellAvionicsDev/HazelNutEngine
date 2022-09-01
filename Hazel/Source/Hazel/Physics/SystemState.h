@@ -9,7 +9,10 @@ namespace Enyoo
 	struct SystemState
 	{
 		SystemState();
+		SystemState(const SystemState&);
 		~SystemState();
+
+		SystemState& operator=(const SystemState& state);
 
 		glm::dvec2 LocalToWorld(glm::dvec2 point, size_t index);
 		glm::dvec2 VelocityAtPoint(glm::dvec2 point, size_t index);
@@ -17,22 +20,20 @@ namespace Enyoo
 		void Resize(size_t bodyCount, size_t constraintCount);
 		void Destroy();
 
-		size_t* IndexMap; 
-
 		//data
-		glm::dvec2* Position;
-		glm::dvec2* Velocity;
-		glm::dvec2* Acceleration; //accereration of a given body
-		glm::dvec2* Force; //applied force accumulator 
-		glm::dvec2* ConstraintForce; //constraint Force
+		Hazel::Scope<glm::dvec2[]> Position;
+		Hazel::Scope<glm::dvec2[]> Velocity;
+		Hazel::Scope<glm::dvec2[]> Acceleration; //accereration of a given body
+		Hazel::Scope<glm::dvec2[]> Force; //applied force accumulator 
+		Hazel::Scope<glm::dvec2[]> ConstraintForce; //constraint Force
 
-		double* Theta;
-		double* AngularVelocity;
-		double* AngularAcceleration;
-		double* Torque;
-		double* ConstraintTorque;
+		Hazel::Scope<double[]> Theta;
+		Hazel::Scope<double[]> AngularVelocity;
+		Hazel::Scope<double[]> AngularAcceleration;
+		Hazel::Scope<double[]> Torque;
+		Hazel::Scope<double[]> ConstraintTorque;
 
-		double* Mass;
+		Hazel::Scope<double[]> Mass;
 
 		uint32_t RigidBodyCount;
 		uint32_t ConstraintCount;

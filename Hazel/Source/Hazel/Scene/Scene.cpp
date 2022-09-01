@@ -127,6 +127,15 @@ namespace Hazel
 		return entity;
 	}
 
+	Entity Scene::CreateBar(const glm::vec2& position, double density, const std::string& name)
+	{
+		Entity bar = CreateEntity(name);
+		bar.AddComponent<RigidBodyComponent>();
+
+		return bar;
+		
+	}
+
 	void Scene::DuplicateEntity(Entity entity)
 	{
 		Entity newEntity = CreateEntity(entity.GetName());

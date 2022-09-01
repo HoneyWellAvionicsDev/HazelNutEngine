@@ -187,6 +187,9 @@ namespace Hazel
         m_ActiveScene->SetPositionIterations(m_PositionIterations);
 #ifdef TEST
         m_ActiveScene->m_NewBodySystem->Step(0.01667, 300);
+
+        //if(Input::IsKeyPressed(HZ_KEY_SPACE))
+        //    m_ActiveScene->m_NewBodySystem->Step(0.01667, 300);
         
         auto view = m_ActiveScene->m_Registry.view<RigidBodyComponent>();
         for (auto e : view)
