@@ -14,7 +14,7 @@ namespace Enyoo
         PopulateSystemState();
         PopulateMassMatrices(m_MatricesData.Mass, m_MatricesData.W);
 
-        for (int i = 0; i < steps; i++)
+        for (uint32_t i = 0; i < steps; i++)
         {
             m_TimeIntegrator.Start(m_State, dt / steps);
 
@@ -23,8 +23,6 @@ namespace Enyoo
                 const bool done = m_TimeIntegrator.Step(m_State);
                 UpdateForces();
                 ResolveConstraints();
-                //SystemState test;
-                //test = m_State;
                 m_TimeIntegrator.Integrate(m_State);
 
                 if (done) break;
@@ -233,7 +231,6 @@ namespace Enyoo
         Matrix JWQ = m_MatricesData.SparseJacobian * WQ;
         Matrix JdotQdot = m_MatricesData.SparseJacobianDot * m_MatricesData.qdot;
         JdotQdot = -1 * JdotQdot;
-        //Vector b = - JdotQdot - JWQ - m_MatricesData.ks - m_MatricesData.kd;
         JdotQdot -= JWQ;
         JdotQdot -= m_MatricesData.ks;
         JdotQdot -= m_MatricesData.kd;
@@ -246,7 +243,6 @@ namespace Enyoo
         HZ_CORE_ASSERT(solved); 
 
         // disperse matrices to state
-        // adotdot = (AppiliedForce + ConstraintForce) / m
         Vector Qhat = SparseJacobianTranspose * m_MatricesData.lambda;
 
         for (size_t i = 0; i < n; i++)
@@ -256,6 +252,7 @@ namespace Enyoo
             m_State.ConstraintTorque[i] = Qhat[i * 3 + 2][0];
         }
 
+        // xdotdot = (AppiliedForce + ConstraintForce) / m
         for (size_t i = 0; i < n; i++)
         {
             m_State.Acceleration[i].x      = m_MatricesData.Q[i * 3 + 0][0] + Qhat[i * 3 + 0][0];

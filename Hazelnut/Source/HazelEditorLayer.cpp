@@ -186,7 +186,7 @@ namespace Hazel
         m_ActiveScene->SetVelocityIterations(m_VeloctiyIterations);
         m_ActiveScene->SetPositionIterations(m_PositionIterations);
 #ifdef TEST
-        m_ActiveScene->m_NewBodySystem->Step(0.01667, 300);
+        m_ActiveScene->m_NewBodySystem->Step(0.01667, 75);
 
         //if(Input::IsKeyPressed(HZ_KEY_SPACE))
         //    m_ActiveScene->m_NewBodySystem->Step(0.01667, 300);

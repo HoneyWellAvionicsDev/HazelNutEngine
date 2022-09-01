@@ -110,8 +110,8 @@ TODO:
 Done: Solve the matrix equation (requires SLE solver)
 Done: SLE solver (conjugate gradient method) can be optimized
 Done: Figure out creation of objects 
+Done: Better ODE solver (RK4)
 Entities contain the constraints
-Better ODE solver (RK4)
 more constraint classes
 
 

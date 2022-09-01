@@ -8,11 +8,11 @@ namespace Enyoo
 	class ODEIntegrator
 	{
 	public:
-		ODEIntegrator() = default;
+		ODEIntegrator();
 		virtual ~ODEIntegrator() = default;
 
-		virtual void Start(SystemState& initalState, double dt) = 0;
-		virtual bool Step(SystemState& state) = 0;
+		virtual void Start(SystemState& initalState, double dt);
+		virtual bool Step(SystemState& state);
 		virtual void Integrate(SystemState& state) = 0;
 		void End();
 	protected:

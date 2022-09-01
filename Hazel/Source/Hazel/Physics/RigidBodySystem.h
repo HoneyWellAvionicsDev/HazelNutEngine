@@ -6,6 +6,7 @@
 #include "RigidBody.h"
 #include "ForceGenerator.h"
 #include "EulersMethodIntegrator.h"
+#include "RungeKutta4thIntegrator.h"
 #include "ConjugateGradientMethod.h"
 #include "FixedPositionConstraint.h"
 #include "LinkConstraint.h"
@@ -49,7 +50,7 @@ namespace Enyoo
 		std::vector<ForceGenerator*> m_ForceGenerators;
 		std::vector<Constraint*> m_Constraints;
 
-		EulersMethodIntegrator m_TimeIntegrator;
+		RungeKutta4thIntegrator m_TimeIntegrator;
 		ConjugateGradientMethod m_LinearEquationSolver;
 
 		struct Matrices
