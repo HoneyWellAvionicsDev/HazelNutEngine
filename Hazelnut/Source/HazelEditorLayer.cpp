@@ -8,9 +8,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <imgui.h>
 #include "ImGuizmo.h"
-//temp
-#include "Hazel/Math/Matrix.h"
-#include "Hazel/Physics/ConjugateGradientMethod.h"
+
 namespace Hazel
 {
 #define TEST
@@ -57,14 +55,14 @@ namespace Hazel
         test2 = m_ActiveScene->CreateEntity("2");
         test3 = m_ActiveScene->CreateEntity("3");
         test1.AddComponent<SpriteRendererComponent>();
-        test2.AddComponent<CircleRendererComponent>();
+        test2.AddComponent<SpriteRendererComponent>();
         test3.AddComponent<SpriteRendererComponent>();
         test1.AddComponent<RigidBodyComponent>();
         test2.AddComponent<RigidBodyComponent>();
         //test3.AddComponent<RigidBodyComponent>();
 
         Enyoo::RigidBody* testbody1 = new Enyoo::RigidBody;
-        testbody1->Position = { 0.0, 1.0 };
+        testbody1->Position = { 0.0, 0.0 };
         testbody1->Theta = 0.0;
         testbody1->Velocity = glm::dvec2{ 0.0 };
         testbody1->AngularVelocity = 0.0;
@@ -73,9 +71,10 @@ namespace Hazel
         auto& rbc1 = test1.GetComponent<RigidBodyComponent>();
         rbc1.RuntimeBody = testbody1;
         auto& asdfr = test1.GetComponent<TransformComponent>();
-        asdfr.Scale = glm::vec3{ 2.0, 0.25, 1.0 };
+        asdfr.Scale = glm::vec3{ 5.33, 0.5, 1.0 };
+
         Enyoo::RigidBody* testbody2 = new Enyoo::RigidBody;
-        testbody2->Position = { 0.0, 1.0 };
+        testbody2->Position = { 0.0, 0.0 };
         testbody2->Theta = 0.0;
         testbody2->Velocity = glm::dvec2{ 0.0 };
         testbody2->AngularVelocity = 0.0;
@@ -83,9 +82,11 @@ namespace Hazel
         testbody2->MomentInertia = 1.0;
         auto& rbc2 = test2.GetComponent<RigidBodyComponent>();
         rbc2.RuntimeBody = testbody2;
-        glm::dvec2 local2 = testbody2->WorldToLocal(testbody2->Position);
+        auto& asdfr4 = test2.GetComponent<TransformComponent>();
+        asdfr4.Scale = glm::vec3{ 5.33, 0.5, 1.0 };
+
         Enyoo::RigidBody* testbody3 = new Enyoo::RigidBody;
-        testbody3->Position = { -3.0, 3.0 };
+        testbody3->Position = { 0, 1.0 };
         testbody3->Theta = 0.0;
         testbody3->Velocity = glm::dvec2{ 0.0 };
         testbody3->AngularVelocity = 0.0;
@@ -96,21 +97,11 @@ namespace Hazel
         glm::dvec2 local3 = testbody3->WorldToLocal(testbody3->Position);
         auto& asdf = test3.GetComponent<TransformComponent>();
         asdf.Translation.x = 0;
-        asdf.Translation.x = 1;
+        asdf.Translation.y = 1;
         asdf.Scale = glm::vec3{ 0.25 };
 
         Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
         Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
-        //Enyoo::FixedPositionConstraint* fixed2 = new Enyoo::FixedPositionConstraint;
-        //Enyoo::FixedPositionConstraint* fixed3 = new Enyoo::FixedPositionConstraint;
-        //fixed2->SetBody(testbody2);
-        //fixed2->SetLocalPosition(local2);
-        //fixed2->SetWorldPosition(testbody2->Position);
-        //fixed3->SetBody(testbody3);
-        //fixed3->SetLocalPosition(local3);
-        //fixed3->SetWorldPosition(testbody3->Position);
-        //m_ActiveScene->m_NewBodySystem->AddConstraint(fixed2);
-        //m_ActiveScene->m_NewBodySystem->AddConstraint(fixed3);
 
         glm::dvec2 lastPosition{ 0.0, 1.0 };
         //bar1
@@ -121,6 +112,7 @@ namespace Hazel
 
         m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody1);
         testbody1->Theta = theta;
+
 
         glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2.0, 0.0 });
         testbody1->Position = lastPosition - world1;
@@ -149,7 +141,6 @@ namespace Hazel
         glm::dvec2 world2 = testbody2->LocalToWorld({ -length2 / 2.0, 0.0 });
         testbody2->Position = lastPosition - world2;
         testbody2->Mass = length2 * 1.0;
-        //testbody2->Mass = 5.0;
 
         glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
         Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
@@ -210,7 +201,6 @@ namespace Hazel
         m_FrameBuffer->Bind();
     	RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
     	RenderCommand::Clear();
-        //HZ_CORE_TRACE("X: {0} Y: {1}", test1.GetComponent<TransformComponent>().Translation.x, test1.GetComponent<TransformComponent>().Translation.y);
         
         m_FrameBuffer->ClearAttachment(1, -1); //Clear ent ID to -1
         //------------------Scene----------------------------------
@@ -260,7 +250,7 @@ namespace Hazel
         my = viewportSize.y - my;
         int mouseX = (int)mx;
         int mouseY = (int)my;
-        if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y) //this happens every frame, maybe make it happen on mouse click
+        if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y) 
         {
             int pixelData = m_FrameBuffer->ReadPixel(1, mouseX, mouseY);
             m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
@@ -341,7 +331,8 @@ namespace Hazel
                 if (ImGui::MenuItem("Save As", "Ctrl+Shift+S"))
                     SaveSceneAs();
 
-                if (ImGui::MenuItem("Quit")) Application::Get().CloseWindow();
+                if (ImGui::MenuItem("Quit"))
+                    Application::Get().CloseWindow();
 
                 ImGui::EndMenu();
             }
@@ -359,6 +350,8 @@ namespace Hazel
 
         auto stats = Renderer2D::GetStats();
         ImGui::Text("Renderer2D Stats: ");
+        auto [mousex, mousey] = ImGui::GetMousePos();
+        ImGui::Text("Mouse pos x: %i y: %i", (int)mousex, (int)mousey);
         ImGui::Text("Frametime: %f ms", Application::Get().GetLastFrameTime());
         ImGui::Text("FPS: %f", 1.f / Application::Get().GetLastFrameTime());
         ImGui::Text("Draw Calls: %d", stats.DrawCalls);
@@ -366,7 +359,7 @@ namespace Hazel
         ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
 
-        ImGui::ShowDemoWindow(&dockspaceOpen);
+        //ImGui::ShowDemoWindow(&dockspaceOpen);
         ImGui::End();
 
         ImGui::Begin("Settings");
@@ -447,21 +440,20 @@ namespace Hazel
 
             float snapValues[3] = { snapValue, snapValue, snapValue };
 
-        ImGuizmo:Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+            ImGuizmo:Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
             (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
             nullptr, snap ? snapValues : nullptr);
 
-        if (ImGuizmo::IsUsing())
-        {
-            glm::vec3 translation, rotation, scale;
-            Math::DecomposeTransform(transform, translation, rotation, scale);
+            if (ImGuizmo::IsUsing())
+            {
+                glm::vec3 translation, rotation, scale;
+                Math::DecomposeTransform(transform, translation, rotation, scale);
 
-            glm::vec3 deltaRotation = rotation - tc.Rotation;
-            tc.Translation = translation;
-            tc.Rotation += deltaRotation;
-            tc.Scale = scale;
-        }
-
+                glm::vec3 deltaRotation = rotation - tc.Rotation;
+                tc.Translation = translation;
+                tc.Rotation += deltaRotation;
+                tc.Scale = scale;
+            }
         }
 
 
@@ -770,59 +762,6 @@ namespace Hazel
         m_ActiveScene->OnSimulationStart();
 
         CarrySelectionContext();
-
-        //matrix test
-        Math::Matrix A;
-        Math::Matrix B;
-        Math::Matrix C;
-        Math::Matrix Vector;
-        Math::Matrix Vector2;
-        Math::Matrix Out(3, 1);
-        A.Resize(3, 3);
-        A[0][0] = 3;
-        A[0][1] = 4;
-        A[0][2] = 0;
-        A[1][0] = 4;
-        A[1][1] = 2;
-        A[1][2] = 4;
-        A[2][0] = 0;
-        A[2][1] = 4;
-        A[2][2] = 1;
-       
-        B.Resize(3, 3);
-        B[0][0] = 1;
-        B[0][1] = 6;
-        B[0][2] = 2;
-        B[1][0] = 0;
-        B[1][1] = 6;
-        B[1][2] = 1;
-        B[2][0] = 4;
-        B[2][1] = 6;
-        B[2][2] = 3;
-
-        C.Resize(2, 2);
-        C[0][0] = 7;
-        C[0][1] = 7;
-        C[1][0] = 7;
-        C[1][1] = 7;
-
-        Vector.Resize(3, 1);
-        Vector[0][0] = -11.3864;
-        Vector[1][0] = 0.1108;
-        Vector[2][0] = 345.1108;
-
-        Vector2.Resize(3, 1);
-
-        //A.Print();
-        //Vector.Print();
-        //Vector2.Print();
-        //Enyoo::ConjugateGradientMethod solver;
-        //solver.SetMaxIterations(50);
-        //solver.SetTolerance(1E-5);
-        //solver.Solve(A, Vector, &Vector2);
-        //Vector2.Print();
-        Out = -A - B;
-        Out.Print();
     }
 
     void EditorLayer::OnSceneStop()

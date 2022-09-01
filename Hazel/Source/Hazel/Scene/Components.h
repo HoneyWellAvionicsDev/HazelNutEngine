@@ -36,7 +36,7 @@ namespace Hazel
 	struct TransformComponent
 	{
 		glm::vec3 Translation = { 0.f, 0.f, 0.f, };
-		glm::vec3 Rotation = { 0.f, 0.f, 0.f, };
+		glm::vec3 Rotation = { 0.f, 0.f, 0.f, }; //stored as radians
 		glm::vec3 Scale = { 1.f, 1.f, 1.f, };
 
 		TransformComponent() = default;

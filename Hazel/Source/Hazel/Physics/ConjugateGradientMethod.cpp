@@ -2,8 +2,6 @@
 
 #include "ConjugateGradientMethod.h"
 
-#include <cmath>
-
 namespace Enyoo
 {
 	ConjugateGradientMethod::ConjugateGradientMethod()
@@ -38,8 +36,6 @@ namespace Enyoo
 			if (rkrk < m_Tolerance * m_Tolerance)
 			{
 				*x = x0;
-				//HZ_CORE_WARN("Converged!");
-				//x0.Print();
 				return true;
 			}
 

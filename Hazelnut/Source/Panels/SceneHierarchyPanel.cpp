@@ -274,7 +274,6 @@ namespace Hazel
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path texturePath = std::filesystem::path(g_AssetPath) / path;
 					component.Texture = Texture2D::Upload(texturePath.string());
-					//handle failed to load image expection
 				}
 			}
 
