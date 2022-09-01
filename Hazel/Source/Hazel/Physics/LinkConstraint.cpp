@@ -5,12 +5,8 @@
 namespace Enyoo
 {
 	LinkConstraint::LinkConstraint()
-		: Constraint(2, 2)
+		: Constraint(2, 2), m_FirstBodyLocal({0.0, 0.0}), m_SecondBodyLocal({0.0, 0.0}), m_ks(10.0), m_kd(1.0)
 	{
-		m_FirstBodyLocal = glm::dvec2(0.0);
-		m_SecondBodyLocal = glm::dvec2(0.0);
-		m_Ks = 0.0;
-		m_Kd = 0.0;
 	}
 
 	void LinkConstraint::Calculate(ConstraintOutput& output, SystemState* state)
@@ -81,11 +77,11 @@ namespace Enyoo
 		J2dot[1][1] = 0;
 		J2dot[1][2] = sinQ6 * q6dot * m_SecondBodyLocal.x + cosQ6 * q6dot * m_SecondBodyLocal.y;
 
-		output.kd[0][0] = m_Kd;
-		output.kd[1][0] = m_Kd;
+		output.kd[0][0] = m_kd;
+		output.kd[1][0] = m_kd;
 
-		output.ks[0][0] = m_Ks;
-		output.ks[1][0] = m_Ks;
+		output.ks[0][0] = m_ks;
+		output.ks[1][0] = m_ks;
 
 		output.C[0][0] = bodyX - linkedBodyX;
 		output.C[1][0] = bodyY - linkedBodyY;

@@ -107,6 +107,7 @@ namespace Hazel
         //bar1
         const double dx = 16.0 / 3.0 - lastPosition.x;
         const double dy = 1.0 - lastPosition.y;
+        const double density1 = 1.0;
         const double length = glm::sqrt(dx * dx + dy * dy);
         const double theta = (dy > 0) ? glm::acos(dx / length) : glm::two_pi<double>() - glm::acos(dx / length);
 
@@ -116,7 +117,8 @@ namespace Hazel
 
         glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2.0, 0.0 });
         testbody1->Position = lastPosition - world1;
-        testbody1->Mass = length * 1.0;
+        testbody1->Mass = length * density1;
+        //testbody1->MomentInertia = (1.0 / 12.0) * testbody1->Mass * length * length;
 
         lastPosition = testbody1->LocalToWorld({ length / 2.0, 0.0 });
         //end bar1
@@ -132,6 +134,7 @@ namespace Hazel
         //bar2
         const double dx2 = 32.0 / 3.0 - lastPosition.x;
         const double dy2 = 1.0 - lastPosition.y;
+        const double density2 = 1.0;
         const double length2 = glm::sqrt(dx2 * dx2 + dy2 * dy2);
         const double theta2 = (dy2 > 0) ? glm::acos(dx2 / length2) : glm::two_pi<double>() - glm::acos(dx2 / length2);
 
@@ -140,7 +143,8 @@ namespace Hazel
 
         glm::dvec2 world2 = testbody2->LocalToWorld({ -length2 / 2.0, 0.0 });
         testbody2->Position = lastPosition - world2;
-        testbody2->Mass = length2 * 1.0;
+        testbody2->Mass = length2 * density2;
+        //testbody2->MomentInertia = (1.0 / 12.0) * testbody2->Mass * length2 * length2;
 
         glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
         Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;

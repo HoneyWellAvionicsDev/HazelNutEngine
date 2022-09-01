@@ -21,7 +21,7 @@ namespace Enyoo
 	private:
 		glm::dvec2 m_FirstBodyLocal;
 		glm::dvec2 m_SecondBodyLocal;
-		double m_Ks;
-		double m_Kd;
+		double m_ks;
+		double m_kd;
 	};
 }

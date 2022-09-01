@@ -170,8 +170,8 @@ namespace Enyoo
         m_MatricesData.SparseJacobian.Initialize(m_t, n * 3);
         m_MatricesData.SparseJacobianDot.Initialize(m_t, n * 3);
         m_MatricesData.Q.Initialize(n * 3, 1);
-        m_MatricesData.C_ks.Initialize(m_t, 1);
-        m_MatricesData.C_kd.Initialize(m_t, 1);
+        m_MatricesData.ks.Initialize(m_t, 1);
+        m_MatricesData.kd.Initialize(m_t, 1);
         m_MatricesData.C.Initialize(m_t, 1);
 
         // caluclate constraints and store them in respective matrices
@@ -204,8 +204,8 @@ namespace Enyoo
             for (uint32_t i = 0; i < c->GetConstraintCount(); i++, currentIndex++)
             {
                 m_MatricesData.C[currentIndex][0] = constraintSlice.C[i][0];
-                m_MatricesData.C_ks[currentIndex][0] = constraintSlice.ks[i][0];
-                m_MatricesData.C_kd[currentIndex][0] = constraintSlice.kd[i][0];
+                m_MatricesData.ks[currentIndex][0] = constraintSlice.ks[i][0];
+                m_MatricesData.kd[currentIndex][0] = constraintSlice.kd[i][0];
             }
 
             currentConstraintIndex += c->GetConstraintCount();
@@ -215,8 +215,8 @@ namespace Enyoo
         Matrix Cdot = m_MatricesData.SparseJacobian * m_MatricesData.qdot;
         for (size_t i = 0; i < m_t; i++)
         {
-            m_MatricesData.C_ks[i][0] *= Cdot[i][0];
-            m_MatricesData.C_kd[i][0] *= m_MatricesData.C[i][0];
+            m_MatricesData.ks[i][0] *= m_MatricesData.C[i][0];
+            m_MatricesData.kd[i][0] *= Cdot[i][0];
         }
 
         for (size_t i = 0; i < n; i++)
@@ -231,18 +231,22 @@ namespace Enyoo
         Matrix WQ = m_MatricesData.Q.ScaleLeftDiagonal(m_MatricesData.W); // W * Q
         Matrix JWQ = m_MatricesData.SparseJacobian * WQ;
         Matrix JdotQdot = m_MatricesData.SparseJacobianDot * m_MatricesData.qdot;
-        Vector b = - JdotQdot - JWQ;
+        JdotQdot = -1 * JdotQdot;
+        //Vector b = - JdotQdot - JWQ - m_MatricesData.ks - m_MatricesData.kd;
+        JdotQdot -= JWQ;
+        JdotQdot -= m_MatricesData.ks;
+        JdotQdot -= m_MatricesData.kd;
         Matrix SparseJacobianTranspose = m_MatricesData.SparseJacobian.Transpose();
         Matrix WJT = SparseJacobianTranspose.ScaleLeftDiagonal(m_MatricesData.W);
         Matrix A = m_MatricesData.SparseJacobian * WJT;
 
         // solve matrix equation
-        const bool solved = m_LinearEquationSolver.Solve(A, b, &m_MatricesData.Lambda);
-        HZ_CORE_ASSERT(solved);
+        const bool solved = m_LinearEquationSolver.Solve(A, JdotQdot, &m_MatricesData.lambda);
+        HZ_CORE_ASSERT(solved); 
 
         // disperse matrices to state
         // adotdot = (AppiliedForce + ConstraintForce) / m
-        Vector Qhat = SparseJacobianTranspose * m_MatricesData.Lambda;
+        Vector Qhat = SparseJacobianTranspose * m_MatricesData.lambda;
 
         for (size_t i = 0; i < n; i++)
         {

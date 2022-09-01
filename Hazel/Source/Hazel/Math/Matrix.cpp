@@ -226,6 +226,20 @@ namespace Hazel::Math
 		return *this;
 	}
 
+	Matrix& Matrix::AddMinusToThis(const Matrix& B)
+	{
+		HZ_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
+
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			for (size_t j = 0; j < m_Columns; j++)
+			{
+				(*this)[i][j] -= B[i][j];
+			}
+		}
+		return *this;
+	}
+
 	Matrix Matrix::Scale(const Matrix& B, double scale)
 	{
 		Matrix scaled(m_Rows, m_Columns);

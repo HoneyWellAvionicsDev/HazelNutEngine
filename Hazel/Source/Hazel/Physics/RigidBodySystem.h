@@ -67,15 +67,17 @@ namespace Enyoo
 			
 			Matrix SparseJacobian;
 			Matrix SparseJacobianDot;
-			Matrix Mass, W; //inverse of mass matrix 
+			Matrix Mass, W; // inverse of mass matrix 
 			Vector C;
-			Vector C_ks, C_kd;
-			Vector Q;
+			Vector ks, kd;
+			Vector Q;  // applied force global vector
 			Vector qdot;
 
-			Vector Lambda;
+			Vector lambda;
 
 			
-		} m_MatricesData;
+		} 
+
+		m_MatricesData;
 	};
 }

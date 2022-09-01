@@ -60,6 +60,7 @@ namespace Hazel::Math
         Matrix operator-(Matrix& B) { return Add(-B); }
         Matrix operator-() { return Negate(); } 
         Matrix& operator+=(const Matrix& B) { return AddToThis(B); }
+        Matrix& operator-=(const Matrix& B) { return AddMinusToThis(B); }
 
 
         //Debug methods
@@ -91,6 +92,7 @@ namespace Hazel::Math
         //Matrix and vector
         Matrix Add(const Matrix& B);
         Matrix& AddToThis(const Matrix& B);
+        Matrix& AddMinusToThis(const Matrix& B);
         Matrix Scale(const Matrix& B, double scale);
         Matrix Negate();
 
