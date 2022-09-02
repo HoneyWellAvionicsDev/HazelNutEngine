@@ -23,5 +23,10 @@ namespace Enyoo
 		glm::dvec2 m_SecondBodyLocal;
 		double m_ks;
 		double m_kd;
+
+		Matrix J1;
+		Matrix J2;
+		Matrix J1dot;
+		Matrix J2dot;
 	};
 }

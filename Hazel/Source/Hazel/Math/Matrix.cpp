@@ -137,7 +137,7 @@ namespace Hazel::Math
 		return output;
 	}
 
-	Matrix Matrix::Multiply(const Matrix& B) 
+	Matrix Matrix::Times(const Matrix& B) 
 	{
 		HZ_CORE_ASSERT(m_Columns == B.Rows()); //AB so width of A must equal Height of B
 		Matrix output(m_Rows, B.m_Columns);
@@ -154,6 +154,38 @@ namespace Hazel::Math
 			}
 		}
 		return output;
+	}
+
+	Matrix& Matrix::MultiplyToThis(const Matrix& B)
+	{
+		HZ_CORE_ASSERT(m_Columns == B.Rows()); //AB so width of A must equal Height of B
+
+		Resize(m_Rows, B.Columns());
+
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			for (size_t j = 0; j < B.Columns(); j++)
+			{
+				double v = 0.0;
+				for (size_t k = 0; k < m_Columns; k++)
+					v += (*this)[i][k] * B[k][j];
+
+				(*this)[i][j] = v;
+			}
+		}
+		return *this;
+	}
+
+	Matrix& Matrix::MultiplyToThis(double scale)
+	{
+		for (size_t i = 0; i < m_Rows; i++)
+		{
+			for (size_t j = 0; j < m_Columns; j++)
+			{
+				(*this)[i][j] *= scale;
+			}
+		}
+		return *this;
 	}
 
 	double Matrix::Magnitude() const

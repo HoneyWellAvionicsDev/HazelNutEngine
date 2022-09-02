@@ -4,9 +4,9 @@
 
 namespace Enyoo
 {
-    void RigidBodySystem::Init()
+    void RigidBodySystem::Initialize()
     {
-
+        m_LinearEquationSolver.Initialize(GetTotalConstraintCount());
     }
 
     void RigidBodySystem::Step(double dt, uint32_t steps)
@@ -24,7 +24,6 @@ namespace Enyoo
                 UpdateForces();
                 ResolveConstraints();
                 m_TimeIntegrator.Integrate(m_State);
-
                 if (done) break;
             }
 
@@ -60,18 +59,6 @@ namespace Enyoo
         body->Index = m_RigidBodies.size() - 1;
     }
 
-    void RigidBodySystem::RemoveRigidBody(RigidBody* body)
-    {
-    }
-
-    void RigidBodySystem::RemoveForceGen(ForceGenerator* forceGen)
-    {
-    }
-
-    void RigidBodySystem::RemoveConstraint(Constraint* constraint)
-    {
-    }
-
     void RigidBodySystem::AddForceGen(ForceGenerator* forceGen)
     {
         m_ForceGenerators.push_back(forceGen);
@@ -84,12 +71,34 @@ namespace Enyoo
         constraint->SetIndex(m_Constraints.size() - 1);
     }
 
+    void RigidBodySystem::RemoveRigidBody(RigidBody* body)
+    {
+    }
+
+    void RigidBodySystem::RemoveForceGen(ForceGenerator* forceGen)
+    {
+    }
+
+    void RigidBodySystem::RemoveConstraint(Constraint* constraint)
+    {
+    }
+
     size_t RigidBodySystem::GetTotalConstraintCount() const
     {
         size_t total = 0;
 
         for (Constraint* c : m_Constraints)
             total += c->GetConstraintCount();
+
+        return total;
+    }
+
+    double RigidBodySystem::GetTotalSystemEnergy() const
+    {
+        double total = 0.0;
+
+        for (RigidBody* body : m_RigidBodies)
+            total += body->CalculateEnergy();
 
         return total;
     }
@@ -187,7 +196,7 @@ namespace Enyoo
             {
                 const size_t index = c->GetBody(i)->Index;
 
-                if (indexMap.count(index)) 
+                if (indexMap.count(index))
                 {
                     m_MatricesData.SparseJacobian.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.J[i]);
                     m_MatricesData.SparseJacobianDot.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.Jdot[i]);
@@ -246,7 +255,9 @@ namespace Enyoo
         HZ_CORE_ASSERT(solved); 
 
         // disperse matrices to state
-        Vector Qhat = SparseJacobianTranspose * m_MatricesData.lambda;
+        //m_MatricesData.Qhat.Resize(n * 3, 1);
+        m_MatricesData.Qhat = SparseJacobianTranspose * m_MatricesData.lambda;
+  
 
         //for (size_t i = 0; i < n; i++)
         //{
@@ -258,9 +269,9 @@ namespace Enyoo
         // xdotdot = (AppiliedForce + ConstraintForce) / m
         for (size_t i = 0; i < n; i++)
         {
-            m_State.Acceleration[i].x      = m_MatricesData.Q[i * 3 + 0][0] + Qhat[i * 3 + 0][0];
-            m_State.Acceleration[i].y      = m_MatricesData.Q[i * 3 + 1][0] + Qhat[i * 3 + 1][0];
-            m_State.AngularAcceleration[i] = m_MatricesData.Q[i * 3 + 2][0] + Qhat[i * 3 + 2][0];
+            m_State.Acceleration[i].x      = m_MatricesData.Q[i * 3 + 0][0] + m_MatricesData.Qhat[i * 3 + 0][0];
+            m_State.Acceleration[i].y      = m_MatricesData.Q[i * 3 + 1][0] + m_MatricesData.Qhat[i * 3 + 1][0];
+            m_State.AngularAcceleration[i] = m_MatricesData.Q[i * 3 + 2][0] + m_MatricesData.Qhat[i * 3 + 2][0];
         }
         
         for (size_t i = 0; i < n; i++)

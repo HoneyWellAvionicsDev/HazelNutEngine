@@ -15,23 +15,28 @@ namespace Enyoo
 
 		const size_t n = b.Rows();
 
-		Vector r0;
-		Vector p_k;
 		p_k.Resize(n, 1);
 		r0.Resize(n, 1);
-		Vector x0(n, 1); // inital guess
+		Ap.Resize(n, 1);
+		Apa.Resize(n, 1);
+		p_ka.Resize(n, 1);
 
-		r0 = A * x0 - b; // r0 = b - Ax0
-		p_k = -r0;       // this is the steepest gradient
+        // r0 = b - Ax0
+		Matrix::Multiply(A, x0, r0);
+		r0 -= b;
+		Matrix::Multiply(r0, -1.0, p_k);
 
 		for (size_t i = 0; i < m_MaxIterations; i++)
 		{
-			Vector Ap = A * p_k;
+			//Ap = A * p_k;
+			Matrix::Multiply(A, p_k, Ap);
 			const double rkrk = r0.MagnitudeSquared(); //ri^T * ri
 			const double alpha = rkrk / p_k.Dot(Ap);
 
-			x0 += p_k * alpha;
-			r0 += Ap * alpha;
+			Matrix::Multiply(p_k, alpha, p_ka);
+			Matrix::Multiply(Ap, alpha, Apa);
+			x0 += p_ka;
+			r0 += Apa;
 
 			if (rkrk < m_Tolerance * m_Tolerance)
 			{
@@ -42,9 +47,16 @@ namespace Enyoo
 			const double rk1_mag = r0.MagnitudeSquared();
 			const double beta = rk1_mag / rkrk;
 
-			p_k = p_k * beta - r0; //d(i + 1) = r(i + 1) + Bi * di
+			//d(i + 1) = r(i + 1) + Bi * di
+			p_k *= beta;
+			p_k -= r0;
 		}
 
 		return false;
+	}
+
+	void ConjugateGradientMethod::Initialize(size_t rows)
+	{
+		x0.Initialize(rows, 1); // inital guess
 	}
 }

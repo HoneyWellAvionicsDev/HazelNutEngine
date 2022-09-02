@@ -23,7 +23,7 @@ namespace Enyoo
 	public:
 		RigidBodySystem() = default;
 
-		void Init(/*later we can specify the integrator*/);
+		void Initialize(); //this should be called after all rigidbodies have been added for performance
 
 		void Step(double dt, uint32_t steps = 1);
 
@@ -38,6 +38,8 @@ namespace Enyoo
 		size_t GetForceGenCount() const { return m_ForceGenerators.size(); }
 		size_t GetConstraintCount() const { return m_Constraints.size(); }
 		size_t GetTotalConstraintCount() const;
+
+		double GetTotalSystemEnergy() const;
 	private:
 		void PopulateSystemState();
 		void PopulateMassMatrices(Matrix& Mass, Matrix& massInverse);
@@ -73,6 +75,7 @@ namespace Enyoo
 			Vector ks, kd;
 			Vector Q;  // applied force global vector
 			Vector qdot;
+			Vector Qhat;
 
 			Vector lambda;
 

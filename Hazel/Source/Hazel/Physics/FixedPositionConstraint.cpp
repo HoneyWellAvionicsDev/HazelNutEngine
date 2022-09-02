@@ -6,6 +6,8 @@ namespace Enyoo
 	FixedPositionConstraint::FixedPositionConstraint()
 		: Constraint(2, 1), m_LocalPosition{ 0.0, 0.0 }, m_WorldPosition{ 0.0, 0.0 }, m_ks(10.0), m_kd(1.0)
 	{
+        J1.Initialize(m_ConstraintCount, 3);
+        J1dot.Initialize(m_ConstraintCount, 3);
 	}
 	
 	FixedPositionConstraint::~FixedPositionConstraint()
@@ -39,14 +41,9 @@ namespace Enyoo
         const double C1 = current_x - m_WorldPosition.x;
         const double C2 = current_y - m_WorldPosition.y;
 
-        Matrix J1;
-        Matrix J1dot;
-
-        J1.Initialize(m_ConstraintCount, 3); //TODO: instead of reinitailizing these each frame, lets just do it once in the constructor
-        J1dot.Initialize(m_ConstraintCount, 3);
-        output.ks.Initialize(m_ConstraintCount, 1);
-        output.kd.Initialize(m_ConstraintCount, 1);
-        output.C.Initialize(m_ConstraintCount, 1);
+        output.ks.Resize(m_ConstraintCount, 1);
+        output.kd.Resize(m_ConstraintCount, 1);
+        output.C.Resize(m_ConstraintCount, 1);
 
         J1[0][0] = dx_dq1;
         J1[0][1] = dx_dq2;

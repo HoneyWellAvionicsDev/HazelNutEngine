@@ -7,6 +7,10 @@ namespace Enyoo
 	LinkConstraint::LinkConstraint()
 		: Constraint(2, 2), m_FirstBodyLocal({0.0, 0.0}), m_SecondBodyLocal({0.0, 0.0}), m_ks(10.0), m_kd(1.0)
 	{
+		J1.Initialize(m_ConstraintCount, 3);
+		J2.Initialize(m_ConstraintCount, 3);
+		J1dot.Initialize(m_ConstraintCount, 3);
+		J2dot.Initialize(m_ConstraintCount, 3);
 	}
 
 	void LinkConstraint::Calculate(ConstraintOutput& output, SystemState* state)
@@ -32,18 +36,9 @@ namespace Enyoo
 		const double linkedBodyX = state->Position[linkedBody].x + cosQ6 * m_SecondBodyLocal.x - sinQ6 * m_SecondBodyLocal.y;
 		const double linkedBodyY = state->Position[linkedBody].y + sinQ6 * m_SecondBodyLocal.x + cosQ6 * m_SecondBodyLocal.y;
 
-		Matrix J1;
-		Matrix J2;
-		Matrix J1dot;
-		Matrix J2dot;
-
-		J1.Initialize(m_ConstraintCount, 3);
-		J2.Initialize(m_ConstraintCount, 3);
-		J1dot.Initialize(m_ConstraintCount, 3);
-		J2dot.Initialize(m_ConstraintCount, 3);
-		output.ks.Initialize(m_ConstraintCount, 1);
-		output.kd.Initialize(m_ConstraintCount, 1);
-		output.C.Initialize(m_ConstraintCount, 1);
+		output.ks.Resize(m_ConstraintCount, 1);
+		output.kd.Resize(m_ConstraintCount, 1);
+		output.C.Resize(m_ConstraintCount, 1);
 
 		J1[0][0] = 1.0;
 		J1[0][1] = 0.0;

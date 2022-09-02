@@ -24,5 +24,8 @@ namespace Enyoo
 		glm::dvec2 m_WorldPosition;
 		double m_ks;
 		double m_kd;
+
+		Matrix J1;
+		Matrix J1dot;
 	};
 }

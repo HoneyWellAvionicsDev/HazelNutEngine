@@ -21,8 +21,8 @@ namespace Hazel::Math
         Matrix(const Matrix&);
         ~Matrix();
 
-        constexpr size_t Rows() const { return m_Rows; }
-        constexpr size_t Columns() const { return m_Columns; }
+        FORCEINLINE constexpr size_t Rows() const { return m_Rows; }
+        FORCEINLINE constexpr size_t Columns() const { return m_Columns; }
 
         void Resize(size_t rows, size_t columns);
         void Initialize(size_t rows, size_t columns, double value = 0.0);
@@ -36,7 +36,7 @@ namespace Hazel::Math
             return m_Matrix[row * m_Columns + column]; 
         }
 
-        FORCEINLINE Matrix& operator=(const Matrix& other)
+        Matrix& operator=(const Matrix& other)
         {
             m_Rows = other.m_Rows;
             m_Columns = other.m_Columns;
@@ -54,13 +54,15 @@ namespace Hazel::Math
             return *this;
         }
         
-        Matrix operator*(Matrix& B) { return Multiply(B); }
+        Matrix operator*(Matrix& B) { return Times(B); }
         inline Matrix operator*(double scale) { return Scale(*this, scale); }
         Matrix operator+(Matrix& B) { return Add(B); }
         Matrix operator-(Matrix& B) { return Add(-B); }
         Matrix operator-() { return Negate(); } 
         Matrix& operator+=(const Matrix& B) { return AddToThis(B); }
         Matrix& operator-=(const Matrix& B) { return AddMinusToThis(B); }
+        Matrix& operator*=(const Matrix& B) { return MultiplyToThis(B); }
+        Matrix& operator*=(double scale) { return MultiplyToThis(scale); }
 
 
         //Debug methods
@@ -82,7 +84,9 @@ namespace Hazel::Math
         Matrix ScaleLeftDiagonal(const Matrix& vector);
         Matrix Transpose();
         Matrix TransposeMultiply(const Matrix& matrix);
-        Matrix Multiply(const Matrix &B);
+        Matrix Times(const Matrix& B);
+        Matrix& MultiplyToThis(const Matrix& B);
+        Matrix& MultiplyToThis(double scale);
 
         //Vector operations
         double Magnitude() const;
@@ -95,6 +99,37 @@ namespace Hazel::Math
         Matrix& AddMinusToThis(const Matrix& B);
         Matrix Scale(const Matrix& B, double scale);
         Matrix Negate();
+
+        //static methods
+        static void Multiply(const Matrix& A, const Matrix& B, Matrix& C)
+        {
+            HZ_CORE_ASSERT(A.Columns() == B.Rows());
+
+            C.Resize(A.Rows(), B.Columns());
+
+            for (size_t i = 0; i < A.Rows(); i++)
+            {
+                for (size_t j = 0; j < B.Columns(); j++)
+                {
+                    double v = 0.0;
+                    for (size_t k = 0; k < A.Columns(); k++)
+                        v += A[i][k] * B[k][j];
+
+                    C[i][j] = v;
+                }
+            }
+        }
+
+        static void Multiply(const Matrix& A, double scale, Matrix& C)
+        {
+            for (size_t i = 0; i < A.Rows(); i++)
+            {
+                for (size_t j = 0; j < A.Columns(); j++)
+                {
+                    C[i][j] = scale * A[i][j];
+                }
+            }
+        }
 
     private:
         friend Matrix operator* (double scale, Matrix& mat);

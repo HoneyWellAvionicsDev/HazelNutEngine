@@ -57,7 +57,7 @@ namespace Hazel
         test4 = m_ActiveScene->CreateEntity("4");
         test1.AddComponent<SpriteRendererComponent>();
         test2.AddComponent<SpriteRendererComponent>();
-        test3.AddComponent<SpriteRendererComponent>();
+        test3.AddComponent<CircleRendererComponent>();
         test4.AddComponent<SpriteRendererComponent>();
         test1.AddComponent<RigidBodyComponent>();
         test2.AddComponent<RigidBodyComponent>();
@@ -127,8 +127,7 @@ namespace Hazel
         const double theta = (dy > 0) ? glm::acos(dx / length) : glm::two_pi<double>() - glm::acos(dx / length);
 
         m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody1);
-        testbody1->Theta = theta;
-
+        testbody1->Theta = theta + 1.57;
 
         glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2.0, 0.0 });
         testbody1->Position = lastPosition - world1;
@@ -147,8 +146,8 @@ namespace Hazel
         //end fix
 
         //bar2
-        const double dx2 = 32.0 / 3.0 - lastPosition.x;
-        const double dy2 = 1.0 - lastPosition.y;
+        const double dx2 = 16.0 / 3.0 - lastPosition.x;
+        const double dy2 = 16.0 / 3.0 - lastPosition.y;
         const double density2 = 1.0;
         const double length2 = glm::sqrt(dx2 * dx2 + dy2 * dy2);
         const double theta2 = (dy2 > 0) ? glm::acos(dx2 / length2) : glm::two_pi<double>() - glm::acos(dx2 / length2);
@@ -173,9 +172,9 @@ namespace Hazel
         //end bar2
 
         //bar3
-        const double dx3 = 48.0 / 3.0 - lastPosition.x;
-        const double dy3 = 1.0 - lastPosition.y;
-        const double density3 = 1.0;
+        const double dx3 = 32.0 / 3.0 - lastPosition.x;
+        const double dy3 = 16.0 / 3.0 - lastPosition.y;
+        const double density3 = 100.0;
         const double length3 = glm::sqrt(dx3 * dx3 + dy3 * dy3);
         const double theta3 = (dy3 > 0) ? glm::acos(dx3 / length3) : glm::two_pi<double>() - glm::acos(dx3 / length3);
         
@@ -198,6 +197,7 @@ namespace Hazel
         lastPosition = testbody4->LocalToWorld({ length3 / 2.0, 0.0 });
         //end bar3
         m_ActiveScene->m_NewBodySystem->AddForceGen(forceGen);
+        m_ActiveScene->m_NewBodySystem->Initialize();
         //m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody3);
 #endif
         m_EditorCamera.SetDistance(50.f);
@@ -406,6 +406,11 @@ namespace Hazel
         ImGui::Text("Quads: %d", stats.QuadCount);
         ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+        ImGui::Separator();
+        static double highest = 0.0;
+        if (m_ActiveScene->m_NewBodySystem->GetTotalSystemEnergy() > highest)
+            highest = m_ActiveScene->m_NewBodySystem->GetTotalSystemEnergy();
+        ImGui::Text("Total system energy: %f", highest);
 
         //ImGui::ShowDemoWindow(&dockspaceOpen);
         ImGui::End();
