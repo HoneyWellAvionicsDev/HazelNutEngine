@@ -48,6 +48,7 @@ namespace Hazel
 		Entity test1;
 		Entity test2;
 		Entity test3;
+		Entity test4;
 
 		EditorCamera m_EditorCamera;
 	

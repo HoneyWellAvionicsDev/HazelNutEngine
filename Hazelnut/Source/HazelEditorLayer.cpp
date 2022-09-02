@@ -54,12 +54,15 @@ namespace Hazel
         test1 = m_ActiveScene->CreateEntity("1");
         test2 = m_ActiveScene->CreateEntity("2");
         test3 = m_ActiveScene->CreateEntity("3");
+        test4 = m_ActiveScene->CreateEntity("4");
         test1.AddComponent<SpriteRendererComponent>();
         test2.AddComponent<SpriteRendererComponent>();
         test3.AddComponent<SpriteRendererComponent>();
+        test4.AddComponent<SpriteRendererComponent>();
         test1.AddComponent<RigidBodyComponent>();
         test2.AddComponent<RigidBodyComponent>();
         //test3.AddComponent<RigidBodyComponent>();
+        test4.AddComponent<RigidBodyComponent>();
 
         Enyoo::RigidBody* testbody1 = new Enyoo::RigidBody;
         testbody1->Position = { 0.0, 0.0 };
@@ -100,6 +103,18 @@ namespace Hazel
         asdf.Translation.y = 1;
         asdf.Scale = glm::vec3{ 0.25 };
 
+        Enyoo::RigidBody* testbody4 = new Enyoo::RigidBody;
+        testbody4->Position = { 0.0, 0.0 };
+        testbody4->Theta = 0.0;
+        testbody4->Velocity = glm::dvec2{ 0.0 };
+        testbody4->AngularVelocity = 0.0;
+        testbody4->Mass = 10.0;
+        testbody4->MomentInertia = 1.0;
+        auto& rbc4 = test4.GetComponent<RigidBodyComponent>();
+        rbc4.RuntimeBody = testbody4;
+        auto& asdfr44 = test4.GetComponent<TransformComponent>();
+        asdfr44.Scale = glm::vec3{ 5.33, 0.5, 1.0 };
+
         Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
         Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
 
@@ -118,7 +133,7 @@ namespace Hazel
         glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2.0, 0.0 });
         testbody1->Position = lastPosition - world1;
         testbody1->Mass = length * density1;
-        //testbody1->MomentInertia = (1.0 / 12.0) * testbody1->Mass * length * length;
+        testbody1->MomentInertia = (1.0 / 12.0) * testbody1->Mass * length * length;
 
         lastPosition = testbody1->LocalToWorld({ length / 2.0, 0.0 });
         //end bar1
@@ -144,7 +159,7 @@ namespace Hazel
         glm::dvec2 world2 = testbody2->LocalToWorld({ -length2 / 2.0, 0.0 });
         testbody2->Position = lastPosition - world2;
         testbody2->Mass = length2 * density2;
-        //testbody2->MomentInertia = (1.0 / 12.0) * testbody2->Mass * length2 * length2;
+        testbody2->MomentInertia = (1.0 / 12.0) * testbody2->Mass * length2 * length2;
 
         glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
         Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
@@ -156,6 +171,32 @@ namespace Hazel
 
         lastPosition = testbody2->LocalToWorld({ length2 / 2.0, 0.0 });
         //end bar2
+
+        //bar3
+        const double dx3 = 48.0 / 3.0 - lastPosition.x;
+        const double dy3 = 1.0 - lastPosition.y;
+        const double density3 = 1.0;
+        const double length3 = glm::sqrt(dx3 * dx3 + dy3 * dy3);
+        const double theta3 = (dy3 > 0) ? glm::acos(dx3 / length3) : glm::two_pi<double>() - glm::acos(dx3 / length3);
+        
+        m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody4);
+        testbody4->Theta = theta3;
+        
+        glm::dvec2 world3 = testbody4->LocalToWorld({ -length3 / 2.0, 0.0 });
+        testbody4->Position = lastPosition - world3;
+        testbody4->Mass = length3 * density3;
+        testbody4->MomentInertia = (1.0 / 12.0) * testbody4->Mass * length3 * length3;
+        
+        glm::dvec2 locallink3 = testbody2->WorldToLocal(lastPosition);
+        Enyoo::LinkConstraint* link3 = new Enyoo::LinkConstraint;
+        m_ActiveScene->m_NewBodySystem->AddConstraint(link3);
+        link3->SetFirstBody(testbody4);
+        link3->SetSecondBody(testbody2);
+        link3->SetFirstBodyLocal({ -length3 / 2.0, 0.0 });
+        link3->SetSecondBodyLocal(locallink3);
+        
+        lastPosition = testbody4->LocalToWorld({ length3 / 2.0, 0.0 });
+        //end bar3
         m_ActiveScene->m_NewBodySystem->AddForceGen(forceGen);
         //m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody3);
 #endif

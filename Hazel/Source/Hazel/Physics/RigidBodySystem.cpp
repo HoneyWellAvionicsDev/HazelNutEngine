@@ -40,18 +40,18 @@ namespace Enyoo
             m_RigidBodies[i]->Theta = m_State.Theta[i];
         }
 
-        for (Constraint* constraint : m_Constraints) // assign updated state to constraints
-        {
-            for (size_t i = 0, c_i = 0; i < constraint->GetConstraintCount(); i++, c_i++)
-            {
-                for (size_t j = 0; j < constraint->GetBodyCount(); j++)
-                {
-                    constraint->ConstraintForceX[i][j] = m_State.ConstraintForce[c_i].x;
-                    constraint->ConstraintForceY[i][j] = m_State.ConstraintForce[c_i].y;
-                    constraint->ConstraintTorque[i][j] = m_State.ConstraintTorque[c_i];
-                }
-            }
-        }
+        //for (Constraint* constraint : m_Constraints) // assign updated state to constraints
+        //{
+        //    for (size_t i = 0, c_i = 0; i < constraint->GetConstraintCount(); i++, c_i++)
+        //    {
+        //        for (size_t j = 0; j < constraint->GetBodyCount(); j++)
+        //        {
+        //            constraint->ConstraintForceX[i][j] = m_State.ConstraintForce[c_i].x;
+        //            constraint->ConstraintForceY[i][j] = m_State.ConstraintForce[c_i].y;
+        //            constraint->ConstraintTorque[i][j] = m_State.ConstraintTorque[c_i];
+        //        }
+        //    }
+        //}
     }
 
     void RigidBodySystem::AddRigidBody(RigidBody* body)
@@ -191,6 +191,7 @@ namespace Enyoo
                 {
                     m_MatricesData.SparseJacobian.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.J[i]);
                     m_MatricesData.SparseJacobianDot.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.Jdot[i]);
+                    currentBodyIndex -= 3;
                 }
                 else
                 {
@@ -198,6 +199,8 @@ namespace Enyoo
                     m_MatricesData.SparseJacobian.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.J[i]);
                     m_MatricesData.SparseJacobianDot.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.Jdot[i]);
                 }
+                //constraintSlice.J[i].Print();
+                //m_MatricesData.SparseJacobian.Print();
             }
 
             for (uint32_t i = 0; i < c->GetConstraintCount(); i++, currentIndex++)
@@ -245,12 +248,12 @@ namespace Enyoo
         // disperse matrices to state
         Vector Qhat = SparseJacobianTranspose * m_MatricesData.lambda;
 
-        for (size_t i = 0; i < n; i++)
-        {
-            m_State.ConstraintForce[i].x = Qhat[i * 3 + 0][0];
-            m_State.ConstraintForce[i].y = Qhat[i * 3 + 1][0];
-            m_State.ConstraintTorque[i] = Qhat[i * 3 + 2][0];
-        }
+        //for (size_t i = 0; i < n; i++)
+        //{
+        //    m_State.ConstraintForce[i].x = Qhat[i * 3 + 0][0];
+        //    m_State.ConstraintForce[i].y = Qhat[i * 3 + 1][0];
+        //    m_State.ConstraintTorque[i] = Qhat[i * 3 + 2][0];
+        //}
 
         // xdotdot = (AppiliedForce + ConstraintForce) / m
         for (size_t i = 0; i < n; i++)
