@@ -246,6 +246,7 @@ namespace Hazel
 			DisplayAddComponentEntry<CameraComponent>("Camera");
 			DisplayAddComponentEntry<RigidBody2DComponent>("2D Rigid Body");
 			DisplayAddComponentEntry<RigidBodyComponent>("Rigid Body");
+			DisplayAddComponentEntry<ForceGeneratorComponent>("Force Generator");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("2D Box Collider");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("2D Circle Collider");
 			ImGui::EndPopup();
@@ -398,7 +399,7 @@ namespace Hazel
 			const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
 			if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
 			{
-				for (int i = 0; i < 2; i++)
+				for (int i = 0; i < 3; i++)
 				{
 					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
 					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
@@ -418,9 +419,35 @@ namespace Hazel
 		});
 
 		DrawComponent<RigidBodyComponent>("Rigid Body", entity, [](auto& component)
+		{
+			ImGui::DragFloat("Density", &component.Density, 1.0f, 1.0f, 1000.0f);
+		});
+
+		DrawComponent<ForceGeneratorComponent>("Force Generator", entity, [](auto& component)
+		{
+			const char* genTypeStrings[] = { "Gravity", "Test1", "Test2" };
+			const char* currentGenTypeString = genTypeStrings[(int)component.Type];
+			if (ImGui::BeginCombo("Generator Type", currentGenTypeString))
 			{
-				//ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
-			});
+				for (int i = 0; i < 3; i++)
+				{
+					bool isSelected = currentGenTypeString == genTypeStrings[i];
+					if (ImGui::Selectable(genTypeStrings[i], isSelected))
+					{
+						currentGenTypeString = genTypeStrings[i];
+						component.Type = (ForceGeneratorComponent::GeneratorType)i; 
+					}
+
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndCombo();
+			}
+
+			if (currentGenTypeString == "Gravity")
+				ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity));
+		});
 
 		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
 		{

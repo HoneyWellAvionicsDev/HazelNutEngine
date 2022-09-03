@@ -81,6 +81,11 @@ namespace Hazel
 		friend class EditorLayer;
 		friend class SceneSerializer;
 		friend class SceneHierarchyPanel;
+		//temp
+		//Entity test1;
+		//Entity test2;
+		//Entity test3;
+		//Entity test4;
 	};
 }
 

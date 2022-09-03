@@ -129,7 +129,29 @@ namespace Hazel
 
 		HZ_CORE_ASSERT(false, "Unknown body type");
 		return RigidBody2DComponent::BodyType::Static;
+	}
 
+	static std::string ForceGenTypeToString(ForceGeneratorComponent::GeneratorType genType)
+	{
+		switch (genType)
+		{
+			case ForceGeneratorComponent::GeneratorType::Gravity:	return "Gravity";
+			case ForceGeneratorComponent::GeneratorType::Test1:	return "Test1";
+			case ForceGeneratorComponent::GeneratorType::Test2:	return "Test2";
+		}
+
+		HZ_CORE_ASSERT(false, "Unknown generator type");
+		return "Gravity";
+	}
+
+	static ForceGeneratorComponent::GeneratorType ForceGenTypeFromString(const std::string& genTypeStr)
+	{
+		if (genTypeStr == "Gravity")		return ForceGeneratorComponent::GeneratorType::Gravity;
+		if (genTypeStr == "Test1")		return ForceGeneratorComponent::GeneratorType::Test1;
+		if (genTypeStr == "Test2")		return ForceGeneratorComponent::GeneratorType::Test2;
+
+		HZ_CORE_ASSERT(false, "Unknown generator type");
+		return ForceGeneratorComponent::GeneratorType::Gravity;
 	}
 
 	SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
@@ -250,7 +272,20 @@ namespace Hazel
 			out << YAML::BeginMap;
 
 			auto& rigidBodyComponent = entity.GetComponent<RigidBodyComponent>();
-			
+			out << YAML::Key << "Density" << YAML::Value << rigidBodyComponent.Density;
+
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<ForceGeneratorComponent>())
+		{
+			out << YAML::Key << "ForceGeneratorComponent";
+			out << YAML::BeginMap;
+
+			auto& forceGenComponent = entity.GetComponent<ForceGeneratorComponent>();
+			out << YAML::Key << "GeneratorType" << YAML::Value << ForceGenTypeToString(forceGenComponent.Type);
+			if (forceGenComponent.Type == ForceGeneratorComponent::GeneratorType::Gravity)
+				out << YAML::Key << "LocalGravity" << YAML::Value << forceGenComponent.LocalGravity;
 
 			out << YAML::EndMap;
 		}
@@ -424,6 +459,16 @@ namespace Hazel
 				if (rigidBodyComponent)
 				{
 					auto& rbc = deserializedEntity.AddComponent<RigidBodyComponent>();
+				}
+
+				auto forceGenComponent = entity["ForceGeneratorComponent"];
+				if (forceGenComponent)
+				{
+					auto& fgc = deserializedEntity.AddComponent<ForceGeneratorComponent>();
+					fgc.Type = ForceGenTypeFromString(forceGenComponent["GeneratorType"].as<std::string>());
+					if (fgc.Type == ForceGeneratorComponent::GeneratorType::Gravity)
+						fgc.LocalGravity = forceGenComponent["LocalGravity"].as<glm::vec2>();
+					
 				}
 
 				auto boxCollider2DComponent = entity["BoxCollider2DComponent"];

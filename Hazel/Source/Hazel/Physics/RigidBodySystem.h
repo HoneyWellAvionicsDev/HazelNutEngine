@@ -23,7 +23,7 @@ namespace Enyoo
 	public:
 		RigidBodySystem() = default;
 
-		void Initialize(); //this should be called after all rigidbodies have been added for performance
+		void Initialize(); 
 
 		void Step(double dt, uint32_t steps = 1);
 

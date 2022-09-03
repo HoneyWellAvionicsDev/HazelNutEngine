@@ -128,10 +128,24 @@ namespace Hazel
 
 	struct RigidBodyComponent
 	{
+		float Density = 1.0;
+
 		void* RuntimeBody = nullptr;
 
 		RigidBodyComponent() = default;
 		RigidBodyComponent(const RigidBodyComponent&) = default;
+	};
+
+	struct ForceGeneratorComponent
+	{
+		enum class GeneratorType : uint8_t { Gravity = 0, Test1, Test2 };
+		GeneratorType Type = GeneratorType::Gravity;
+		glm::vec2 LocalGravity = { 0.0, -9.81 };
+
+		void* RuntimeGenerator = nullptr;
+
+		ForceGeneratorComponent() = default;
+		ForceGeneratorComponent(const ForceGeneratorComponent&) = default;
 	};
 
 	struct BoxCollider2DComponent
@@ -178,5 +192,6 @@ namespace Hazel
 		ComponentGroup<TransformComponent, SpriteRendererComponent,
 		CircleRendererComponent, CameraComponent,
 		NativeScriptComponent, RigidBody2DComponent, RigidBodyComponent,
+		ForceGeneratorComponent,
 		BoxCollider2DComponent, CircleCollider2DComponent>;
 }
