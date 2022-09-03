@@ -55,7 +55,7 @@ namespace Hazel::Math
         }
         
         Matrix operator*(Matrix& B) { return Times(B); }
-        inline Matrix operator*(double scale) { return Scale(*this, scale); }
+        Matrix operator*(double scale) { return Scale(*this, scale); }
         Matrix operator+(Matrix& B) { return Add(B); }
         Matrix operator-(Matrix& B) { return Add(-B); }
         Matrix operator-() { return Negate(); } 
@@ -103,16 +103,16 @@ namespace Hazel::Math
         //static methods
         static void Multiply(const Matrix& A, const Matrix& B, Matrix& C)
         {
-            HZ_CORE_ASSERT(A.Columns() == B.Rows());
+            HZ_CORE_ASSERT(A.m_Columns == B.m_Rows);
 
-            C.Resize(A.Rows(), B.Columns());
+            C.Resize(A.m_Rows, B.m_Columns);
 
-            for (size_t i = 0; i < A.Rows(); i++)
+            for (size_t i = 0; i < A.m_Rows; i++)
             {
-                for (size_t j = 0; j < B.Columns(); j++)
+                for (size_t j = 0; j < B.m_Columns; j++)
                 {
                     double v = 0.0;
-                    for (size_t k = 0; k < A.Columns(); k++)
+                    for (size_t k = 0; k < A.m_Columns; k++)
                         v += A[i][k] * B[k][j];
 
                     C[i][j] = v;
@@ -122,11 +122,27 @@ namespace Hazel::Math
 
         static void Multiply(const Matrix& A, double scale, Matrix& C)
         {
-            for (size_t i = 0; i < A.Rows(); i++)
+            for (size_t i = 0; i < A.m_Rows; i++)
             {
-                for (size_t j = 0; j < A.Columns(); j++)
+                for (size_t j = 0; j < A.m_Columns; j++)
                 {
                     C[i][j] = scale * A[i][j];
+                }
+            }
+        }
+
+        static void ScaleLeftDiagonal(const Matrix& A, const Matrix& diagonal, Matrix& C)
+        {
+            HZ_CORE_ASSERT(diagonal.m_Columns < 2);
+            HZ_CORE_ASSERT(diagonal.m_Rows == A.m_Rows);
+
+            C.Resize(A.m_Rows, A.m_Columns);
+
+            for (size_t i = 0; i < A.m_Rows; i++)
+            {
+                for (size_t j = 0; j < A.m_Columns; j++)
+                {
+                    C[i][j] = diagonal[i][0] * A[i][j];
                 }
             }
         }

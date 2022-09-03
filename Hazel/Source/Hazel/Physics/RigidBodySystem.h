@@ -4,7 +4,7 @@
 #include "Hazel/Math/Matrix.h"
 
 #include "RigidBody.h"
-#include "ForceGenerator.h"
+#include "GravitationalAccelerator.h"
 #include "EulersMethodIntegrator.h"
 #include "RungeKutta4thIntegrator.h"
 #include "ConjugateGradientMethod.h"
@@ -57,17 +57,6 @@ namespace Enyoo
 
 		struct Matrices
 		{
-			struct BlockMatrix
-			{
-				size_t i; //coords into the block-sparse jacobian
-				size_t j;
-				size_t rows;
-				size_t columns;
-				Matrix BlockJacobian;
-			};
-			std::vector<BlockMatrix> JacobianBlocks;
-			std::vector<BlockMatrix> JacobianDotBlocks;
-			
 			Matrix SparseJacobian;
 			Matrix SparseJacobianDot;
 			Matrix Mass, W; // inverse of mass matrix 
@@ -79,9 +68,11 @@ namespace Enyoo
 
 			Vector lambda;
 
-			
+			Matrix JdotQdot;
+			Matrix WQ;
+			Matrix JWQ;
 		} 
 
-		m_MatricesData;
+		m_Matrices;
 	};
 }

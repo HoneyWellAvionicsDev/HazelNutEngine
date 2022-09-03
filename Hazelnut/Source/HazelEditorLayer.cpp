@@ -115,7 +115,7 @@ namespace Hazel
         auto& asdfr44 = test4.GetComponent<TransformComponent>();
         asdfr44.Scale = glm::vec3{ 5.33, 0.5, 1.0 };
 
-        Enyoo::ForceGenerator* forceGen = new Enyoo::ForceGenerator;
+        Enyoo::ForceGenerator* forceGen = new Enyoo::GravitationalAccelerator;
         Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
 
         glm::dvec2 lastPosition{ 0.0, 1.0 };

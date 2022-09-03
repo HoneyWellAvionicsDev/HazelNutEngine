@@ -12,7 +12,7 @@ namespace Enyoo
     void RigidBodySystem::Step(double dt, uint32_t steps)
     {
         PopulateSystemState();
-        PopulateMassMatrices(m_MatricesData.Mass, m_MatricesData.W);
+        PopulateMassMatrices(m_Matrices.Mass, m_Matrices.W);
 
         for (uint32_t i = 0; i < steps; i++)
         {
@@ -166,21 +166,21 @@ namespace Enyoo
         size_t m_t = GetTotalConstraintCount();
 
         // populate vectors and matrices
-        m_MatricesData.qdot.Resize(3 * n, 1);
+        m_Matrices.qdot.Resize(3 * n, 1);
 
         for (size_t i = 0; i < n; i++)
         {
-            m_MatricesData.qdot[i * 3 + 0][0] = m_State.Velocity[i].x;
-            m_MatricesData.qdot[i * 3 + 1][0] = m_State.Velocity[i].y;
-            m_MatricesData.qdot[i * 3 + 2][0] = m_State.AngularVelocity[i];
+            m_Matrices.qdot[i * 3 + 0][0] = m_State.Velocity[i].x;
+            m_Matrices.qdot[i * 3 + 1][0] = m_State.Velocity[i].y;
+            m_Matrices.qdot[i * 3 + 2][0] = m_State.AngularVelocity[i];
         }
 
-        m_MatricesData.SparseJacobian.Initialize(m_t, n * 3);
-        m_MatricesData.SparseJacobianDot.Initialize(m_t, n * 3);
-        m_MatricesData.Q.Initialize(n * 3, 1);
-        m_MatricesData.ks.Initialize(m_t, 1);
-        m_MatricesData.kd.Initialize(m_t, 1);
-        m_MatricesData.C.Initialize(m_t, 1);
+        m_Matrices.SparseJacobian.Initialize(m_t, n * 3);
+        m_Matrices.SparseJacobianDot.Initialize(m_t, n * 3);
+        m_Matrices.Q.Initialize(n * 3, 1);
+        m_Matrices.ks.Initialize(m_t, 1);
+        m_Matrices.kd.Initialize(m_t, 1);
+        m_Matrices.C.Initialize(m_t, 1);
 
         // caluclate constraints and store them in respective matrices
         std::unordered_map<size_t, size_t> indexMap;
@@ -198,15 +198,15 @@ namespace Enyoo
 
                 if (indexMap.count(index))
                 {
-                    m_MatricesData.SparseJacobian.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.J[i]);
-                    m_MatricesData.SparseJacobianDot.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.Jdot[i]);
+                    m_Matrices.SparseJacobian.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.J[i]);
+                    m_Matrices.SparseJacobianDot.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.Jdot[i]);
                     currentBodyIndex -= 3;
                 }
                 else
                 {
                     indexMap[index] = currentBodyIndex;
-                    m_MatricesData.SparseJacobian.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.J[i]);
-                    m_MatricesData.SparseJacobianDot.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.Jdot[i]);
+                    m_Matrices.SparseJacobian.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.J[i]);
+                    m_Matrices.SparseJacobianDot.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.Jdot[i]);
                 }
                 //constraintSlice.J[i].Print();
                 //m_MatricesData.SparseJacobian.Print();
@@ -214,49 +214,52 @@ namespace Enyoo
 
             for (uint32_t i = 0; i < c->GetConstraintCount(); i++, currentIndex++)
             {
-                m_MatricesData.C[currentIndex][0] = constraintSlice.C[i][0];
-                m_MatricesData.ks[currentIndex][0] = constraintSlice.ks[i][0];
-                m_MatricesData.kd[currentIndex][0] = constraintSlice.kd[i][0];
+                m_Matrices.C[currentIndex][0] = constraintSlice.C[i][0];
+                m_Matrices.ks[currentIndex][0] = constraintSlice.ks[i][0];
+                m_Matrices.kd[currentIndex][0] = constraintSlice.kd[i][0];
             }
 
             currentConstraintIndex += c->GetConstraintCount();
             currentBodyIndex += 3 * c->GetBodyCount();
         }
 
-        Matrix Cdot = m_MatricesData.SparseJacobian * m_MatricesData.qdot;
+        Matrix Cdot = m_Matrices.SparseJacobian * m_Matrices.qdot;
         for (size_t i = 0; i < m_t; i++)
         {
-            m_MatricesData.ks[i][0] *= m_MatricesData.C[i][0];
-            m_MatricesData.kd[i][0] *= Cdot[i][0];
+            m_Matrices.ks[i][0] *= m_Matrices.C[i][0];
+            m_Matrices.kd[i][0] *= Cdot[i][0];
         }
 
         for (size_t i = 0; i < n; i++)
         {
-            m_MatricesData.Q[i * 3 + 0][0] = m_State.Force[i].x;
-            m_MatricesData.Q[i * 3 + 1][0] = m_State.Force[i].y;
-            m_MatricesData.Q[i * 3 + 2][0] = m_State.Torque[i];
+            m_Matrices.Q[i * 3 + 0][0] = m_State.Force[i].x;
+            m_Matrices.Q[i * 3 + 1][0] = m_State.Force[i].y;
+            m_Matrices.Q[i * 3 + 2][0] = m_State.Torque[i];
         }
        
         // set up matrix equation
-
-        Matrix WQ = m_MatricesData.Q.ScaleLeftDiagonal(m_MatricesData.W); // W * Q
-        Matrix JWQ = m_MatricesData.SparseJacobian * WQ;
-        Matrix JdotQdot = m_MatricesData.SparseJacobianDot * m_MatricesData.qdot;
-        JdotQdot = -1 * JdotQdot;
-        JdotQdot -= JWQ;
-        JdotQdot -= m_MatricesData.ks;
-        JdotQdot -= m_MatricesData.kd;
-        Matrix SparseJacobianTranspose = m_MatricesData.SparseJacobian.Transpose();
-        Matrix WJT = SparseJacobianTranspose.ScaleLeftDiagonal(m_MatricesData.W);
-        Matrix A = m_MatricesData.SparseJacobian * WJT;
-
+        Hazel::Timer time;
+        //m_Matrices.WQ = m_Matrices.Q.ScaleLeftDiagonal(m_Matrices.W); // W * Q
+        Matrix::ScaleLeftDiagonal(m_Matrices.Q, m_Matrices.W, m_Matrices.WQ);
+        //Matrix JWQ = m_Matrices.SparseJacobian * WQ;
+        Matrix::Multiply(m_Matrices.SparseJacobian, m_Matrices.WQ, m_Matrices.JWQ);
+        //Matrix JdotQdot = m_Matrices.SparseJacobianDot * m_Matrices.qdot;
+        Matrix::Multiply(m_Matrices.SparseJacobianDot, m_Matrices.qdot, m_Matrices.JdotQdot);
+        m_Matrices.JdotQdot = -1 * m_Matrices.JdotQdot;
+        m_Matrices.JdotQdot -= m_Matrices.JWQ;
+        m_Matrices.JdotQdot -= m_Matrices.ks;
+        m_Matrices.JdotQdot -= m_Matrices.kd;
+        Matrix SparseJacobianTranspose = m_Matrices.SparseJacobian.Transpose();
+        Matrix WJT = SparseJacobianTranspose.ScaleLeftDiagonal(m_Matrices.W);
+        Matrix A = m_Matrices.SparseJacobian * WJT;
+        //HZ_CORE_TRACE("{0}", time.ElapsedMilliseconds());
         // solve matrix equation
-        const bool solved = m_LinearEquationSolver.Solve(A, JdotQdot, &m_MatricesData.lambda);
+        const bool solved = m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, &m_Matrices.lambda);
         HZ_CORE_ASSERT(solved); 
 
         // disperse matrices to state
         //m_MatricesData.Qhat.Resize(n * 3, 1);
-        m_MatricesData.Qhat = SparseJacobianTranspose * m_MatricesData.lambda;
+        m_Matrices.Qhat = SparseJacobianTranspose * m_Matrices.lambda;
   
 
         //for (size_t i = 0; i < n; i++)
@@ -269,15 +272,15 @@ namespace Enyoo
         // xdotdot = (AppiliedForce + ConstraintForce) / m
         for (size_t i = 0; i < n; i++)
         {
-            m_State.Acceleration[i].x      = m_MatricesData.Q[i * 3 + 0][0] + m_MatricesData.Qhat[i * 3 + 0][0];
-            m_State.Acceleration[i].y      = m_MatricesData.Q[i * 3 + 1][0] + m_MatricesData.Qhat[i * 3 + 1][0];
-            m_State.AngularAcceleration[i] = m_MatricesData.Q[i * 3 + 2][0] + m_MatricesData.Qhat[i * 3 + 2][0];
+            m_State.Acceleration[i].x      = m_Matrices.Q[i * 3 + 0][0] + m_Matrices.Qhat[i * 3 + 0][0];
+            m_State.Acceleration[i].y      = m_Matrices.Q[i * 3 + 1][0] + m_Matrices.Qhat[i * 3 + 1][0];
+            m_State.AngularAcceleration[i] = m_Matrices.Q[i * 3 + 2][0] + m_Matrices.Qhat[i * 3 + 2][0];
         }
         
         for (size_t i = 0; i < n; i++)
         {
-            m_State.Acceleration[i] *= m_MatricesData.W[i * 3 + 0][0];
-            m_State.AngularAcceleration[i] *= m_MatricesData.W[i * 3 + 2][0];
+            m_State.Acceleration[i] *= m_Matrices.W[i * 3 + 0][0];
+            m_State.AngularAcceleration[i] *= m_Matrices.W[i * 3 + 2][0];
         }
     }
 }
