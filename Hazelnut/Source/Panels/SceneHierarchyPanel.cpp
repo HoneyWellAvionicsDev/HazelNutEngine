@@ -242,8 +242,9 @@ namespace Hazel
 		{
 			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
 			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
-			DisplayAddComponentEntry<NativeScriptComponent>("Native Script Component");
+			DisplayAddComponentEntry<NativeScriptComponent>("Native Script");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
+			DisplayAddComponentEntry<LinkPointsComponent>("Link Points");
 			DisplayAddComponentEntry<RigidBody2DComponent>("2D Rigid Body");
 			DisplayAddComponentEntry<RigidBodyComponent>("Rigid Body");
 			DisplayAddComponentEntry<ForceGeneratorComponent>("Force Generator");
@@ -392,6 +393,19 @@ namespace Hazel
 				ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
 			}
 		});
+
+		DrawComponent<LinkPointsComponent>("Link Points", entity, [](auto& component)
+		{
+			static double xOffset = 0.0;
+			static double yOffset = 0.0;
+			ImGui::InputDouble("X Offset", &xOffset);
+			ImGui::InputDouble("Y Offset", &yOffset);
+
+			if (ImGui::Button("Add", ImVec2(40.f, 0.f)))
+			{
+				component.LinkPoints.emplace_back(xOffset, yOffset);
+			}
+		});
 	
 		DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](auto& component)
 		{
@@ -445,7 +459,7 @@ namespace Hazel
 				ImGui::EndCombo();
 			}
 
-			if (currentGenTypeString == "Gravity")
+			if (component.Type == ForceGeneratorComponent::GeneratorType::Gravity)
 				ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity));
 		});
 

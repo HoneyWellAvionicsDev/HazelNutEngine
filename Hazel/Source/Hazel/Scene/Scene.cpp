@@ -1,6 +1,8 @@
 #include <hzpch.h>
 
 #include "Hazel/Renderer/Renderer2D.h"
+//temp
+#include "Hazel/Core/Input.h"
 
 #include "Scene.h"
 #include "Components.h"
@@ -386,7 +388,6 @@ namespace Hazel
 		const double density1 = rbc1.Density;
 		rbc1.RuntimeBody = testbody1;
 		auto& asdfr = m_Registry.get<TransformComponent>(*it);
-		asdfr.Scale = glm::vec3{ 5.33, 0.5, 1.0 };
 		it++;
 		
 		Enyoo::RigidBody* testbody2 = new Enyoo::RigidBody;
@@ -400,7 +401,6 @@ namespace Hazel
 		const double density2 = rbc2.Density;
 		rbc2.RuntimeBody = testbody2;
 		auto& asdfr4 = m_Registry.get<TransformComponent>(*it);
-		asdfr4.Scale = glm::vec3{ 5.33, 0.5, 1.0 };
 		it++;
 
 		Enyoo::RigidBody* testbody3 = new Enyoo::RigidBody;
@@ -429,20 +429,19 @@ namespace Hazel
 		const double density3 = rbc4.Density;
 		rbc4.RuntimeBody = testbody4;
 		auto& asdfr44 = m_Registry.get<TransformComponent>(*it);
-		asdfr44.Scale = glm::vec3{ 5.33, 0.5, 1.0 };
 		it++;
 		
-		Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
 		
 		glm::dvec2 lastPosition{ 0.0, 1.0 };
 		//bar1
-		const double dx = 16.0 / 3.0 - lastPosition.x;
-		const double dy = 1.0 - lastPosition.y;
+		const double dx = 6.0 - lastPosition.x;
+		const double dy = 7.0 - lastPosition.y;
 		const double length = glm::sqrt(dx * dx + dy * dy);
+		asdfr.Scale = glm::vec3{ length, 0.5, 1.0 };
 		const double theta = (dy > 0) ? glm::acos(dx / length) : glm::two_pi<double>() - glm::acos(dx / length);
 		
 		m_NewBodySystem->AddRigidBody(testbody1);
-		testbody1->Theta = theta + 1.57;
+		testbody1->Theta = theta;
 		
 		glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2.0, 0.0 });
 		testbody1->Position = lastPosition - world1;
@@ -453,42 +452,20 @@ namespace Hazel
 		//end bar1
 		
 		//fix 0, 1
-		glm::dvec2 local1 = testbody1->WorldToLocal({0.0, 1.0});
+		Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
 		m_NewBodySystem->AddConstraint(fixed1); 
+		glm::dvec2 local1 = testbody1->WorldToLocal({0.0, 1.0});
 		fixed1->SetBody(testbody1);
 		fixed1->SetLocalPosition(local1);
 		fixed1->SetWorldPosition({0.0, 1.0});
 		//end fix
 		
-		//bar2
-		const double dx2 = 16.0 / 3.0 - lastPosition.x;
-		const double dy2 = 16.0 / 3.0 - lastPosition.y;
-		const double length2 = glm::sqrt(dx2 * dx2 + dy2 * dy2);
-		const double theta2 = (dy2 > 0) ? glm::acos(dx2 / length2) : glm::two_pi<double>() - glm::acos(dx2 / length2);
-		
-		m_NewBodySystem->AddRigidBody(testbody2);
-		testbody2->Theta = theta2;
-		
-		glm::dvec2 world2 = testbody2->LocalToWorld({ -length2 / 2.0, 0.0 });
-		testbody2->Position = lastPosition - world2;
-		testbody2->Mass = length2 * density2;
-		testbody2->MomentInertia = (1.0 / 12.0) * testbody2->Mass * length2 * length2;
-		
-		glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
-		Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
-		m_NewBodySystem->AddConstraint(link2);
-		link2->SetFirstBody(testbody2);
-		link2->SetSecondBody(testbody1);
-		link2->SetFirstBodyLocal({ -length2 / 2.0, 0.0 });
-		link2->SetSecondBodyLocal(locallink2);
-		
-		lastPosition = testbody2->LocalToWorld({ length2 / 2.0, 0.0 });
-		//end bar2
 		
 		//bar3
-		const double dx3 = 32.0 / 3.0 - lastPosition.x;
-		const double dy3 = 16.0 / 3.0 - lastPosition.y;
+		const double dx3 = 48.0 / 3.0 - lastPosition.x;
+		const double dy3 = 1.0 - lastPosition.y;
 		const double length3 = glm::sqrt(dx3 * dx3 + dy3 * dy3);
+		asdfr44.Scale = glm::vec3{ length3, 0.5, 1.0 };
 		const double theta3 = (dy3 > 0) ? glm::acos(dx3 / length3) : glm::two_pi<double>() - glm::acos(dx3 / length3);
 		
 		m_NewBodySystem->AddRigidBody(testbody4);
@@ -509,6 +486,31 @@ namespace Hazel
 		
 		lastPosition = testbody4->LocalToWorld({ length3 / 2.0, 0.0 });
 		//end bar3
+		//bar2
+		const double dx2 = 16.0 / 3.0 - lastPosition.x;
+		const double dy2 = 1.0 - lastPosition.y;
+		const double length2 = glm::sqrt(dx2 * dx2 + dy2 * dy2);
+		asdfr4.Scale = glm::vec3{ length2, 0.5, 1.0 };
+		const double theta2 = (dy2 > 0) ? glm::acos(dx2 / length2) : glm::two_pi<double>() - glm::acos(dx2 / length2);
+		
+		m_NewBodySystem->AddRigidBody(testbody2);
+		testbody2->Theta = theta2;
+		
+		glm::dvec2 world2 = testbody2->LocalToWorld({ -length2 / 2.0, 0.0 });
+		testbody2->Position = lastPosition - world2;
+		testbody2->Mass = length2 * density2;
+		testbody2->MomentInertia = (1.0 / 12.0) * testbody2->Mass * length2 * length2;
+		
+		glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
+		Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
+		m_NewBodySystem->AddConstraint(link2);
+		link2->SetFirstBody(testbody2);
+		link2->SetSecondBody(testbody1);
+		link2->SetFirstBodyLocal({ -length2 / 2.0, 0.0 });
+		link2->SetSecondBodyLocal(locallink2);
+		
+		lastPosition = testbody2->LocalToWorld({ length2 / 2.0, 0.0 });
+		//end bar2
 		auto view2 = m_Registry.view<ForceGeneratorComponent>();
 		for (auto e : view2)
 		{
@@ -547,6 +549,8 @@ namespace Hazel
 	{
 		//Timer time;
 		m_NewBodySystem->Step(0.01667, 75);
+		//if(Input::IsKeyPressed(HZ_KEY_SPACE))
+		//	m_NewBodySystem->Step(0.01667, 75);
 		
 		auto view = m_Registry.view<RigidBodyComponent>();
 		for (auto e : view)
@@ -621,6 +625,12 @@ namespace Hazel
 	{
 		if (m_ViewportWidth > 0 && m_ViewportHeight > 0)
 			component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+	}
+
+	template<>
+	void Scene::OnComponentAdded<LinkPointsComponent>(Entity entity, LinkPointsComponent& component)
+	{
+
 	}
 
 	template<>

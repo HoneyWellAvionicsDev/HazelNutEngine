@@ -215,6 +215,23 @@ namespace Hazel
 			out << YAML::EndMap; //cam comp
 		}
 
+		if (entity.HasComponent<LinkPointsComponent>())
+		{
+			out << YAML::Key << "LinkPointsComponent";
+			out << YAML::BeginMap; // link points
+			
+			auto& linkPointsComponent = entity.GetComponent<LinkPointsComponent>();
+			auto& linkPoints = linkPointsComponent.LinkPoints;
+			out << YAML::Key << "Count" << YAML::Value << linkPoints.size();
+
+			for (size_t i = 0; i < linkPoints.size(); i++)
+			{
+				out << YAML::Key << "LinkPoint" + std::to_string(i) << YAML::Value << linkPoints.at(i);
+			}
+
+			out << YAML::EndMap; // link points
+		}
+
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
 			out << YAML::Key << "SpriteRendererComponent";
@@ -413,6 +430,19 @@ namespace Hazel
 
 					cc.Primary = cameraComponent["Primary"].as<bool>();
 					cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+				}
+				
+				auto linkPointsComponent = entity["LinkPointsComponent"];
+				if (linkPointsComponent)
+				{
+					auto& lpc = deserializedEntity.AddComponent<LinkPointsComponent>();
+					int count = linkPointsComponent["Count"].as<int>();
+					for (int i = 0; i < count; i++)
+					{
+						const auto& linkPoint = linkPointsComponent["LinkPoint" + std::to_string(i)];
+						lpc.LinkPoints.push_back(linkPoint.as<glm::vec2>());
+						HZ_CORE_TRACE("{0} {1}", linkPoint.as<glm::vec2>().x, linkPoint.as<glm::vec2>().y);
+					}
 				}
 
 				auto spriteRendererComponent = entity["SpriteRendererComponent"];

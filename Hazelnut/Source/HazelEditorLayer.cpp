@@ -123,7 +123,58 @@ namespace Hazel
             }
         }
         
-       
+        //------------------Object Snapping--------------------------
+        if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
+        {
+            if (m_SceneState == SceneState::Edit && selectedEntity.HasComponent<LinkPointsComponent>())
+            {  
+                auto view = m_ActiveScene->m_Registry.view<LinkPointsComponent, TransformComponent>();
+                for (auto e : view)
+                {
+                    auto& otherPoints = view.get<LinkPointsComponent>(e).LinkPoints;    
+                    auto& otherTransform = view.get<TransformComponent>(e);
+                    auto& points = selectedEntity.GetComponent<LinkPointsComponent>().LinkPoints;
+
+                    if (e == (entt::entity)selectedEntity)
+                        continue;
+                    for (const auto& otherPoint : otherPoints)
+                    {
+                        //convert otherPoint to world with e's transform
+                        glm::vec2 otherWorld;
+                        otherWorld.x = glm::cos(otherTransform.Rotation.z)
+                            * otherPoint.x - glm::sin(otherTransform.Rotation.z)
+                            * otherPoint.y + otherTransform.Translation.x;
+                        otherWorld.y = glm::sin(otherTransform.Rotation.z)
+                            * otherPoint.x + glm::cos(otherTransform.Rotation.z)
+                            * otherPoint.y + otherTransform.Translation.y;
+
+                        auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();
+                        for (const auto& point : points)
+                        {
+                            //convert point to world with selected's transform
+                            glm::vec2 world;
+                            auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();
+                            world.x = glm::cos(selectedTransform.Rotation.z)
+                                * point.x - glm::sin(selectedTransform.Rotation.z)
+                                * point.y + selectedTransform.Translation.x;
+                            world.y = glm::sin(selectedTransform.Rotation.z)
+                                * point.x + glm::cos(selectedTransform.Rotation.z)
+                                * point.y + selectedTransform.Translation.y;
+                            if (std::fabs(otherWorld.x - world.x) < 0.3 && std::fabs(otherWorld.y - world.y) < 0.3)
+                            {
+                                //update selected's position to from snap point
+                                selectedTransform.Translation.x = otherWorld.x + (selectedTransform.Translation.x - world.x);
+                                selectedTransform.Translation.y = otherWorld.y + (selectedTransform.Translation.y - world.y);
+
+                                HZ_CORE_WARN("Snapped!");
+                            }
+                        }
+                    }
+                }   
+            }
+        }
+
+        //------------------Mouse Picking----------------------------
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x;
         my -= m_ViewportBounds[0].y;
@@ -245,7 +296,6 @@ namespace Hazel
         //    highest = m_ActiveScene->m_NewBodySystem->GetTotalSystemEnergy();
         //ImGui::Text("Total system energy: %f", highest);
 
-        //ImGui::ShowDemoWindow(&dockspaceOpen);
         ImGui::End();
 
         ImGui::Begin("Settings");
@@ -259,6 +309,8 @@ namespace Hazel
         ImGui::SliderInt("Position Iterations", &m_PositionIterations, 1, 500);
         ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
         ImGui::Checkbox("Use editor camera for runtime", &m_UseEditorCameraOnRuntime);
+
+        ImGui::ShowDemoWindow(&dockspaceOpen);
         ImGui::End();
 
         m_SceneHierarchyPanel.OnImGuiRender();
@@ -542,9 +594,40 @@ namespace Hazel
 
         if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
         {
+            // highlight selected entity
             const auto& transform = selectedEntity.GetComponent<TransformComponent>();
-            Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
+            glm::mat4 selectedTransform = glm::translate(glm::mat4(1.f), { transform.Translation.x, transform.Translation.y, 0.2f })
+                * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
+                * glm::scale(glm::mat4(1.f), transform.Scale);
+            Renderer2D::DrawRect(selectedTransform, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
+
+            // draw snap points
+            if (m_SceneState == SceneState::Edit && selectedEntity.HasComponent<LinkPointsComponent>())
+            {
+                auto view = m_ActiveScene->m_Registry.view<LinkPointsComponent, TransformComponent>();
+                for (auto e : view)
+                {
+                    auto& tc = view.get<TransformComponent>(e);
+                    auto& lpc = view.get<LinkPointsComponent>(e).LinkPoints;
+                    for (auto& linkPoint : lpc)
+                    {
+                        glm::vec2 world;
+                        world.x = glm::cos(tc.Rotation.z)
+                            * linkPoint.x - glm::sin(tc.Rotation.z)
+                            * linkPoint.y + tc.Translation.x;
+                        world.y = glm::sin(tc.Rotation.z)
+                            * linkPoint.x + glm::cos(tc.Rotation.z)
+                            * linkPoint.y + tc.Translation.y;
+                        glm::mat4 pointTransform = glm::translate(glm::mat4(1.f), {world.x, world.y, 0.3f})
+                            * glm::scale(glm::mat4(1.f), glm::vec3{0.3f});
+
+                        Renderer2D::DrawCircle(pointTransform, { 1.0f, 0.2f, 0.1f, 1.0f });
+                    }
+                }
+            }
         }
+
+        
 
         Renderer2D::EndScene();
     }

@@ -76,6 +76,14 @@ namespace Hazel
 		CircleRendererComponent(const CircleRendererComponent&) = default;
 	};
 
+	struct LinkPointsComponent
+	{
+		std::vector<glm::vec2> LinkPoints;
+
+		LinkPointsComponent() = default;
+		LinkPointsComponent(const LinkPointsComponent&) = default;
+	};
+
 	struct CameraComponent
 	{
 		SceneCamera Camera;
@@ -190,7 +198,7 @@ namespace Hazel
 
 	using AllComponents =
 		ComponentGroup<TransformComponent, SpriteRendererComponent,
-		CircleRendererComponent, CameraComponent,
+		CircleRendererComponent, CameraComponent, LinkPointsComponent,
 		NativeScriptComponent, RigidBody2DComponent, RigidBodyComponent,
 		ForceGeneratorComponent,
 		BoxCollider2DComponent, CircleCollider2DComponent>;
