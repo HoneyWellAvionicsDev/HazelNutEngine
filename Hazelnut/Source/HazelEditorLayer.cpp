@@ -530,7 +530,7 @@ namespace Hazel
     {
         if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT)
         {
-            if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_5))   //move these boolean checks into its own func             
+            if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_5))           
                 m_SceneHierarchyPanel.SetSelectionContext(m_HoveredEntity);
         }
         return false;
@@ -756,7 +756,7 @@ namespace Hazel
 
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
-            m_EditorScene->DuplicateEntity(selectedEntity);
+            m_SceneHierarchyPanel.SetSelectionContext(m_EditorScene->DuplicateEntity(selectedEntity));
     }
 
     void EditorLayer::CarrySelectionContext()

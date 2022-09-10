@@ -138,10 +138,11 @@ namespace Hazel
 		
 	}
 
-	void Scene::DuplicateEntity(Entity entity)
+	Entity Scene::DuplicateEntity(Entity entity)
 	{
 		Entity newEntity = CreateEntity(entity.GetName());
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
+		return newEntity;
 	}
 
 	void Scene::DestroyEntity(Entity entity)
