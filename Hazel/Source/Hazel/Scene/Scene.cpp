@@ -431,87 +431,116 @@ namespace Hazel
 		rbc4.RuntimeBody = testbody4;
 		auto& asdfr44 = m_Registry.get<TransformComponent>(*it);
 		it++;
+
+		Enyoo::RigidBody* testbody5 = new Enyoo::RigidBody;
+		testbody5->Position = { 0.0, 0.0 };
+		testbody5->Theta = 0.0;
+		testbody5->Velocity = glm::dvec2{ 0.0 };
+		testbody5->AngularVelocity = 0.0;
+		testbody5->Mass = 10.0;
+		testbody5->MomentInertia = 1.0;
+		auto& rbc5 = m_Registry.get<RigidBodyComponent>(*it);
+		const double density4 = rbc5.Density;
+		rbc5.RuntimeBody = testbody5;
+		auto& asdfr45 = m_Registry.get<TransformComponent>(*it);
+		it++;
 		
 		
 		glm::dvec2 lastPosition{ 0.0, 1.0 };
+		
 		//bar1
-		const double dx = 6.0 - lastPosition.x;
-		const double dy = 7.0 - lastPosition.y;
-		const double length = glm::sqrt(dx * dx + dy * dy);
-		asdfr.Scale = glm::vec3{ length, 0.5, 1.0 };
-		const double theta = (dy > 0) ? glm::acos(dx / length) : glm::two_pi<double>() - glm::acos(dx / length);
-		
 		m_NewBodySystem->AddRigidBody(testbody1);
-		testbody1->Theta = theta;
-		
-		glm::dvec2 world1 = testbody1->LocalToWorld({ -length / 2.0, 0.0 });
-		testbody1->Position = lastPosition - world1;
-		testbody1->Mass = length * density1;
-		testbody1->MomentInertia = (1.0 / 12.0) * testbody1->Mass * length * length;
-		
-		lastPosition = testbody1->LocalToWorld({ length / 2.0, 0.0 });
+		testbody1->Theta = asdfr.Rotation.z;
+		const double length1 = asdfr.Scale.x;
+
+		glm::dvec2 world1 = testbody1->LocalToWorld({ -length1 / 2.0, 0.0 });
+		testbody1->Position.x = asdfr.Translation.x;
+		testbody1->Position.y = asdfr.Translation.y;
+		testbody1->Mass = length1 * density1;
+		testbody1->MomentInertia = (1.0 / 12.0) * testbody1->Mass * length1 * length1;
+
+		lastPosition = testbody1->LocalToWorld({ length1 / 2.0, 0.0 });
 		//end bar1
-		
+
 		//fix 0, 1
 		Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
-		m_NewBodySystem->AddConstraint(fixed1); 
-		glm::dvec2 local1 = testbody1->WorldToLocal({0.0, 1.0});
+		m_NewBodySystem->AddConstraint(fixed1);
+		glm::dvec2 local1 = testbody1->WorldToLocal({ 0.0, 1.0 });
 		fixed1->SetBody(testbody1);
 		fixed1->SetLocalPosition(local1);
-		fixed1->SetWorldPosition({0.0, 1.0});
+		fixed1->SetWorldPosition({ 0.0, 1.0 });
 		//end fix
-		
-		
+
 		//bar3
-		const double dx3 = 48.0 / 3.0 - lastPosition.x;
-		const double dy3 = 1.0 - lastPosition.y;
-		const double length3 = glm::sqrt(dx3 * dx3 + dy3 * dy3);
-		asdfr44.Scale = glm::vec3{ length3, 0.5, 1.0 };
-		const double theta3 = (dy3 > 0) ? glm::acos(dx3 / length3) : glm::two_pi<double>() - glm::acos(dx3 / length3);
-		
 		m_NewBodySystem->AddRigidBody(testbody4);
-		testbody4->Theta = theta3;
-		
+		testbody4->Theta = asdfr44.Rotation.z;
+		const double length3 = asdfr44.Scale.x;
+
 		glm::dvec2 world3 = testbody4->LocalToWorld({ -length3 / 2.0, 0.0 });
-		testbody4->Position = lastPosition - world3;
+		testbody4->Position.x = asdfr44.Translation.x;
+		testbody4->Position.y = asdfr44.Translation.y;
 		testbody4->Mass = length3 * density3;
 		testbody4->MomentInertia = (1.0 / 12.0) * testbody4->Mass * length3 * length3;
-		
-		glm::dvec2 locallink3 = testbody2->WorldToLocal(lastPosition);
 		Enyoo::LinkConstraint* link3 = new Enyoo::LinkConstraint;
 		m_NewBodySystem->AddConstraint(link3);
+		glm::dvec2 locallink3 = testbody2->WorldToLocal(lastPosition);
 		link3->SetFirstBody(testbody4);
 		link3->SetSecondBody(testbody2);
 		link3->SetFirstBodyLocal({ -length3 / 2.0, 0.0 });
-		link3->SetSecondBodyLocal(locallink3);
-		
+		link3->SetSecondBodyLocal({ 6.03 / 2.0, 0.0 });
+
 		lastPosition = testbody4->LocalToWorld({ length3 / 2.0, 0.0 });
 		//end bar3
+
 		//bar2
-		const double dx2 = 16.0 / 3.0 - lastPosition.x;
-		const double dy2 = 1.0 - lastPosition.y;
-		const double length2 = glm::sqrt(dx2 * dx2 + dy2 * dy2);
-		asdfr4.Scale = glm::vec3{ length2, 0.5, 1.0 };
-		const double theta2 = (dy2 > 0) ? glm::acos(dx2 / length2) : glm::two_pi<double>() - glm::acos(dx2 / length2);
-		
 		m_NewBodySystem->AddRigidBody(testbody2);
-		testbody2->Theta = theta2;
-		
+		testbody2->Theta = asdfr4.Rotation.z;
+		const double length2 = asdfr4.Scale.x;
+
 		glm::dvec2 world2 = testbody2->LocalToWorld({ -length2 / 2.0, 0.0 });
-		testbody2->Position = lastPosition - world2;
+		testbody2->Position.x = asdfr4.Translation.x;
+		testbody2->Position.y = asdfr4.Translation.y;
 		testbody2->Mass = length2 * density2;
 		testbody2->MomentInertia = (1.0 / 12.0) * testbody2->Mass * length2 * length2;
-		
+
 		glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
 		Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
 		m_NewBodySystem->AddConstraint(link2);
-		link2->SetFirstBody(testbody2);
-		link2->SetSecondBody(testbody1);
-		link2->SetFirstBodyLocal({ -length2 / 2.0, 0.0 });
-		link2->SetSecondBodyLocal(locallink2);
-		
+		link2->SetFirstBody(testbody2);  //body we are linking from
+		link2->SetSecondBody(testbody1); //body we are linking to 
+		link2->SetFirstBodyLocal({ -length2 / 2.0, 0.0 }); // position to link from on body we are linking
+		link2->SetSecondBodyLocal({ 8.5 / 2.0, 0.0 }); // position to link to on body we are linking to
+
 		lastPosition = testbody2->LocalToWorld({ length2 / 2.0, 0.0 });
 		//end bar2
+
+		
+
+		lastPosition = { 0.0, 1.0 };
+
+		//bar4
+		m_NewBodySystem->AddRigidBody(testbody5);
+		testbody5->Theta = asdfr45.Rotation.z;
+		const double length4 = asdfr45.Scale.x;
+
+		glm::dvec2 world4 = testbody5->LocalToWorld({ -length4 / 2.0, 0.0 });
+		testbody5->Position.x = asdfr45.Translation.x;
+		testbody5->Position.y = asdfr45.Translation.y;
+		testbody5->Mass = length4 * density4;
+		testbody5->MomentInertia = (1.0 / 12.0) * testbody5->Mass * length4 * length4;
+
+		lastPosition = testbody5->LocalToWorld({ length4 / 2.0, 0.0 });
+		//end bar4
+
+		//fix2 0, 1
+		Enyoo::FixedPositionConstraint* fixed2 = new Enyoo::FixedPositionConstraint;
+		m_NewBodySystem->AddConstraint(fixed2);
+		glm::dvec2 local5 = testbody5->WorldToLocal({ 0.0, 1.0 });
+		fixed2->SetBody(testbody5);
+		fixed2->SetLocalPosition(local5);
+		fixed2->SetWorldPosition({ 0.0, 1.0 });
+		//end2 fix
+
 		auto view2 = m_Registry.view<ForceGeneratorComponent>();
 		for (auto e : view2)
 		{

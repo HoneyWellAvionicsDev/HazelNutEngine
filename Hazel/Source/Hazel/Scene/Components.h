@@ -166,8 +166,6 @@ namespace Hazel
 		float Restitution = 0.0f;
 		float RestitutionThreshold = 0.5f; //if speed goes below this threshold, then we stop simulating bounces to avoid jittering
 
-		//void* RuntimeFixture = nullptr;
-
 		BoxCollider2DComponent() = default;
 		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
@@ -182,9 +180,6 @@ namespace Hazel
 		float Friction = 0.5f;
 		float Restitution = 0.0f;
 		float RestitutionThreshold = 0.5f;
-
-		// Storage for runtime
-		//void* RuntimeFixture = nullptr;
 
 		CircleCollider2DComponent() = default;
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;

@@ -129,14 +129,16 @@ namespace Hazel
             if (m_SceneState == SceneState::Edit && selectedEntity.HasComponent<LinkPointsComponent>())
             {  
                 auto view = m_ActiveScene->m_Registry.view<LinkPointsComponent, TransformComponent>();
+                auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();
+                auto& points = selectedEntity.GetComponent<LinkPointsComponent>().LinkPoints;
                 for (auto e : view)
                 {
-                    auto& otherPoints = view.get<LinkPointsComponent>(e).LinkPoints;    
-                    auto& otherTransform = view.get<TransformComponent>(e);
-                    auto& points = selectedEntity.GetComponent<LinkPointsComponent>().LinkPoints;
-
                     if (e == (entt::entity)selectedEntity)
                         continue;
+
+                    auto& otherPoints = view.get<LinkPointsComponent>(e).LinkPoints;    
+                    auto& otherTransform = view.get<TransformComponent>(e);
+
                     for (const auto& otherPoint : otherPoints)
                     {
                         //convert otherPoint to world with e's transform
@@ -148,12 +150,11 @@ namespace Hazel
                             * otherPoint.x + glm::cos(otherTransform.Rotation.z)
                             * otherPoint.y + otherTransform.Translation.y;
 
-                        auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();
                         for (const auto& point : points)
                         {
                             //convert point to world with selected's transform
                             glm::vec2 world;
-                            auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();
+                            //auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();
                             world.x = glm::cos(selectedTransform.Rotation.z)
                                 * point.x - glm::sin(selectedTransform.Rotation.z)
                                 * point.y + selectedTransform.Translation.x;
@@ -586,7 +587,7 @@ namespace Hazel
                         * glm::rotate(glm::mat4(1.0f), tc.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
                         * glm::translate(glm::mat4(1.0f), glm::vec3(cc2d.Offset, 0.001f))
                         * glm::scale(glm::mat4(1.0f), scale);
-
+                    
                     Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.08f);
                 }
             }
@@ -596,9 +597,10 @@ namespace Hazel
         {
             // highlight selected entity
             const auto& transform = selectedEntity.GetComponent<TransformComponent>();
-            glm::mat4 selectedTransform = glm::translate(glm::mat4(1.f), { transform.Translation.x, transform.Translation.y, 0.2f })
+            glm::mat4 selectedTransform = 
+                glm::translate(glm::mat4(1.0f), { transform.Translation.x, transform.Translation.y, transform.Translation.z + 0.001f })
                 * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
-                * glm::scale(glm::mat4(1.f), transform.Scale);
+                * glm::scale(glm::mat4(1.0f), { transform.Scale.x, transform.Scale.y, transform.Scale.z });
             Renderer2D::DrawRect(selectedTransform, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
 
             // draw snap points
@@ -608,8 +610,8 @@ namespace Hazel
                 for (auto e : view)
                 {
                     auto& tc = view.get<TransformComponent>(e);
-                    auto& lpc = view.get<LinkPointsComponent>(e).LinkPoints;
-                    for (auto& linkPoint : lpc)
+                    auto& lpc = view.get<LinkPointsComponent>(e);
+                    for (auto& linkPoint : lpc.LinkPoints)
                     {
                         glm::vec2 world;
                         world.x = glm::cos(tc.Rotation.z)

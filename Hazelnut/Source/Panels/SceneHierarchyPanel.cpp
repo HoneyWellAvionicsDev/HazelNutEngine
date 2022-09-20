@@ -405,6 +405,13 @@ namespace Hazel
 			{
 				component.LinkPoints.emplace_back(xOffset, yOffset);
 			}
+
+			ImGui::Separator();
+
+			for (auto lp : component.LinkPoints)
+			{
+				ImGui::Text("X: %f Y: %f", lp.x, lp.y);
+			}
 		});
 	
 		DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](auto& component)

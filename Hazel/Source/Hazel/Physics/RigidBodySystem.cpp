@@ -200,16 +200,17 @@ namespace Enyoo
                 {
                     m_Matrices.SparseJacobian.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.J[i]);
                     m_Matrices.SparseJacobianDot.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.Jdot[i]);
-                    currentBodyIndex -= 3;
                 }
                 else
                 {
-                    indexMap[index] = currentBodyIndex;
                     m_Matrices.SparseJacobian.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.J[i]);
                     m_Matrices.SparseJacobianDot.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.Jdot[i]);
+
+                    indexMap[index] = currentBodyIndex;
+                    currentBodyIndex += 3;
                 }
                 //constraintSlice.J[i].Print();
-                //m_MatricesData.SparseJacobian.Print();
+                //m_Matrices.SparseJacobian.Print();
             }
 
             for (uint32_t i = 0; i < c->GetConstraintCount(); i++, currentIndex++)
@@ -220,7 +221,7 @@ namespace Enyoo
             }
 
             currentConstraintIndex += c->GetConstraintCount();
-            currentBodyIndex += 3 * c->GetBodyCount();
+            //currentBodyIndex += 3 * c->GetBodyCount();
         }
 
         Matrix Cdot = m_Matrices.SparseJacobian * m_Matrices.qdot;
@@ -253,12 +254,12 @@ namespace Enyoo
         Matrix WJT = SparseJacobianTranspose.ScaleLeftDiagonal(m_Matrices.W);
         Matrix A = m_Matrices.SparseJacobian * WJT;
         //HZ_CORE_TRACE("{0}", time.ElapsedMilliseconds());
+        
         // solve matrix equation
         const bool solved = m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, &m_Matrices.lambda);
         HZ_CORE_ASSERT(solved); 
 
         // disperse matrices to state
-        //m_MatricesData.Qhat.Resize(n * 3, 1);
         m_Matrices.Qhat = SparseJacobianTranspose * m_Matrices.lambda;
   
 

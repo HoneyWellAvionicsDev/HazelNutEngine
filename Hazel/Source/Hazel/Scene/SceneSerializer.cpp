@@ -361,6 +361,7 @@ namespace Hazel
 
 		std::ofstream fileout(filepath); //add flags to create dir if DNE
 		fileout << out.c_str();
+		HZ_CORE_TRACE("Scene saved");
 	}
 
 	void SceneSerializer::SerializeRuntime(const std::string& filepath)
