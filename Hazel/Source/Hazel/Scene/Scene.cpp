@@ -374,11 +374,31 @@ namespace Hazel
 		//	m_NewBodySystem->AddRigidBody(body);
 		//	rbc.RuntimeBody = body;
 		//}
+#if 0
+		auto view2 = m_Registry.view<RigidBodyComponent>();
+		for (auto e : view2)
+		{
+			Entity entity = { e, this };
+			auto& transform = entity.GetComponent<TransformComponent>();
+			auto& rbc = entity.GetComponent<RigidBodyComponent>();
+			auto& lpc = entity.GetComponent<LinkPointsComponent>();
 
+			Ref<Enyoo::RigidBody> body = CreateRef<Enyoo::RigidBody>();
+			body->Position = { transform.Translation.x, transform.Translation.y };
+			body->Theta = transform.Rotation.z;	
+			body->Velocity = glm::dvec2{ 0.0 };
+			body->AngularVelocity = 0.0;
+			body->Mass = transform.Scale.x * rbc.Density;
+			body->MomentInertia = (1.0 / 12.0) * body->Mass * transform.Scale.x * transform.Scale.x; //for right now we are assuming pretty uniform rectangles
+
+
+			rbc.RuntimeBody = body;
+		}
+#else
 		auto view = m_Registry.view<RigidBodyComponent>();
 		auto it = view.begin();
 
-		Enyoo::RigidBody* testbody1 = new Enyoo::RigidBody;
+		Ref<Enyoo::RigidBody> testbody1 = CreateRef<Enyoo::RigidBody>();
 		testbody1->Position = { 0.0, 0.0 };
 		testbody1->Theta = 0.0;
 		testbody1->Velocity = glm::dvec2{ 0.0 };
@@ -391,7 +411,7 @@ namespace Hazel
 		auto& asdfr = m_Registry.get<TransformComponent>(*it);
 		it++;
 		
-		Enyoo::RigidBody* testbody2 = new Enyoo::RigidBody;
+		Ref<Enyoo::RigidBody> testbody2 = CreateRef<Enyoo::RigidBody>();
 		testbody2->Position = { 0.0, 0.0 };
 		testbody2->Theta = 0.0;
 		testbody2->Velocity = glm::dvec2{ 0.0 };
@@ -404,7 +424,7 @@ namespace Hazel
 		auto& asdfr4 = m_Registry.get<TransformComponent>(*it);
 		it++;
 
-		Enyoo::RigidBody* testbody3 = new Enyoo::RigidBody;
+		Ref<Enyoo::RigidBody> testbody3 = CreateRef<Enyoo::RigidBody>();
 		testbody3->Position = { 0, 1.0 };
 		testbody3->Theta = 0.0;
 		testbody3->Velocity = glm::dvec2{ 0.0 };
@@ -419,7 +439,7 @@ namespace Hazel
 		//asdf.Scale = glm::vec3{ 0.25 };
 		//it++;
 		
-		Enyoo::RigidBody* testbody4 = new Enyoo::RigidBody;
+		Ref<Enyoo::RigidBody> testbody4 = CreateRef<Enyoo::RigidBody>();
 		testbody4->Position = { 0.0, 0.0 };
 		testbody4->Theta = 0.0;
 		testbody4->Velocity = glm::dvec2{ 0.0 };
@@ -432,7 +452,7 @@ namespace Hazel
 		auto& asdfr44 = m_Registry.get<TransformComponent>(*it);
 		it++;
 
-		Enyoo::RigidBody* testbody5 = new Enyoo::RigidBody;
+		Ref<Enyoo::RigidBody> testbody5 = CreateRef<Enyoo::RigidBody>();
 		testbody5->Position = { 0.0, 0.0 };
 		testbody5->Theta = 0.0;
 		testbody5->Velocity = glm::dvec2{ 0.0 };
@@ -445,16 +465,17 @@ namespace Hazel
 		auto& asdfr45 = m_Registry.get<TransformComponent>(*it);
 		it++;
 		
+		//TODO: we need to update each ents rigidbody with that ents transform before we do anything with them (ideally this is done when we hand over to body to the rbc
 		
 		glm::dvec2 lastPosition{ 0.0, 1.0 };
 		
 		//bar1
-		m_NewBodySystem->AddRigidBody(testbody1);
-		testbody1->Theta = asdfr.Rotation.z;
+		m_NewBodySystem->AddRigidBody(testbody1.get());
+		testbody1->Theta = asdfr.Rotation.z; //this doesnt need to be done here
 		const double length1 = asdfr.Scale.x;
 
-		glm::dvec2 world1 = testbody1->LocalToWorld({ -length1 / 2.0, 0.0 });
-		testbody1->Position.x = asdfr.Translation.x;
+		glm::dvec2 world1 = testbody1->LocalToWorld({ -length1 / 2.0, 0.0 }); //these arent used anymore
+		testbody1->Position.x = asdfr.Translation.x; //this doesnt need to be done here
 		testbody1->Position.y = asdfr.Translation.y;
 		testbody1->Mass = length1 * density1;
 		testbody1->MomentInertia = (1.0 / 12.0) * testbody1->Mass * length1 * length1;
@@ -466,13 +487,13 @@ namespace Hazel
 		Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
 		m_NewBodySystem->AddConstraint(fixed1);
 		glm::dvec2 local1 = testbody1->WorldToLocal({ 0.0, 1.0 });
-		fixed1->SetBody(testbody1);
+		fixed1->SetBody(testbody1.get());
 		fixed1->SetLocalPosition(local1);
 		fixed1->SetWorldPosition({ 0.0, 1.0 });
 		//end fix
 
 		//bar3
-		m_NewBodySystem->AddRigidBody(testbody4);
+		m_NewBodySystem->AddRigidBody(testbody4.get());
 		testbody4->Theta = asdfr44.Rotation.z;
 		const double length3 = asdfr44.Scale.x;
 
@@ -484,16 +505,25 @@ namespace Hazel
 		Enyoo::LinkConstraint* link3 = new Enyoo::LinkConstraint;
 		m_NewBodySystem->AddConstraint(link3);
 		glm::dvec2 locallink3 = testbody2->WorldToLocal(lastPosition);
-		link3->SetFirstBody(testbody4);
-		link3->SetSecondBody(testbody2);
+		link3->SetFirstBody(testbody4.get());
+		link3->SetSecondBody(testbody2.get());
 		link3->SetFirstBodyLocal({ -length3 / 2.0, 0.0 });
 		link3->SetSecondBodyLocal({ 6.03 / 2.0, 0.0 });
 
 		lastPosition = testbody4->LocalToWorld({ length3 / 2.0, 0.0 });
 		//end bar3
 
+		//fix3 16, 1 //NOTE: in order for this to anywhere, we need to set the rigidbodies cooords to that of its respective ents transform
+		Enyoo::FixedPositionConstraint* fixed3 = new Enyoo::FixedPositionConstraint;
+		m_NewBodySystem->AddConstraint(fixed3);
+		glm::dvec2 local6 = testbody4->WorldToLocal({ 16.0, 1.0 });
+		fixed3->SetBody(testbody4.get());
+		fixed3->SetLocalPosition(local6);
+		fixed3->SetWorldPosition({ 16.0, 1.0 });
+		//end3 fix
+
 		//bar2
-		m_NewBodySystem->AddRigidBody(testbody2);
+		m_NewBodySystem->AddRigidBody(testbody2.get());
 		testbody2->Theta = asdfr4.Rotation.z;
 		const double length2 = asdfr4.Scale.x;
 
@@ -506,20 +536,18 @@ namespace Hazel
 		glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
 		Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
 		m_NewBodySystem->AddConstraint(link2);
-		link2->SetFirstBody(testbody2);  //body we are linking from
-		link2->SetSecondBody(testbody1); //body we are linking to 
+		link2->SetFirstBody(testbody2.get());  //body we are linking from
+		link2->SetSecondBody(testbody1.get()); //body we are linking to 
 		link2->SetFirstBodyLocal({ -length2 / 2.0, 0.0 }); // position to link from on body we are linking
 		link2->SetSecondBodyLocal({ 8.5 / 2.0, 0.0 }); // position to link to on body we are linking to
 
 		lastPosition = testbody2->LocalToWorld({ length2 / 2.0, 0.0 });
 		//end bar2
 
-		
-
+		//bar4
 		lastPosition = { 0.0, 1.0 };
 
-		//bar4
-		m_NewBodySystem->AddRigidBody(testbody5);
+		m_NewBodySystem->AddRigidBody(testbody5.get());
 		testbody5->Theta = asdfr45.Rotation.z;
 		const double length4 = asdfr45.Scale.x;
 
@@ -536,10 +564,12 @@ namespace Hazel
 		Enyoo::FixedPositionConstraint* fixed2 = new Enyoo::FixedPositionConstraint;
 		m_NewBodySystem->AddConstraint(fixed2);
 		glm::dvec2 local5 = testbody5->WorldToLocal({ 0.0, 1.0 });
-		fixed2->SetBody(testbody5);
+		fixed2->SetBody(testbody5.get());
 		fixed2->SetLocalPosition(local5);
 		fixed2->SetWorldPosition({ 0.0, 1.0 });
 		//end2 fix
+#endif
+		
 
 		auto view2 = m_Registry.view<ForceGeneratorComponent>();
 		for (auto e : view2)
@@ -578,7 +608,7 @@ namespace Hazel
 	void Scene::UpdatePhysics(Timestep ts)
 	{
 		//Timer time;
-		m_NewBodySystem->Step(0.01667, 75);
+		m_NewBodySystem->Step(0.01667, 1);
 		//if(Input::IsKeyPressed(HZ_KEY_SPACE))
 		//	m_NewBodySystem->Step(0.01667, 75);
 		
@@ -588,7 +618,7 @@ namespace Hazel
 			Entity entity = { e, this };
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rbc = entity.GetComponent<RigidBodyComponent>();
-			Enyoo::RigidBody* body = static_cast<Enyoo::RigidBody*>(rbc.RuntimeBody);
+			Ref<Enyoo::RigidBody> body = rbc.RuntimeBody;
 			transform.Translation.x = body->Position.x;
 			transform.Translation.y = body->Position.y;
 			transform.Rotation.z = body->Theta;
