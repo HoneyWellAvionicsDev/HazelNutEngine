@@ -4,6 +4,8 @@
 #include "Hazel/Core/UUID.h"
 #include "Hazel/Renderer/Texture.h"
 
+#include "Hazel/Physics/RigidBodySystem.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -138,7 +140,7 @@ namespace Hazel
 	{
 		float Density = 1.0;
 
-		void* RuntimeBody = nullptr;
+		Ref<Enyoo::RigidBody> RuntimeBody = nullptr;
 
 		RigidBodyComponent() = default;
 		RigidBodyComponent(const RigidBodyComponent&) = default;
