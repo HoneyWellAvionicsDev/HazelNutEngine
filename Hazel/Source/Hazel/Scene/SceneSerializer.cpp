@@ -295,6 +295,7 @@ namespace Hazel
 
 			auto& rigidBodyComponent = entity.GetComponent<RigidBodyComponent>();
 			out << YAML::Key << "Density" << YAML::Value << rigidBodyComponent.Density;
+			out << YAML::Key << "Fixed" << YAML::Value << rigidBodyComponent.Fixed;
 
 			out << YAML::EndMap;
 		}
@@ -389,7 +390,7 @@ namespace Hazel
 
 		if (!data["Scene"])
 			return false;
-
+		
 		std::string sceneName = data["Scene"].as<std::string>();
 		HZ_CORE_TRACE("Deserializing scene '{0}'", sceneName);
 
@@ -495,6 +496,8 @@ namespace Hazel
 				if (rigidBodyComponent)
 				{
 					auto& rbc = deserializedEntity.AddComponent<RigidBodyComponent>();
+					rbc.Density = rigidBodyComponent["Density"].as<float>();
+					rbc.Fixed = rigidBodyComponent["Fixed"].as<bool>();
 				}
 
 				auto forceGenComponent = entity["ForceGeneratorComponent"];

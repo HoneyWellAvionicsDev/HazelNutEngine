@@ -141,6 +141,7 @@ namespace Hazel
 	struct RigidBodyComponent
 	{
 		float Density = 1.0;
+		bool Fixed = false;
 
 		Ref<Enyoo::RigidBody> RuntimeBody = nullptr;
 

@@ -28,7 +28,7 @@ namespace Hazel
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
-		Entity CreateBar(const glm::vec2& position, double density, const std::string& name);
+		//Entity CreateBar(const glm::vec2& position, double density, const std::string& name);
 
 		void DestroyEntity(Entity entity);
 
@@ -47,6 +47,7 @@ namespace Hazel
 
 		Entity DuplicateEntity(Entity entity);
 
+		Entity GetEntity(UUID uuid);
 		Entity GetPrimaryCameraEntity();
 
 		template<typename... Components>

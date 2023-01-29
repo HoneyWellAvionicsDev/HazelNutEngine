@@ -40,7 +40,6 @@ namespace Hazel
 	Scene::~Scene()
 	{
 		delete m_PhysicsWorld;
-		delete m_NewBodySystem;
 	}
 
 	template<typename... Component>
@@ -91,6 +90,7 @@ namespace Hazel
 
 		newScene->m_ViewportWidth = source->m_ViewportWidth;
 		newScene->m_ViewportHeight = source->m_ViewportHeight;
+		newScene->m_EntityLinkPointMap = source->m_EntityLinkPointMap;
 		
 
 		auto& srcSceneRegistry = source->m_Registry;
@@ -129,15 +129,6 @@ namespace Hazel
 		return entity;
 	}
 
-	Entity Scene::CreateBar(const glm::vec2& position, double density, const std::string& name)
-	{
-		Entity bar = CreateEntity(name);
-		bar.AddComponent<RigidBodyComponent>();
-
-		return bar;
-		
-	}
-
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
 
@@ -148,10 +139,10 @@ namespace Hazel
 		{
 			auto range = GetLinkPoints(entity.GetUUID());
 			std::vector<glm::vec2> toBeCopied;
-
+			
 			for (auto it = range.first; it != range.second; it++)
 				toBeCopied.push_back(it->second);
-
+			
 			for (auto lp : toBeCopied)
 				AddLinkPoint(newEntity.GetUUID(), lp);
 		}
@@ -166,20 +157,19 @@ namespace Hazel
 
 	void Scene::OnRuntimeStart()
 	{
+		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
 		{
-			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+			if (nsc.InstantiateScript)
 			{
-				if (nsc.InstantiateScript)
+				if (!nsc.Instance)
 				{
-					if (!nsc.Instance)
-					{
-						nsc.Instance = nsc.InstantiateScript();
-						nsc.Instance->m_Entity = Entity{ entity, this };
-						nsc.Instance->OnCreate();
-					}
+					nsc.Instance = nsc.InstantiateScript();
+					nsc.Instance->m_Entity = Entity{ entity, this };
+					nsc.Instance->OnCreate();
 				}
-			});
-		}
+			}
+		});
+		
 
 		OnPhysics2DStart();
 		OnPhysicsStart();
@@ -272,6 +262,23 @@ namespace Hazel
 		}
 	}
 
+
+	Entity Scene::GetEntity(UUID uuid)
+	{
+		auto view = m_Registry.view<IDComponent>();
+
+		for (auto e : view)
+		{
+			Entity entity = { e, this };
+
+			auto& idc = entity.GetComponent<IDComponent>();
+
+			if (idc.ID == uuid)
+				return entity;
+		}
+
+		return Entity();
+	}
 
 	Entity Scene::GetPrimaryCameraEntity()
 	{
@@ -374,45 +381,25 @@ namespace Hazel
 
 	void Scene::OnPhysicsStart()
 	{
-		m_NewBodySystem = new Enyoo::RigidBodySystem; //TODO: stop using new dumbass we have smart pointers
-		//auto view = m_Registry.view<RigidBodyComponent>();
-		//for (auto e : view)
-		//{
-		//	Entity entity = { e, this };
-		//	auto& transform = entity.GetComponent<TransformComponent>();
-		//	auto& rbc = entity.GetComponent<RigidBodyComponent>();
-		//
-		//	Enyoo::RigidBody* body = new Enyoo::RigidBody;
-		//	body->Position = { transform.Translation.x, transform.Translation.y };
-		//	body->Theta = transform.Rotation.z;
-		//	body->Velocity = glm::dvec2{ 0.0 };
-		//	body->AngularVelocity = 0.0;
-		//	body->Mass = 3.0;
-		//	body->MomentInertia = 1.0;
-		//
-		//	m_NewBodySystem->AddRigidBody(body);
-		//	rbc.RuntimeBody = body;
-		//}
-#if 0
-		auto view2 = m_Registry.view<RigidBodyComponent>();
-		for (auto e : view2)
-		{
-			Entity entity = { e, this };
-			auto& transform = entity.GetComponent<TransformComponent>();
-			auto& rbc = entity.GetComponent<RigidBodyComponent>();
-			auto& lpc = entity.GetComponent<LinkPointsComponent>();
+		m_NewBodySystem = CreateScope<Enyoo::RigidBodySystem>(); 
+#if 1
+		m_SystemAssembler = CreateScope<DynamicSystemAssembler>(this);
+		m_SystemAssembler->GenerateRigidBodies();
+		m_SystemAssembler->GenerateForceGens();
+		m_SystemAssembler->GenerateConstraints();
 
-			Ref<Enyoo::RigidBody> body = CreateRef<Enyoo::RigidBody>();
-			body->Position = { transform.Translation.x, transform.Translation.y };
-			body->Theta = transform.Rotation.z;	
-			body->Velocity = glm::dvec2{ 0.0 };
-			body->AngularVelocity = 0.0;
-			body->Mass = transform.Scale.x * rbc.Density;
-			body->MomentInertia = (1.0 / 12.0) * body->Mass * transform.Scale.x * transform.Scale.x; //for right now we are assuming pretty uniform rectangles
+		//fix 0, 1
+		auto viewt = m_Registry.view<RigidBodyComponent>();
+		auto itt = viewt.begin();
+		auto& rbct = m_Registry.get<RigidBodyComponent>(*itt).RuntimeBody;
 
-
-			rbc.RuntimeBody = body;
-		}
+		Ref<Enyoo::FixedPositionConstraint> fixed1 = CreateRef<Enyoo::FixedPositionConstraint>();
+		m_NewBodySystem->AddConstraint(fixed1);
+		glm::dvec2 local1 = rbct->WorldToLocal({ 0.0, 1.0 });
+		fixed1->SetBody(rbct.get());
+		fixed1->SetLocalPosition(local1);
+		fixed1->SetWorldPosition({ 0.0, 1.0 });
+		//end fix
 #else
 		auto view = m_Registry.view<RigidBodyComponent>();
 		auto it = view.begin();
@@ -503,7 +490,7 @@ namespace Hazel
 		//end bar1
 
 		//fix 0, 1
-		Enyoo::FixedPositionConstraint* fixed1 = new Enyoo::FixedPositionConstraint;
+		Ref<Enyoo::FixedPositionConstraint> fixed1 = CreateRef<Enyoo::FixedPositionConstraint>();
 		m_NewBodySystem->AddConstraint(fixed1);
 		glm::dvec2 local1 = testbody1->WorldToLocal({ 0.0, 1.0 });
 		fixed1->SetBody(testbody1.get());
@@ -521,7 +508,7 @@ namespace Hazel
 		testbody4->Position.y = asdfr44.Translation.y;
 		testbody4->Mass = length3 * density3;
 		testbody4->MomentInertia = (1.0 / 12.0) * testbody4->Mass * length3 * length3;
-		Enyoo::LinkConstraint* link3 = new Enyoo::LinkConstraint;
+		Ref<Enyoo::LinkConstraint> link3 = CreateRef<Enyoo::LinkConstraint>();
 		m_NewBodySystem->AddConstraint(link3);
 		glm::dvec2 locallink3 = testbody2->WorldToLocal(lastPosition);
 		link3->SetFirstBody(testbody4.get());
@@ -531,9 +518,9 @@ namespace Hazel
 
 		lastPosition = testbody4->LocalToWorld({ length3 / 2.0, 0.0 });
 		//end bar3
-
+	
 		//fix3 16, 1 //NOTE: in order for this to anywhere, we need to set the rigidbodies cooords to that of its respective ents transform
-		Enyoo::FixedPositionConstraint* fixed3 = new Enyoo::FixedPositionConstraint;
+		Ref<Enyoo::FixedPositionConstraint> fixed3 = CreateRef<Enyoo::FixedPositionConstraint>();
 		m_NewBodySystem->AddConstraint(fixed3);
 		glm::dvec2 local6 = testbody4->WorldToLocal({ 16.0, 1.0 });
 		fixed3->SetBody(testbody4.get());
@@ -553,7 +540,7 @@ namespace Hazel
 		testbody2->MomentInertia = (1.0 / 12.0) * testbody2->Mass * length2 * length2;
 
 		glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
-		Enyoo::LinkConstraint* link2 = new Enyoo::LinkConstraint;
+		Ref<Enyoo::LinkConstraint> link2 = CreateRef<Enyoo::LinkConstraint>();
 		m_NewBodySystem->AddConstraint(link2);
 		link2->SetFirstBody(testbody2.get());  //body we are linking from
 		link2->SetSecondBody(testbody1.get()); //body we are linking to 
@@ -580,14 +567,13 @@ namespace Hazel
 		//end bar4
 
 		//fix2 0, 1
-		Enyoo::FixedPositionConstraint* fixed2 = new Enyoo::FixedPositionConstraint;
+		Ref<Enyoo::FixedPositionConstraint> fixed2 = CreateRef<Enyoo::FixedPositionConstraint>();
 		m_NewBodySystem->AddConstraint(fixed2);
 		glm::dvec2 local5 = testbody5->WorldToLocal({ 0.0, 1.0 });
 		fixed2->SetBody(testbody5.get());
 		fixed2->SetLocalPosition(local5);
 		fixed2->SetWorldPosition({ 0.0, 1.0 });
 		//end2 fix
-#endif
 		
 
 		auto view2 = m_Registry.view<ForceGeneratorComponent>();
@@ -600,9 +586,9 @@ namespace Hazel
 			{
 				case ForceGeneratorComponent::GeneratorType::Gravity:
 				{
-					Enyoo::GravitationalAccelerator* gravGen = new Enyoo::GravitationalAccelerator;
+					Ref<Enyoo::GravitationalAccelerator> gravGen = CreateRef<Enyoo::GravitationalAccelerator>();
 					gravGen->SetGravity(fgc.LocalGravity);
-					m_NewBodySystem->AddForceGen(gravGen);
+					m_NewBodySystem->AddForceGen(gravGen.get());
 					fgc.RuntimeGenerator = gravGen;
 					break;
 				}
@@ -616,8 +602,8 @@ namespace Hazel
 				}
 			}
 		}
+#endif
 		m_NewBodySystem->Initialize();
-		//m_ActiveScene->m_NewBodySystem->AddRigidBody(testbody3);
 	}
 
 	void Scene::OnPhysicsStop()
@@ -638,9 +624,12 @@ namespace Hazel
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rbc = entity.GetComponent<RigidBodyComponent>();
 			Ref<Enyoo::RigidBody> body = rbc.RuntimeBody;
-			transform.Translation.x = body->Position.x;
-			transform.Translation.y = body->Position.y;
-			transform.Rotation.z = body->Theta;
+			if (!rbc.Fixed)
+			{
+				transform.Translation.x = body->Position.x;
+				transform.Translation.y = body->Position.y;
+				transform.Rotation.z = body->Theta;
+			}
 		}
 		//HZ_CORE_TRACE("Time: {0}ms", time.ElapsedMilliseconds());
 	}
