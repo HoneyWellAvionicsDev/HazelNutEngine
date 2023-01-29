@@ -231,6 +231,7 @@ namespace Hazel
 				tag = std::string(buffer);
 			}
 		}
+		auto uuid = entity.GetUUID();
 
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
@@ -393,24 +394,26 @@ namespace Hazel
 				ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
 			}
 		});
-
-		DrawComponent<LinkPointsComponent>("Link Points", entity, [](auto& component)
+		
+		DrawComponent<LinkPointsComponent>("Link Points", entity, [=](auto& component)
 		{
 			static double xOffset = 0.0;
 			static double yOffset = 0.0;
 			ImGui::InputDouble("X Offset", &xOffset);
 			ImGui::InputDouble("Y Offset", &yOffset);
 
+			auto range = m_Context->GetLinkPoints(uuid);
 			if (ImGui::Button("Add", ImVec2(40.f, 0.f)))
 			{
-				component.LinkPoints.emplace_back(xOffset, yOffset);
+				component.Count++;
+				m_Context->AddLinkPoint(uuid, {xOffset, yOffset});
 			}
 
 			ImGui::Separator();
 
-			for (auto lp : component.LinkPoints)
+			for (auto it = range.first; it != range.second; it++)
 			{
-				ImGui::Text("X: %f Y: %f", lp.x, lp.y);
+				ImGui::Text("X: %f Y: %f", it->second.x, it->second.y);
 			}
 		});
 	

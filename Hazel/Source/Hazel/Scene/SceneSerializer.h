@@ -2,6 +2,11 @@
 
 #include "Scene.h"
 
+namespace YAML
+{ 
+	class Emitter;
+}
+
 namespace Hazel
 {
 	class SceneSerializer
@@ -11,6 +16,7 @@ namespace Hazel
 
 		void Serialize(const std::string& filepath);
 		void SerializeRuntime(const std::string& filepath);
+		void SerializeEntity(YAML::Emitter& out, Entity entity);
 
 		bool Deserialize(const std::string& filepath);
 		bool DeserializeRuntime(const std::string& filepath);

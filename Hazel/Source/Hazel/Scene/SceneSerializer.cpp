@@ -5,6 +5,7 @@
 #include "Components.h"
 #include "ScriptableEntity.h"
 
+
 #include <yaml-cpp/yaml.h>
 
 namespace YAML
@@ -159,7 +160,7 @@ namespace Hazel
 	{
 	}
 
-	static void SerializeEntity(YAML::Emitter& out, Entity entity)
+	void SceneSerializer::SerializeEntity(YAML::Emitter& out, Entity entity)
 	{
 		HZ_CORE_ASSERT(entity.HasComponent<IDComponent>(), "Entity must have a UUID");
 
@@ -221,12 +222,16 @@ namespace Hazel
 			out << YAML::BeginMap; // link points
 			
 			auto& linkPointsComponent = entity.GetComponent<LinkPointsComponent>();
-			auto& linkPoints = linkPointsComponent.LinkPoints;
-			out << YAML::Key << "Count" << YAML::Value << linkPoints.size();
 
-			for (size_t i = 0; i < linkPoints.size(); i++)
+			out << YAML::Key << "Count" << YAML::Value << linkPointsComponent.Count;
+
+			auto range = m_Scene->GetLinkPoints(entity.GetUUID());
+			int i = 0;
+
+			for (auto it = range.first; it != range.second; it++)
 			{
-				out << YAML::Key << "LinkPoint" + std::to_string(i) << YAML::Value << linkPoints.at(i);
+				out << YAML::Key << "LinkPoint" + std::to_string(i) << YAML::Value << it->second;
+				i++;
 			}
 
 			out << YAML::EndMap; // link points
@@ -339,7 +344,7 @@ namespace Hazel
 			out << YAML::EndMap; 
 		}
 
-		out << YAML::EndMap;//Entity
+		out << YAML::EndMap; //Entity
 	}
 
 	void SceneSerializer::Serialize(const std::string& filepath)
@@ -354,7 +359,7 @@ namespace Hazel
 			if (!entity)
 				return;
 
-			SerializeEntity(out, entity);
+			SerializeEntity(out, entity); 
 		});
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
@@ -437,12 +442,12 @@ namespace Hazel
 				if (linkPointsComponent)
 				{
 					auto& lpc = deserializedEntity.AddComponent<LinkPointsComponent>();
-					int count = linkPointsComponent["Count"].as<int>();
-					for (int i = 0; i < count; i++)
+					lpc.Count = linkPointsComponent["Count"].as<int>();
+
+					for (int i = 0; i < lpc.Count; i++)
 					{
 						const auto& linkPoint = linkPointsComponent["LinkPoint" + std::to_string(i)];
-						lpc.LinkPoints.push_back(linkPoint.as<glm::vec2>());
-						HZ_CORE_TRACE("{0} {1}", linkPoint.as<glm::vec2>().x, linkPoint.as<glm::vec2>().y);
+						m_Scene->AddLinkPoint(uuid, linkPoint.as<glm::vec2>());
 					}
 				}
 

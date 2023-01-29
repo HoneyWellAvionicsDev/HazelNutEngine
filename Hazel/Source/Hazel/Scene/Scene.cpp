@@ -140,8 +140,22 @@ namespace Hazel
 
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
+
 		Entity newEntity = CreateEntity(entity.GetName());
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
+
+		if (entity.HasComponent<LinkPointsComponent>())
+		{
+			auto range = GetLinkPoints(entity.GetUUID());
+			std::vector<glm::vec2> toBeCopied;
+
+			for (auto it = range.first; it != range.second; it++)
+				toBeCopied.push_back(it->second);
+
+			for (auto lp : toBeCopied)
+				AddLinkPoint(newEntity.GetUUID(), lp);
+		}
+
 		return newEntity;
 	}
 
@@ -269,6 +283,11 @@ namespace Hazel
 				return Entity{entity, this};
 		}
 		return {};
+	}
+
+	void Scene::AddLinkPoint(UUID uuid, glm::vec2 linkPoint)
+	{
+		m_EntityLinkPointMap.emplace(uuid, linkPoint);
 	}
 
 	void Scene::OnPhysics2DStart()

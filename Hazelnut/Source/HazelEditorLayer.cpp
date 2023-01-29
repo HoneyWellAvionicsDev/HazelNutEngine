@@ -16,7 +16,7 @@ namespace Hazel
 
 
     EditorLayer::EditorLayer()
-    	: Layer("EditorLayer")
+        : Layer("EditorLayer")
     {
     }
     
@@ -56,12 +56,12 @@ namespace Hazel
     
     void EditorLayer::OnDetach()
     {
-    	HZ_PROFILE_FUNCTION();
+        HZ_PROFILE_FUNCTION();
     }
     
     void EditorLayer::OnUpdate(Timestep ts)
     {
-    	HZ_PROFILE_FUNCTION();
+        HZ_PROFILE_FUNCTION();
 
         if (FrameBufferSpecification spec = m_FrameBuffer->GetSpecification();
             m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
@@ -72,16 +72,16 @@ namespace Hazel
             m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
         
-    	//------------------Update----------------------------------
+        //------------------Update----------------------------------
         m_ActiveScene->SetLevelGravity({ m_Gravity[0], m_Gravity[1] });
         m_ActiveScene->SetVelocityIterations(m_VeloctiyIterations);
         m_ActiveScene->SetPositionIterations(m_PositionIterations);
 
-    	//------------------Render----------------------------------
-    	Renderer2D::ResetStats();
+        //------------------Render----------------------------------
+        Renderer2D::ResetStats();
         m_FrameBuffer->Bind();
-    	RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
-    	RenderCommand::Clear();
+        RenderCommand::SetClearColor({ 0.04f, 0.04f, 0.04f, 1 });
+        RenderCommand::Clear();
         
         m_FrameBuffer->ClearAttachment(1, -1); //Clear ent ID to -1
         //------------------Scene----------------------------------
@@ -130,37 +130,39 @@ namespace Hazel
             {  
                 auto view = m_ActiveScene->m_Registry.view<LinkPointsComponent, TransformComponent>();
                 auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();
-                auto& points = selectedEntity.GetComponent<LinkPointsComponent>().LinkPoints;
+                auto range = m_ActiveScene->GetLinkPoints(selectedEntity.GetUUID());
                 for (auto e : view)
                 {
-                    if (e == (entt::entity)selectedEntity)
+                    Entity entity = { e, m_ActiveScene.get() };
+
+                    if (entity == selectedEntity)
                         continue;
 
-                    auto& otherPoints = view.get<LinkPointsComponent>(e).LinkPoints;    
+                    auto otherRange = m_ActiveScene->GetLinkPoints(entity.GetUUID());
                     auto& otherTransform = view.get<TransformComponent>(e);
 
-                    for (const auto& otherPoint : otherPoints)
+                    for (auto it = otherRange.first; it != otherRange.second; it++)
                     {
                         //convert otherPoint to world with e's transform
                         glm::vec2 otherWorld;
                         otherWorld.x = glm::cos(otherTransform.Rotation.z)
-                            * otherPoint.x - glm::sin(otherTransform.Rotation.z)
-                            * otherPoint.y + otherTransform.Translation.x;
+                            * it->second.x - glm::sin(otherTransform.Rotation.z)
+                            * it->second.y + otherTransform.Translation.x;
                         otherWorld.y = glm::sin(otherTransform.Rotation.z)
-                            * otherPoint.x + glm::cos(otherTransform.Rotation.z)
-                            * otherPoint.y + otherTransform.Translation.y;
+                            * it->second.x + glm::cos(otherTransform.Rotation.z)
+                            * it->second.y + otherTransform.Translation.y;
 
-                        for (const auto& point : points)
+                        for (auto iter = range.first; iter != range.second; iter++)
                         {
                             //convert point to world with selected's transform
                             glm::vec2 world;
-                            //auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();
+          
                             world.x = glm::cos(selectedTransform.Rotation.z)
-                                * point.x - glm::sin(selectedTransform.Rotation.z)
-                                * point.y + selectedTransform.Translation.x;
+                                * iter->second.x - glm::sin(selectedTransform.Rotation.z)
+                                * iter->second.y + selectedTransform.Translation.x;
                             world.y = glm::sin(selectedTransform.Rotation.z)
-                                * point.x + glm::cos(selectedTransform.Rotation.z)
-                                * point.y + selectedTransform.Translation.y;
+                                * iter->second.x + glm::cos(selectedTransform.Rotation.z)
+                                * iter->second.y + selectedTransform.Translation.y;
                             if (std::fabs(otherWorld.x - world.x) < 0.3 && std::fabs(otherWorld.y - world.y) < 0.3)
                             {
                                 //update selected's position to from snap point
@@ -606,24 +608,30 @@ namespace Hazel
             // draw snap points
             if (m_SceneState == SceneState::Edit && selectedEntity.HasComponent<LinkPointsComponent>())
             {
-                auto view = m_ActiveScene->m_Registry.view<LinkPointsComponent, TransformComponent>();
+                auto view = m_ActiveScene->m_Registry.view<TransformComponent, LinkPointsComponent>();
                 for (auto e : view)
                 {
-                    auto& tc = view.get<TransformComponent>(e);
-                    auto& lpc = view.get<LinkPointsComponent>(e);
-                    for (auto& linkPoint : lpc.LinkPoints)
+                    Entity entity = { e, m_ActiveScene.get() };
+                    auto& tc = entity.GetComponent<TransformComponent>();
+
+                    auto range = m_ActiveScene->GetLinkPoints(entity.GetUUID());
+
+                    for (auto it = range.first; it != range.second; it++)
                     {
                         glm::vec2 world;
                         world.x = glm::cos(tc.Rotation.z)
-                            * linkPoint.x - glm::sin(tc.Rotation.z)
-                            * linkPoint.y + tc.Translation.x;
+                            * it->second.x - glm::sin(tc.Rotation.z)
+                            * it->second.y + tc.Translation.x;
                         world.y = glm::sin(tc.Rotation.z)
-                            * linkPoint.x + glm::cos(tc.Rotation.z)
-                            * linkPoint.y + tc.Translation.y;
+                            * it->second.x + glm::cos(tc.Rotation.z)
+                            * it->second.y + tc.Translation.y;
                         glm::mat4 pointTransform = glm::translate(glm::mat4(1.f), {world.x, world.y, 0.3f})
                             * glm::scale(glm::mat4(1.f), glm::vec3{0.3f});
 
-                        Renderer2D::DrawCircle(pointTransform, { 1.0f, 0.2f, 0.1f, 1.0f });
+                        glm::vec4 drawColor = { 0.2f, 0.2f, 0.9f, 1.0f };
+                        if (selectedEntity == entity)
+                            drawColor = { 1.0f, 0.2f, 0.1f, 1.0f };
+                        Renderer2D::DrawCircle(pointTransform, drawColor);
                     }
                 }
             }
@@ -757,6 +765,7 @@ namespace Hazel
             return;
 
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+
         if (selectedEntity)
             m_SceneHierarchyPanel.SetSelectionContext(m_EditorScene->DuplicateEntity(selectedEntity));
     }
@@ -769,10 +778,9 @@ namespace Hazel
             auto newSelection = view.find((entt::entity)m_SceneHierarchyPanel.GetSelectedEntity());
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
             m_SceneHierarchyPanel.SetSelectionContext(Entity(*newSelection, m_ActiveScene.get()));
+            return;
         }
-        else
-        {
-            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-        }
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 }

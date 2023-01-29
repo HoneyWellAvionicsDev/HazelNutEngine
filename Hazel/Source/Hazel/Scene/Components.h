@@ -80,10 +80,12 @@ namespace Hazel
 
 	struct LinkPointsComponent
 	{
-		std::vector<glm::vec2> LinkPoints;
+		uint16_t Count = 0;
 
 		LinkPointsComponent() = default;
 		LinkPointsComponent(const LinkPointsComponent&) = default;
+		LinkPointsComponent(uint16_t count) 
+			: Count(count) {}
 	};
 
 	struct CameraComponent
