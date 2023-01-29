@@ -193,7 +193,7 @@ namespace Hazel
 			bool removeComponent = false;
 			if (ImGui::BeginPopup("ComponentSettings"))
 			{
-				if (typeid(T) != typeid(TransformComponent))
+				if (typeid(T) != typeid(TransformComponent) && typeid(T) != typeid(IDComponent))
 				{
 					if (ImGui::MenuItem("Remove component"))
 						removeComponent = true;
@@ -253,6 +253,13 @@ namespace Hazel
 			DisplayAddComponentEntry<CircleCollider2DComponent>("2D Circle Collider");
 			ImGui::EndPopup();
 		}
+
+		DrawComponent<IDComponent>("UUID", entity, [](auto& component)
+		{
+			ImGui::Separator();
+			ImGui::Text("ID: %I64u", component.ID);
+			ImGui::Separator();
+		});
 
 		DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
 		{
@@ -445,6 +452,7 @@ namespace Hazel
 		DrawComponent<RigidBodyComponent>("Rigid Body", entity, [](auto& component)
 		{
 			ImGui::DragFloat("Density", &component.Density, 1.0f, 1.0f, 1000.0f);
+			ImGui::Checkbox("Fixed Body", &component.Fixed);
 		});
 
 		DrawComponent<ForceGeneratorComponent>("Force Generator", entity, [](auto& component)

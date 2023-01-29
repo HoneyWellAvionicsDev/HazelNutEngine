@@ -14,7 +14,7 @@ class b2World;
 
 namespace Hazel
 {
-	using LinkPointMapIterator = std::unordered_multimap<UUID, glm::vec2>::iterator;
+	using LinkPointMapIterator = std::unordered_multimap<UUID, glm::dvec2>::iterator;
 
 	class Entity;
 
@@ -57,7 +57,7 @@ namespace Hazel
 		}
 
 		std::pair<LinkPointMapIterator, LinkPointMapIterator> GetLinkPoints(UUID uuid) { return m_EntityLinkPointMap.equal_range(uuid); }
-		void AddLinkPoint(UUID uuid, glm::vec2 linkPoint);
+		void AddLinkPoint(UUID uuid, glm::dvec2 linkPoint);
 
 		void SetVelocityIterations(uint16_t iter) { m_VelocityIterations = iter; }
 		void SetPositionIterations(uint16_t iter) { m_PositionIterations = iter; }
@@ -86,7 +86,7 @@ namespace Hazel
 		b2World* m_PhysicsWorld = nullptr;
 		Scope<Enyoo::RigidBodySystem> m_NewBodySystem = nullptr;
 		Scope<DynamicSystemAssembler> m_SystemAssembler = nullptr;
-		std::unordered_multimap <UUID, glm::vec2> m_EntityLinkPointMap;
+		std::unordered_multimap<UUID, glm::dvec2> m_EntityLinkPointMap;
 
 		friend class Entity;
 		friend class EditorLayer;

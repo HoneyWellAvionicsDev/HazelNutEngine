@@ -144,32 +144,18 @@ namespace Hazel
                     for (auto it = otherRange.first; it != otherRange.second; it++)
                     {
                         //convert otherPoint to world with e's transform
-                        glm::vec2 otherWorld;
-                        otherWorld.x = glm::cos(otherTransform.Rotation.z)
-                            * it->second.x - glm::sin(otherTransform.Rotation.z)
-                            * it->second.y + otherTransform.Translation.x;
-                        otherWorld.y = glm::sin(otherTransform.Rotation.z)
-                            * it->second.x + glm::cos(otherTransform.Rotation.z)
-                            * it->second.y + otherTransform.Translation.y;
+                        glm::vec2 otherWorld = Enyoo::Utilities::LocalToWorld(it->second, otherTransform.Rotation, otherTransform.Translation);
 
                         for (auto iter = range.first; iter != range.second; iter++)
                         {
                             //convert point to world with selected's transform
-                            glm::vec2 world;
-          
-                            world.x = glm::cos(selectedTransform.Rotation.z)
-                                * iter->second.x - glm::sin(selectedTransform.Rotation.z)
-                                * iter->second.y + selectedTransform.Translation.x;
-                            world.y = glm::sin(selectedTransform.Rotation.z)
-                                * iter->second.x + glm::cos(selectedTransform.Rotation.z)
-                                * iter->second.y + selectedTransform.Translation.y;
+                            glm::vec2 world = Enyoo::Utilities::LocalToWorld(iter->second, selectedTransform.Rotation, selectedTransform.Translation);
+
                             if (std::fabs(otherWorld.x - world.x) < 0.3 && std::fabs(otherWorld.y - world.y) < 0.3)
                             {
                                 //update selected's position to from snap point
                                 selectedTransform.Translation.x = otherWorld.x + (selectedTransform.Translation.x - world.x);
                                 selectedTransform.Translation.y = otherWorld.y + (selectedTransform.Translation.y - world.y);
-
-                                HZ_CORE_WARN("Snapped!");
                             }
                         }
                     }
@@ -618,19 +604,14 @@ namespace Hazel
 
                     for (auto it = range.first; it != range.second; it++)
                     {
-                        glm::vec2 world;
-                        world.x = glm::cos(tc.Rotation.z)
-                            * it->second.x - glm::sin(tc.Rotation.z)
-                            * it->second.y + tc.Translation.x;
-                        world.y = glm::sin(tc.Rotation.z)
-                            * it->second.x + glm::cos(tc.Rotation.z)
-                            * it->second.y + tc.Translation.y;
+                        glm::vec4 drawColor = { 0.2f, 0.2f, 0.9f, 1.0f };
+                        glm::vec2 world = Enyoo::Utilities::LocalToWorld(it->second, tc.Rotation, tc.Translation);
                         glm::mat4 pointTransform = glm::translate(glm::mat4(1.f), {world.x, world.y, 0.3f})
                             * glm::scale(glm::mat4(1.f), glm::vec3{0.3f});
 
-                        glm::vec4 drawColor = { 0.2f, 0.2f, 0.9f, 1.0f };
                         if (selectedEntity == entity)
                             drawColor = { 1.0f, 0.2f, 0.1f, 1.0f };
+
                         Renderer2D::DrawCircle(pointTransform, drawColor);
                     }
                 }

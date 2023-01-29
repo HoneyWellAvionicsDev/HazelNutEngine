@@ -5,7 +5,7 @@
 namespace Enyoo
 {
     void RigidBodySystem::Initialize()
-    {
+    { //this needs to be called AFTER all constraints have been added to the phys system
         m_LinearEquationSolver.Initialize(GetTotalConstraintCount());
     }
 
@@ -38,19 +38,6 @@ namespace Enyoo
             m_RigidBodies[i]->AngularVelocity = m_State.AngularVelocity[i];
             m_RigidBodies[i]->Theta = m_State.Theta[i];
         }
-
-        //for (Constraint* constraint : m_Constraints) // assign updated state to constraints
-        //{
-        //    for (size_t i = 0, c_i = 0; i < constraint->GetConstraintCount(); i++, c_i++)
-        //    {
-        //        for (size_t j = 0; j < constraint->GetBodyCount(); j++)
-        //        {
-        //            constraint->ConstraintForceX[i][j] = m_State.ConstraintForce[c_i].x;
-        //            constraint->ConstraintForceY[i][j] = m_State.ConstraintForce[c_i].y;
-        //            constraint->ConstraintTorque[i][j] = m_State.ConstraintTorque[c_i];
-        //        }
-        //    }
-        //}
     }
 
     void RigidBodySystem::AddRigidBody(RigidBody* body)
@@ -65,7 +52,7 @@ namespace Enyoo
         forceGen->SetIndex(m_ForceGenerators.size() - 1);
     }
 
-    void RigidBodySystem::AddConstraint(Constraint* constraint)
+    void RigidBodySystem::AddConstraint(const Hazel::Ref<Constraint>& constraint)
     {
         m_Constraints.push_back(constraint);
         constraint->SetIndex(m_Constraints.size() - 1);
@@ -79,7 +66,7 @@ namespace Enyoo
     {
     }
 
-    void RigidBodySystem::RemoveConstraint(Constraint* constraint)
+    void RigidBodySystem::RemoveConstraint(const Hazel::Ref<Constraint>& constraint)
     {
     }
 
@@ -87,7 +74,7 @@ namespace Enyoo
     {
         size_t total = 0;
 
-        for (Constraint* c : m_Constraints)
+        for (Hazel::Ref<Constraint> c : m_Constraints)
             total += c->GetConstraintCount();
 
         return total;
@@ -188,7 +175,7 @@ namespace Enyoo
         size_t currentConstraintIndex = 0;
         size_t currentBodyIndex = 0;
         size_t currentIndex = 0;
-        for (Constraint* c : m_Constraints)
+        for (Hazel::Ref<Constraint> c : m_Constraints)
         {
             c->Calculate(constraintSlice, &m_State);
 
@@ -223,6 +210,7 @@ namespace Enyoo
             currentConstraintIndex += c->GetConstraintCount();
             //currentBodyIndex += 3 * c->GetBodyCount();
         }
+        //m_Matrices.SparseJacobian.Print();
 
         Matrix Cdot = m_Matrices.SparseJacobian * m_Matrices.qdot;
         for (size_t i = 0; i < m_t; i++)

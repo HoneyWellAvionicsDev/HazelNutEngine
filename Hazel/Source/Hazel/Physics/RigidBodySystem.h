@@ -29,10 +29,10 @@ namespace Enyoo
 
 		void AddRigidBody(RigidBody* body);
 		void AddForceGen(ForceGenerator* forceGen);
-		void AddConstraint(Constraint* constraint);
+		void AddConstraint(const Hazel::Ref<Constraint>& constraint);
 		void RemoveRigidBody(RigidBody* body);
 		void RemoveForceGen(ForceGenerator* forceGen);
-		void RemoveConstraint(Constraint* constraint);
+		void RemoveConstraint(const Hazel::Ref<Constraint>& constraint);
 
 		size_t GetRigidBodyCount() const { return m_RigidBodies.size(); }
 		size_t GetForceGenCount() const { return m_ForceGenerators.size(); }
@@ -50,7 +50,7 @@ namespace Enyoo
 
 		std::vector<RigidBody*> m_RigidBodies;
 		std::vector<ForceGenerator*> m_ForceGenerators;
-		std::vector<Constraint*> m_Constraints;
+		std::vector<Hazel::Ref<Constraint>> m_Constraints;
 
 		RungeKutta4thIntegrator m_TimeIntegrator;
 		ConjugateGradientMethod m_LinearEquationSolver;
@@ -75,4 +75,20 @@ namespace Enyoo
 
 		m_Matrices;
 	};
+
+	namespace Utilities
+	{
+		static glm::vec2 LocalToWorld(const glm::dvec2& local, const glm::vec3& rotation, const glm::vec3& translation)
+		{
+			glm::dvec2 world;
+			world.x = glm::cos(rotation.z)
+				* local.x - glm::sin(rotation.z)
+				* local.y + translation.x;
+			world.y = glm::sin(rotation.z)
+				* local.x + glm::cos(rotation.z)
+				* local.y + translation.y;
+
+			return world;
+		}
+	}
 }

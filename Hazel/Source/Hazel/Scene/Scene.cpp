@@ -292,7 +292,7 @@ namespace Hazel
 		return {};
 	}
 
-	void Scene::AddLinkPoint(UUID uuid, glm::vec2 linkPoint)
+	void Scene::AddLinkPoint(UUID uuid, glm::dvec2 linkPoint)
 	{
 		m_EntityLinkPointMap.emplace(uuid, linkPoint);
 	}

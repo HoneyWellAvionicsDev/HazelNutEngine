@@ -155,7 +155,7 @@ namespace Hazel
 		GeneratorType Type = GeneratorType::Gravity;
 		glm::vec2 LocalGravity = { 0.0, -9.81 };
 
-		void* RuntimeGenerator = nullptr;
+		Ref<Enyoo::ForceGenerator> RuntimeGenerator = nullptr;
 
 		ForceGeneratorComponent() = default;
 		ForceGeneratorComponent(const ForceGeneratorComponent&) = default;
