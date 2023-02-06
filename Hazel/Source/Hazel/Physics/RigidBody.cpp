@@ -4,7 +4,7 @@
 namespace Enyoo
 {
     RigidBody::RigidBody()
-        : Index(-1), Position{0.0, 0.0}, Velocity{0.0, 0.0}, Theta(0.0), Mass(0.0), AngularVelocity(0.0), MomentInertia(0.0), IgnoreGravity(false)
+        : Index(-1), Position{0.0, 0.0}, Velocity{0.0, 0.0}, Theta(0.0), Mass(0.0), AngularVelocity(0.0), MomentInertia(0.0), Fixed(false)
     {
     }
 
@@ -28,7 +28,7 @@ namespace Enyoo
     glm::dvec2 RigidBody::WorldToLocal(glm::dvec2 point)
     {
         glm::dvec2 local;
-        local.x = (point.x - Position.x) * glm::cos(Theta) + (point.y - Position.y) * glm::sin(Theta);
+        local.x = (point.x - Position.x) *  glm::cos(Theta) + (point.y - Position.y) * glm::sin(Theta);
         local.y = (point.x - Position.x) * -glm::sin(Theta) + (point.y - Position.y) * glm::cos(Theta);
         return local;
     }

@@ -19,6 +19,6 @@ namespace Enyoo
 		double Mass;
 		double MomentInertia;
 
-		bool IgnoreGravity;
+		bool Fixed;
 	};
 }

@@ -5,7 +5,7 @@
 #include "Hazel/Physics/RigidBodySystem.h"
 #include "Hazel/Renderer/EditorCamera.h"
 
-#include "DynamicSystemAssembler.h"
+//#include "DynamicSystemAssembler.h"
 
 #include "entt.hpp"
 
@@ -14,13 +14,13 @@ class b2World;
 
 namespace Hazel
 {
-	using LinkPointMapIterator = std::unordered_multimap<UUID, glm::dvec2>::iterator;
-
 	class Entity;
 
 	class Scene
 	{
 	public:
+		using LinkPointMapIterator = std::unordered_multimap<UUID, glm::dvec2>::iterator;
+
 		Scene();
 		~Scene();
 
@@ -28,7 +28,6 @@ namespace Hazel
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
-		//Entity CreateBar(const glm::vec2& position, double density, const std::string& name);
 
 		void DestroyEntity(Entity entity);
 
@@ -84,8 +83,8 @@ namespace Hazel
 		uint16_t m_PositionIterations = 2;
 		glm::vec2 m_LocalGravity{ 0.0f };
 		b2World* m_PhysicsWorld = nullptr;
+
 		Scope<Enyoo::RigidBodySystem> m_NewBodySystem = nullptr;
-		Scope<DynamicSystemAssembler> m_SystemAssembler = nullptr;
 		std::unordered_multimap<UUID, glm::dvec2> m_EntityLinkPointMap;
 
 		friend class Entity;

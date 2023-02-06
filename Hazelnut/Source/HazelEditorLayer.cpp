@@ -344,12 +344,6 @@ namespace Hazel
             float windowHeight = (float)ImGui::GetWindowHeight();
             ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
-            ////get runtime cam
-            //auto cameraEntity = m_Scene->GetPrimaryCameraEntity();
-            //const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-            //const glm::mat4& cameraProjection = camera.GetProjection();
-            //glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
-
             //Get Editor cam
             const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
             glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();

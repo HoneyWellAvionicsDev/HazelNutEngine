@@ -25,15 +25,15 @@ namespace Hazel
 		glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
 		m_InitialMousePosition = mouse;
 
-		if (Input::IsMouseButtonPressed((HZ_MOUSE_BUTTON_5)))
-		{
-			if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_MIDDLE))
-				MousePan(delta);
-			else if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_LEFT))
-				MouseRotate(delta);
-			else if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_RIGHT))
-				MouseZoom(delta.y);
-		}
+		
+		
+		if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_MIDDLE))
+			MousePan(delta);
+		else if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_4))
+			MouseRotate(delta);
+		else if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_RIGHT))
+			MouseZoom(delta.y);
+		
 
 		UpdateView();
 	}

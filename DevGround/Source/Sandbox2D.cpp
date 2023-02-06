@@ -14,7 +14,7 @@ static const char* s_MapTiles =
 "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD";
 
 Sandbox2D::Sandbox2D()
-	: Layer("Sandbox2D"), m_CameraController(1280.f / 720.f, true)
+	: Layer("Sandbox2D"), m_CameraController(1280.f / 720.f)
 {
 }
 

@@ -7,6 +7,7 @@
 
 #include <glm/glm.hpp>
 
+
 namespace Hazel
 {
 	class Entity
@@ -53,7 +54,10 @@ namespace Hazel
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
 		}
 
+		void MarkForDeletion() { m_MarkedForDelete = true; }
+
 		UUID GetUUID() { return GetComponent<IDComponent>().ID; }
+		entt::entity GetHandle() const { return m_EntityHandle; }
 		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 		glm::mat4 GetTransform() { return GetComponent<TransformComponent>().GetTransform(); } //TODO: this should return a reference
 
@@ -64,9 +68,25 @@ namespace Hazel
 
 		bool operator==(const Entity& other) const { return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene; }
 		bool operator!=(const Entity& other) const { return !(*this == other); }
+		bool operator<(const Entity& other) const { return m_EntityHandle < other.m_EntityHandle; }
 
 	private:
 		entt::entity m_EntityHandle{ entt::null };
+		bool m_MarkedForDelete = false;
 		Scene* m_Scene = nullptr; 
+	};
+}
+
+namespace std
+{
+	template<typename T> struct hash;
+
+	template<>
+	struct hash<Hazel::Entity>
+	{
+		size_t operator()(const Hazel::Entity& entity) const
+		{
+			return (uint32_t)entity;
+		}
 	};
 }

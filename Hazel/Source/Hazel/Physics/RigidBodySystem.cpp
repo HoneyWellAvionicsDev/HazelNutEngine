@@ -175,13 +175,14 @@ namespace Enyoo
         size_t currentConstraintIndex = 0;
         size_t currentBodyIndex = 0;
         size_t currentIndex = 0;
-        for (Hazel::Ref<Constraint> c : m_Constraints)
-        {
-            c->Calculate(constraintSlice, &m_State);
 
-            for (uint32_t i = 0; i < c->GetBodyCount(); i++)
+        for (Hazel::Ref<Constraint> constraint : m_Constraints)
+        {
+            constraint->Calculate(constraintSlice, &m_State);
+
+            for (uint32_t i = 0; i < constraint->GetBodyCount(); i++)
             {
-                const size_t index = c->GetBody(i)->Index;
+                const size_t index = constraint->GetBody(i)->Index;
 
                 if (indexMap.count(index))
                 {
@@ -200,14 +201,14 @@ namespace Enyoo
                 //m_Matrices.SparseJacobian.Print();
             }
 
-            for (uint32_t i = 0; i < c->GetConstraintCount(); i++, currentIndex++)
+            for (uint32_t i = 0; i < constraint->GetConstraintCount(); i++, currentIndex++)
             {
                 m_Matrices.C[currentIndex][0] = constraintSlice.C[i][0];
                 m_Matrices.ks[currentIndex][0] = constraintSlice.ks[i][0];
                 m_Matrices.kd[currentIndex][0] = constraintSlice.kd[i][0];
             }
 
-            currentConstraintIndex += c->GetConstraintCount();
+            currentConstraintIndex += constraint->GetConstraintCount();
             //currentBodyIndex += 3 * c->GetBodyCount();
         }
         //m_Matrices.SparseJacobian.Print();
@@ -227,13 +228,11 @@ namespace Enyoo
         }
        
         // set up matrix equation
-        Hazel::Timer time;
-        //m_Matrices.WQ = m_Matrices.Q.ScaleLeftDiagonal(m_Matrices.W); // W * Q
+ 
         Matrix::ScaleLeftDiagonal(m_Matrices.Q, m_Matrices.W, m_Matrices.WQ);
-        //Matrix JWQ = m_Matrices.SparseJacobian * WQ;
         Matrix::Multiply(m_Matrices.SparseJacobian, m_Matrices.WQ, m_Matrices.JWQ);
-        //Matrix JdotQdot = m_Matrices.SparseJacobianDot * m_Matrices.qdot;
         Matrix::Multiply(m_Matrices.SparseJacobianDot, m_Matrices.qdot, m_Matrices.JdotQdot);
+
         m_Matrices.JdotQdot = -1 * m_Matrices.JdotQdot;
         m_Matrices.JdotQdot -= m_Matrices.JWQ;
         m_Matrices.JdotQdot -= m_Matrices.ks;
@@ -241,22 +240,12 @@ namespace Enyoo
         Matrix SparseJacobianTranspose = m_Matrices.SparseJacobian.Transpose();
         Matrix WJT = SparseJacobianTranspose.ScaleLeftDiagonal(m_Matrices.W);
         Matrix A = m_Matrices.SparseJacobian * WJT;
-        //HZ_CORE_TRACE("{0}", time.ElapsedMilliseconds());
         
         // solve matrix equation
-        const bool solved = m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, &m_Matrices.lambda);
-        HZ_CORE_ASSERT(solved); 
+        m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, &m_Matrices.lambda);
 
         // disperse matrices to state
         m_Matrices.Qhat = SparseJacobianTranspose * m_Matrices.lambda;
-  
-
-        //for (size_t i = 0; i < n; i++)
-        //{
-        //    m_State.ConstraintForce[i].x = Qhat[i * 3 + 0][0];
-        //    m_State.ConstraintForce[i].y = Qhat[i * 3 + 1][0];
-        //    m_State.ConstraintTorque[i] = Qhat[i * 3 + 2][0];
-        //}
 
         // xdotdot = (AppiliedForce + ConstraintForce) / m
         for (size_t i = 0; i < n; i++)

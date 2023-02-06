@@ -8,6 +8,7 @@
 #include "Components.h"
 #include "Entity.h"
 #include "ScriptableEntity.h"
+#include "DynamicSystemAssembler.h"
 
 #include <glm/glm.hpp>
 
@@ -16,6 +17,7 @@
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_polygon_shape.h>
 #include "box2d/b2_circle_shape.h"
+
 
 namespace Hazel
 {
@@ -383,10 +385,10 @@ namespace Hazel
 	{
 		m_NewBodySystem = CreateScope<Enyoo::RigidBodySystem>(); 
 #if 1
-		m_SystemAssembler = CreateScope<DynamicSystemAssembler>(this);
-		m_SystemAssembler->GenerateRigidBodies();
-		m_SystemAssembler->GenerateForceGens();
-		m_SystemAssembler->GenerateConstraints();
+		Scope<DynamicSystemAssembler> SystemAssembler = CreateScope<DynamicSystemAssembler>(this);
+		SystemAssembler->GenerateRigidBodies();
+		SystemAssembler->GenerateForceGens();
+		SystemAssembler->GenerateConstraints();
 
 		//fix 0, 1
 		auto viewt = m_Registry.view<RigidBodyComponent>();
@@ -471,7 +473,6 @@ namespace Hazel
 		auto& asdfr45 = m_Registry.get<TransformComponent>(*it);
 		it++;
 		
-		//TODO: we need to update each ents rigidbody with that ents transform before we do anything with them (ideally this is done when we hand over to body to the rbc
 		
 		glm::dvec2 lastPosition{ 0.0, 1.0 };
 		
@@ -624,6 +625,7 @@ namespace Hazel
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rbc = entity.GetComponent<RigidBodyComponent>();
 			Ref<Enyoo::RigidBody> body = rbc.RuntimeBody;
+
 			if (!rbc.Fixed)
 			{
 				transform.Translation.x = body->Position.x;

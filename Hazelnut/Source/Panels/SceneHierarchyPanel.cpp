@@ -87,7 +87,7 @@ namespace Hazel
 		if (ImGui::BeginPopupContextItem()) //TODO: only display this menu if SceneState == Edit (we dont wanna delete entities during runtime)
 		{
 			if (ImGui::MenuItem("Delete Entity"))
-				entityDeleted = true;
+				entityDeleted = true; //the entity should contain this bool
 
 			ImGui::EndPopup();
 		}
@@ -98,7 +98,7 @@ namespace Hazel
 			ImGui::TreePop();
 		}
 
-		if (entityDeleted)
+		if (entityDeleted) //deletion should not be done here (this is inside a lambda that gets sent over to entt)
 		{
 			m_Context->DestroyEntity(entity);
 			if (m_SelectionContext == entity)
