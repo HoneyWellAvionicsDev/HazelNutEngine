@@ -278,11 +278,10 @@ namespace Hazel
         ImGui::Text("Quads: %d", stats.QuadCount);
         ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+        if(m_SceneState == SceneState::Simulate || m_SceneState == SceneState::Play)
+            ImGui::Text("Total system energy: %f", m_ActiveScene->GetRigidBodySystem()->GetTotalSystemEnergy());
         ImGui::Separator();
-        //static double highest = 0.0;
-        //if (m_ActiveScene->m_NewBodySystem->GetTotalSystemEnergy() > highest)
-        //    highest = m_ActiveScene->m_NewBodySystem->GetTotalSystemEnergy();
-        //ImGui::Text("Total system energy: %f", highest);
+ 
 
         ImGui::End();
 

@@ -5,8 +5,6 @@
 #include "Hazel/Physics/RigidBodySystem.h"
 #include "Hazel/Renderer/EditorCamera.h"
 
-//#include "DynamicSystemAssembler.h"
-
 #include "entt.hpp"
 
 class b2World;
@@ -14,15 +12,15 @@ class b2World;
 
 namespace Hazel
 {
+	using LinkPointMap = std::unordered_multimap<UUID, glm::dvec2>;
+	using LinkPointMapIterator = LinkPointMap::iterator;
+	using IteratorPair = std::pair<LinkPointMapIterator, LinkPointMapIterator>;
+
 	class Entity;
 
 	class Scene
 	{
 	public:
-		using LinkPointMap = std::unordered_multimap<UUID, glm::dvec2>;
-		using LinkPointMapIterator = LinkPointMap::iterator;
-		using IteratorPair = std::pair<LinkPointMapIterator, LinkPointMapIterator>;
-
 		Scene();
 		~Scene();
 

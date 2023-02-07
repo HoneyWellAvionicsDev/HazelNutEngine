@@ -419,12 +419,27 @@ namespace Hazel
 
 			ImGui::Separator();
 
+			LinkPointMapIterator iteratorToDelete = LinkPointMapIterator();
+			bool deletePoint = false;
+
 			for (auto it = range.first; it != range.second; it++)
 			{
 				ImGui::Text("X: %f Y: %f", it->second.x, it->second.y);
+				ImGui::SameLine();
+				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.f;
+				ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
+				if (ImGui::Button("x", buttonSize))
+				{
+					deletePoint = true;
+					iteratorToDelete = it;
+					component.Count--;
+				}
 			}
+
+			if (deletePoint)
+				m_Context->RemoveLinkPoint(iteratorToDelete);
 		});
-	
+
 		DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](auto& component)
 		{
 			const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
@@ -452,7 +467,7 @@ namespace Hazel
 
 		DrawComponent<RigidBodyComponent>("Rigid Body", entity, [](auto& component)
 		{
-			ImGui::DragFloat("Density", &component.Density, 1.0f, 1.0f, 1000.0f);
+			ImGui::DragFloat("Density", &component.Density, 0.100f, 0.001f, 10000.0f);
 			ImGui::Checkbox("Fixed Body", &component.Fixed);
 		});
 
@@ -479,7 +494,15 @@ namespace Hazel
 			}
 
 			if (component.Type == ForceGeneratorComponent::GeneratorType::Gravity)
-				ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity));
+			{
+				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.f;
+				ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
+				if (ImGui::Button("X", buttonSize))
+					component.LocalGravity = { 0.0f, -9.81f };
+
+				ImGui::SameLine();
+				ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity), 0.100f, 0.000f, 60.0f);
+			}
 		});
 
 		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
@@ -488,7 +511,7 @@ namespace Hazel
 			ImGui::DragFloat2("Size", glm::value_ptr(component.Size));
 			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f); 
-			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f); //[0, 1] range but it doesnt have to be [0, 1]
+			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f); 
 			ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
 		});
 

@@ -295,11 +295,6 @@ namespace Hazel
 		return {};
 	}
 
-	void Scene::AddLinkPoint(UUID uuid, glm::dvec2 linkPoint)
-	{
-		m_EntityLinkPointMap.emplace(uuid, linkPoint);
-	}
-
 	void Scene::OnPhysics2DStart()
 	{
 		m_PhysicsWorld = new b2World({ 0.f, 0.f });
