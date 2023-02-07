@@ -68,6 +68,7 @@ namespace Hazel
 	bool DynamicSystemAssembler::GenerateConstraints()
 	{
 		auto view = m_Scene->GetAllEntitiesWith<RigidBodyComponent, LinkPointsComponent>();
+		auto allBodies = m_Scene->GetAllEntitiesWith<RigidBodyComponent>();
 
 		for (auto e : view) 
 		{
@@ -105,6 +106,7 @@ namespace Hazel
 		for (auto e : view)
 		{
 			Entity entity{ e, m_Scene };
+
 			auto& rbc = entity.GetComponent<RigidBodyComponent>();
 			auto& focusTransform = entity.GetComponent<TransformComponent>();
 			uint32_t linkCount = 0;
@@ -134,6 +136,11 @@ namespace Hazel
 
 			if (linkCount == 1 && !rbc.Fixed) 
 				leafNodes.push(entity);
+
+			//if (m_AdjacencyList.count(entity) == 0)
+			//{
+			//	m_Scene->GetRigidBodySystem()->AddRigidBody(rbc.RuntimeBody.get()); //I dont think our phys engine supports non linked bodies
+			//}
 		}
 
 
@@ -146,10 +153,10 @@ namespace Hazel
 			Entity focusNode = entity;
 			for (auto targetNode : path)
 			{
-				if (focusNode == targetNode) //avoid self linkage 
+				if (focusNode == targetNode) 
 					continue;
 
-				if (IsInPath(this->m_HandledEntities, focusNode)) //avoid linking if focusNode has been linked already
+				if (IsInPath(this->m_HandledEntities, focusNode)) 
 					continue;
 
 				auto& focusBody = focusNode.GetComponent<RigidBodyComponent>();
@@ -169,6 +176,17 @@ namespace Hazel
 			}
 
 
+		}
+
+		for (auto e : allBodies)
+		{
+			Entity entity{ e, m_Scene };
+			auto& rbc = entity.GetComponent<RigidBodyComponent>();
+
+			if (m_AdjacencyList.count(entity) == 0)
+			{
+				m_Scene->GetRigidBodySystem()->AddRigidBody(rbc.RuntimeBody.get());
+			}
 		}
 
 		for (auto e : view)
