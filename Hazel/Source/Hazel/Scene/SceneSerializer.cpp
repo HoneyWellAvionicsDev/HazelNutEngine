@@ -348,11 +348,13 @@ namespace Hazel
 		out << YAML::EndMap; //Entity
 	}
 
-	void SceneSerializer::Serialize(const std::string& filepath)
+	void SceneSerializer::Serialize(const std::filesystem::path& filepath)
 	{
+		const std::filesystem::path fileName = filepath.filename().replace_extension();
+
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
+		out << YAML::Key << "Scene" << YAML::Value << fileName.string();
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 		m_Scene->m_Registry.each([&](auto entityID)
 		{
@@ -370,17 +372,17 @@ namespace Hazel
 		HZ_CORE_TRACE("Scene saved");
 	}
 
-	void SceneSerializer::SerializeRuntime(const std::string& filepath)
+	void SceneSerializer::SerializeRuntime(const std::filesystem::path& filepath)
 	{
 		HZ_CORE_ASSERT(false, "implement");
 	}
 
-	bool SceneSerializer::Deserialize(const std::string& filepath)
+	bool SceneSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
 		YAML::Node data;
 		try
 		{
-			data = YAML::LoadFile(filepath);
+			data = YAML::LoadFile(filepath.string());
 		}
 		catch (YAML::ParserException e)
 		{
@@ -393,6 +395,7 @@ namespace Hazel
 		
 		std::string sceneName = data["Scene"].as<std::string>();
 		HZ_CORE_TRACE("Deserializing scene '{0}'", sceneName);
+		m_Scene->SetSceneName(sceneName);
 
 		auto entities = data["Entities"];
 		if (entities)
@@ -539,7 +542,7 @@ namespace Hazel
 		return true;
 	}
 
-	bool SceneSerializer::DeserializeRuntime(const std::string& filepath)
+	bool SceneSerializer::DeserializeRuntime(const std::filesystem::path& filepath)
 	{
 		HZ_CORE_ASSERT(false, "implement");
 		return false;

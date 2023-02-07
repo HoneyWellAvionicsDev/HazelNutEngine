@@ -38,6 +38,7 @@ namespace Hazel
 
 		if (m_Context)
 		{
+			ImGui::Text("Scene: %s", m_Context->GetSceneName().string().c_str());
 			static ImGuiTextFilter filter;
 			filter.Draw("Search");
 			

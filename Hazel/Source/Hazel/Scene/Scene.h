@@ -56,12 +56,15 @@ namespace Hazel
 			return m_Registry.view<Components...>();
 		}
 
-		IteratorPair GetLinkPoints(UUID uuid) { return m_EntityLinkPointMap.equal_range(uuid); }
-		void AddLinkPoint(UUID uuid, glm::dvec2 linkPoint);
-
 		LinkPointMap GetLinkPointMap() const { return m_EntityLinkPointMap; }
 		Ref<Enyoo::RigidBodySystem> GetRigidBodySystem() const { return m_ConstrainedBodySystem; }
+		std::filesystem::path GetSceneName() const { return m_SceneName; }
 
+		IteratorPair GetLinkPoints(UUID uuid) { return m_EntityLinkPointMap.equal_range(uuid); }
+		void AddLinkPoint(UUID uuid, glm::dvec2 linkPoint) { m_EntityLinkPointMap.emplace(uuid, linkPoint); }
+		void RemoveLinkPoint(LinkPointMapIterator iter) { m_EntityLinkPointMap.erase(iter); }
+
+		void SetSceneName(const std::filesystem::path& fileName) { m_SceneName = fileName; }
 		void SetVelocityIterations(uint16_t iter) { m_VelocityIterations = iter; }
 		void SetPositionIterations(uint16_t iter) { m_PositionIterations = iter; }
 		void SetLevelGravity(glm::vec2 localAcceleration) { m_LocalGravity = localAcceleration; }
@@ -82,6 +85,7 @@ namespace Hazel
 		entt::registry m_Registry;
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;
+		std::filesystem::path m_SceneName;
 
 		uint16_t m_VelocityIterations = 6;
 		uint16_t m_PositionIterations = 2;

@@ -649,7 +649,7 @@ namespace Hazel
 
         Ref<Scene> newScene = CreateRef<Scene>();
         SceneSerializer serializer(newScene);
-        if (serializer.Deserialize(filepath.string())) //TODO: lets just use filesystem paths instead of strings
+        if (serializer.Deserialize(filepath)) 
         {
             m_EditorScene = newScene;
             m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
@@ -666,7 +666,7 @@ namespace Hazel
     {
         if (m_SceneState != SceneState::Edit)
             return;
-        //TODO: display a message somewhere to indicate a save
+
         if (!m_EditorScenePath.empty())
             SerializeScene(m_ActiveScene, m_EditorScenePath);
         else

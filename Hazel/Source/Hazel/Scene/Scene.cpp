@@ -35,6 +35,7 @@ namespace Hazel
 	}
 
 	Scene::Scene()
+		: m_SceneName("Untilted")
 	{
 
 	}
