@@ -1,19 +1,14 @@
 #include "hzpch.h"
 
-#include "Hazel/Physics/RigidBodySystem.h"
-
 #include "DynamicSystemAssembler.h"
 #include "Components.h"
-
 #include "Entity.h"
+
+#include "Hazel/Physics/RigidBodySystem.h"
 
 
 namespace Hazel
 {
-	std::pair<glm::dvec2, glm::dvec2> GetLocals(Entity focusEntity, Entity targetEntity, Scene* scene);
-	bool IsInPath(const std::vector<Entity>& path, Entity entity);
-	std::vector<Hazel::Entity> BreadthFirstSearch(const std::unordered_multimap<Hazel::Entity, Hazel::Entity>& graph, Hazel::Entity source);
-
     DynamicSystemAssembler::DynamicSystemAssembler(Scene* scene)
         : m_Scene(scene)
     {
@@ -25,21 +20,21 @@ namespace Hazel
 		auto& targetBody = target.GetComponent<RigidBodyComponent>().RuntimeBody;
 
 		Ref<Enyoo::LinkConstraint> linkConstraint = CreateRef<Enyoo::LinkConstraint>();
-		m_Scene->m_NewBodySystem->AddConstraint(linkConstraint);
-		m_Scene->m_NewBodySystem->AddRigidBody(focusBody.get());
+		m_Scene->GetRigidBodySystem()->AddConstraint(linkConstraint);
+		m_Scene->GetRigidBodySystem()->AddRigidBody(focusBody.get());
 		linkConstraint->SetFirstBody(focusBody.get());
 		linkConstraint->SetSecondBody(targetBody.get());
 		linkConstraint->SetFirstBodyLocal(focusLocal);
 		linkConstraint->SetSecondBodyLocal(targetLocal);
     }
 
-	void DynamicSystemAssembler::FixBody(Entity focus, Entity target, const glm::dvec2& world)
+	void DynamicSystemAssembler::FixBody(Entity focus, Entity target, const glm::dvec2& local)
 	{
 		auto& focusBody = focus.GetComponent<RigidBodyComponent>().RuntimeBody;
 		auto& targetBody = target.GetComponent<RigidBodyComponent>().RuntimeBody;
 		Ref<Enyoo::FixedPositionConstraint> fixedPositionConstraint = CreateRef<Enyoo::FixedPositionConstraint>();
-		glm::dvec2 local = focusBody->WorldToLocal(world);
-		m_Scene->m_NewBodySystem->AddConstraint(fixedPositionConstraint);
+		glm::dvec2 world = focusBody->LocalToWorld(local);
+		m_Scene->GetRigidBodySystem()->AddConstraint(fixedPositionConstraint);
 		fixedPositionConstraint->SetBody(focusBody.get());
 		fixedPositionConstraint->SetLocalPosition(local);
 		fixedPositionConstraint->SetWorldPosition(world);
@@ -48,7 +43,6 @@ namespace Hazel
     bool DynamicSystemAssembler::GenerateRigidBodies()
     {
         auto view = m_Scene->GetAllEntitiesWith<RigidBodyComponent>();
-		size_t Index = 0;
 	
 		for (auto e : view)											
 		{
@@ -88,7 +82,7 @@ namespace Hazel
 				glm::dvec2 focusWorld = Enyoo::Utilities::LocalToWorld(it->second, focusTransform.Rotation, focusTransform.Translation);
 
 				//iterate over a list of all other link points some how
-				auto LinkMap = m_Scene->m_EntityLinkPointMap;
+				auto LinkMap = m_Scene->GetLinkPointMap();
 				for (auto iter = LinkMap.begin(); iter != LinkMap.end(); iter++)
 				{
 					if (iter->first == it->first)
@@ -107,37 +101,47 @@ namespace Hazel
 			}
 		}
 
-		for (auto it = m_AdjacencyList.begin(); it != m_AdjacencyList.end(); it++)
-		{
-			auto handle = it->first.GetHandle();
-			auto& IDC = m_Scene->m_Registry.get<IDComponent>(handle);
-			HZ_CORE_TRACE("First: '{0}'", IDC.ID);
-			HZ_CORE_TRACE("Second: '{0}'", it->second.GetUUID());
-		}
-
 		std::queue<Entity> leafNodes;
 		for (auto e : view)
 		{
 			Entity entity{ e, m_Scene };
 			auto& rbc = entity.GetComponent<RigidBodyComponent>();
+			auto& focusTransform = entity.GetComponent<TransformComponent>();
+			uint32_t linkCount = 0;
 
-			if (m_AdjacencyList.count(entity) == 1) //this check is not sufficent
+			auto currentLinkPoints = m_Scene->GetLinkPoints(entity.GetUUID());
+			for (auto it = currentLinkPoints.first; it != currentLinkPoints.second; it++)
 			{
-				//ensure entity is not a fixed rigidbody
-				if (rbc.Fixed)
-					continue;
+				auto LinkMap = m_Scene->GetLinkPointMap();
+				for (auto iter = LinkMap.begin(); iter != LinkMap.end(); iter++)
+				{
+					Entity otherEntity = m_Scene->GetEntity(iter->first);
 
-				leafNodes.push(entity);
+					if (entity == otherEntity)
+						continue;
+
+					auto& targetTransform = otherEntity.GetComponent<TransformComponent>();
+					auto focusWorld = Enyoo::Utilities::LocalToWorld(it->second, focusTransform.Rotation, focusTransform.Translation);
+					auto targetWorld = Enyoo::Utilities::LocalToWorld(iter->second, targetTransform.Rotation, targetTransform.Translation);
+
+					if (std::fabs(targetWorld.x - focusWorld.x) < 0.1 && std::fabs(targetWorld.y - focusWorld.y) < 0.1)
+					{
+						linkCount++;
+						break;
+					}
+				}
 			}
+
+			if (linkCount == 1 && !rbc.Fixed) 
+				leafNodes.push(entity);
 		}
 
 
 		while (!leafNodes.empty())
 		{
 			Entity entity = leafNodes.front();
-			HZ_CORE_TRACE("QUEUE: {0}", entity.GetUUID());
 			leafNodes.pop();
-			auto path = BreadthFirstSearch(m_AdjacencyList, entity);
+			auto path = BFSGeneratePath(m_AdjacencyList, entity);
 
 			Entity focusNode = entity;
 			for (auto targetNode : path)
@@ -150,26 +154,44 @@ namespace Hazel
 
 				auto& focusBody = focusNode.GetComponent<RigidBodyComponent>();
 				auto& targetBody = targetNode.GetComponent<RigidBodyComponent>();
-				auto [focusLocal, targetLocal] = GetLocals(focusNode, targetNode, m_Scene);
+				auto [focusLocal, targetLocal] = GetLocals(focusNode, targetNode);
 
-				if (targetBody.Fixed)
+				if (targetBody.Fixed) 
 				{
-					m_Scene->m_NewBodySystem->AddRigidBody(focusBody.RuntimeBody.get());
+					m_Scene->GetRigidBodySystem()->AddRigidBody(focusBody.RuntimeBody.get());
+					m_HandledEntities.push_back(focusNode);
 					break;
 				}
 
 				LinkBody(focusNode, targetNode, focusLocal, targetLocal);
-
-				HZ_CORE_TRACE("ADDED {0}", focusNode.GetUUID());
 				m_HandledEntities.push_back(focusNode);
-
 				focusNode = targetNode;
 			}
 
 
 		}
-		//do fixed constraints seperately
 
+		for (auto e : view)
+		{
+			Entity entity{ e, m_Scene };
+
+			auto& rbc = entity.GetComponent<RigidBodyComponent>();
+
+			if (rbc.Fixed)
+			{
+				auto range = m_AdjacencyList.equal_range(entity);
+
+				for (auto it = range.first; it != range.second; it++)
+				{
+					if (entity == it->second)
+						HZ_CORE_ASSERT(false, "this should never happen");
+
+					auto [focusLocal, targetLocal] = GetLocals(it->second, entity);
+
+					FixBody(it->second, entity, focusLocal);
+				}
+			}
+		}
 
 		return false;
 	}
@@ -188,7 +210,7 @@ namespace Hazel
 				{
 					Ref<Enyoo::GravitationalAccelerator> gravGen = CreateRef<Enyoo::GravitationalAccelerator>();
 					gravGen->SetGravity(fgc.LocalGravity);
-					m_Scene->m_NewBodySystem->AddForceGen(gravGen.get());
+					m_Scene->GetRigidBodySystem()->AddForceGen(gravGen.get());
 					fgc.RuntimeGenerator = gravGen;
 					break;
 				}
@@ -206,10 +228,10 @@ namespace Hazel
 		return false;
 	}
 
-	std::pair<glm::dvec2, glm::dvec2> GetLocals(Entity focusEntity, Entity targetEntity, Scene* scene)
+	std::pair<glm::dvec2, glm::dvec2> DynamicSystemAssembler::GetLocals(Entity focusEntity, Entity targetEntity)
 	{
-		auto focusRange = scene->GetLinkPoints(focusEntity.GetUUID());
-		auto targetRange = scene->GetLinkPoints(targetEntity.GetUUID());
+		auto focusRange = m_Scene->GetLinkPoints(focusEntity.GetUUID());
+		auto targetRange = m_Scene->GetLinkPoints(targetEntity.GetUUID());
 		auto& focusTransform = focusEntity.GetComponent<TransformComponent>();
 		auto& targetTransform = targetEntity.GetComponent<TransformComponent>();
 
@@ -229,7 +251,7 @@ namespace Hazel
 		return {};
 	}
 
-	bool IsInPath(const std::vector<Entity>& path, Entity entity)
+	bool DynamicSystemAssembler::IsInPath(const std::vector<Entity>& path, Entity entity)
 	{
 		for (auto e : path)
 		{
@@ -240,11 +262,10 @@ namespace Hazel
 		return false;
 	}
 
-	std::vector<Hazel::Entity> BreadthFirstSearch(const std::unordered_multimap<Hazel::Entity, Hazel::Entity>& graph, Hazel::Entity source)
+	std::vector<Entity> DynamicSystemAssembler::BFSGeneratePath(const std::unordered_multimap<Entity, Entity>& graph, Entity source)
 	{
-		std::vector<Hazel::Entity> currentPath;
-		std::queue<std::vector< Hazel::Entity>> queuedPaths;
-		std::unordered_map<Hazel::Entity, bool> visited;
+		std::vector<Entity> currentPath;
+		std::queue<std::vector<Entity>> queuedPaths;
 		currentPath.push_back(source);
 		queuedPaths.push(currentPath);
 	
@@ -253,19 +274,10 @@ namespace Hazel
 			currentPath = queuedPaths.front();
 			queuedPaths.pop();
 	
-			Hazel::Entity lastEntityInPath = currentPath.back();
-			// Check if the current node has already been visited
-			//if (visited[lastEntityInPath])
-			//	continue;
-	
-			// Mark the node as visited
-			visited[lastEntityInPath] = true;
-	
-			if (lastEntityInPath.GetComponent<RigidBodyComponent>().Fixed) //terminate condition
-			{
-	
+			Entity lastEntityInPath = currentPath.back();
+		
+			if (lastEntityInPath.GetComponent<RigidBodyComponent>().Fixed) 
 				return currentPath;
-			}
 	
 			auto range = graph.equal_range(lastEntityInPath);
 			for (auto it = range.first; it != range.second; ++it)
@@ -278,7 +290,7 @@ namespace Hazel
 				}
 			}
 		}
-	
+
 		return currentPath;
 	}
 }

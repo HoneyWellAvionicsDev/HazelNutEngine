@@ -11,7 +11,6 @@
 
 namespace Hazel
 {
-//#define TEST
     extern const std::filesystem::path g_AssetPath;
 
 

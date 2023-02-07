@@ -197,8 +197,6 @@ namespace Enyoo
                     indexMap[index] = currentBodyIndex;
                     currentBodyIndex += 3;
                 }
-                //constraintSlice.J[i].Print();
-                //m_Matrices.SparseJacobian.Print();
             }
 
             for (uint32_t i = 0; i < constraint->GetConstraintCount(); i++, currentIndex++)
@@ -209,7 +207,6 @@ namespace Enyoo
             }
 
             currentConstraintIndex += constraint->GetConstraintCount();
-            //currentBodyIndex += 3 * c->GetBodyCount();
         }
         //m_Matrices.SparseJacobian.Print();
 

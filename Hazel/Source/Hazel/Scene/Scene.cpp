@@ -363,7 +363,6 @@ namespace Hazel
 	{
 		m_PhysicsWorld->SetGravity({ m_LocalGravity.x, m_LocalGravity.y });
 		m_PhysicsWorld->Step(ts, m_VelocityIterations, m_PositionIterations);
-		//HZ_CORE_TRACE("Timestep {0}", ts);
 
 		//retrieve transfrom from box2d
 		auto view = m_Registry.view<RigidBody2DComponent>();
@@ -383,228 +382,13 @@ namespace Hazel
 
 	void Scene::OnPhysicsStart()
 	{
-		m_NewBodySystem = CreateScope<Enyoo::RigidBodySystem>(); 
-#if 1
+		m_ConstrainedBodySystem = CreateRef<Enyoo::RigidBodySystem>(); 
+
 		Scope<DynamicSystemAssembler> SystemAssembler = CreateScope<DynamicSystemAssembler>(this);
 		SystemAssembler->GenerateRigidBodies();
 		SystemAssembler->GenerateForceGens();
 		SystemAssembler->GenerateConstraints();
-
-		//fix 0, 1
-		auto viewt = m_Registry.view<RigidBodyComponent>();
-		auto itt = viewt.begin();
-		auto& rbct = m_Registry.get<RigidBodyComponent>(*itt).RuntimeBody;
-
-		Ref<Enyoo::FixedPositionConstraint> fixed1 = CreateRef<Enyoo::FixedPositionConstraint>();
-		m_NewBodySystem->AddConstraint(fixed1);
-		glm::dvec2 local1 = rbct->WorldToLocal({ 0.0, 1.0 });
-		fixed1->SetBody(rbct.get());
-		fixed1->SetLocalPosition(local1);
-		fixed1->SetWorldPosition({ 0.0, 1.0 });
-		//end fix
-#else
-		auto view = m_Registry.view<RigidBodyComponent>();
-		auto it = view.begin();
-
-		Ref<Enyoo::RigidBody> testbody1 = CreateRef<Enyoo::RigidBody>();
-		testbody1->Position = { 0.0, 0.0 };
-		testbody1->Theta = 0.0;
-		testbody1->Velocity = glm::dvec2{ 0.0 };
-		testbody1->AngularVelocity = 0.0;
-		testbody1->Mass = 8.0;
-		testbody1->MomentInertia = 1.0;
-		auto& rbc1 = m_Registry.get<RigidBodyComponent>(*it);
-		const double density1 = rbc1.Density;
-		rbc1.RuntimeBody = testbody1;
-		auto& asdfr = m_Registry.get<TransformComponent>(*it);
-		it++;
-		
-		Ref<Enyoo::RigidBody> testbody2 = CreateRef<Enyoo::RigidBody>();
-		testbody2->Position = { 0.0, 0.0 };
-		testbody2->Theta = 0.0;
-		testbody2->Velocity = glm::dvec2{ 0.0 };
-		testbody2->AngularVelocity = 0.0;
-		testbody2->Mass = 10.0;
-		testbody2->MomentInertia = 1.0;
-		auto& rbc2 = m_Registry.get<RigidBodyComponent>(*it);
-		const double density2 = rbc2.Density;
-		rbc2.RuntimeBody = testbody2;
-		auto& asdfr4 = m_Registry.get<TransformComponent>(*it);
-		it++;
-
-		Ref<Enyoo::RigidBody> testbody3 = CreateRef<Enyoo::RigidBody>();
-		testbody3->Position = { 0, 1.0 };
-		testbody3->Theta = 0.0;
-		testbody3->Velocity = glm::dvec2{ 0.0 };
-		testbody3->AngularVelocity = 0.0;
-		testbody3->Mass = 4.0;
-		testbody3->MomentInertia = 1.0;
-		//auto& rbc3 = test3.GetComponent<RigidBodyComponent>();
-		//rbc3.RuntimeBody = testbody3;
-		//auto& asdf = m_Registry.get<TransformComponent>(*it);
-		//asdf.Translation.x = 0;
-		//asdf.Translation.y = 1;
-		//asdf.Scale = glm::vec3{ 0.25 };
-		//it++;
-		
-		Ref<Enyoo::RigidBody> testbody4 = CreateRef<Enyoo::RigidBody>();
-		testbody4->Position = { 0.0, 0.0 };
-		testbody4->Theta = 0.0;
-		testbody4->Velocity = glm::dvec2{ 0.0 };
-		testbody4->AngularVelocity = 0.0;
-		testbody4->Mass = 10.0;
-		testbody4->MomentInertia = 1.0;
-		auto& rbc4 = m_Registry.get<RigidBodyComponent>(*it);
-		const double density3 = rbc4.Density;
-		rbc4.RuntimeBody = testbody4;
-		auto& asdfr44 = m_Registry.get<TransformComponent>(*it);
-		it++;
-
-		Ref<Enyoo::RigidBody> testbody5 = CreateRef<Enyoo::RigidBody>();
-		testbody5->Position = { 0.0, 0.0 };
-		testbody5->Theta = 0.0;
-		testbody5->Velocity = glm::dvec2{ 0.0 };
-		testbody5->AngularVelocity = 0.0;
-		testbody5->Mass = 10.0;
-		testbody5->MomentInertia = 1.0;
-		auto& rbc5 = m_Registry.get<RigidBodyComponent>(*it);
-		const double density4 = rbc5.Density;
-		rbc5.RuntimeBody = testbody5;
-		auto& asdfr45 = m_Registry.get<TransformComponent>(*it);
-		it++;
-		
-		
-		glm::dvec2 lastPosition{ 0.0, 1.0 };
-		
-		//bar1
-		m_NewBodySystem->AddRigidBody(testbody1.get());
-		testbody1->Theta = asdfr.Rotation.z; //this doesnt need to be done here
-		const double length1 = asdfr.Scale.x;
-
-		glm::dvec2 world1 = testbody1->LocalToWorld({ -length1 / 2.0, 0.0 }); //these arent used anymore
-		testbody1->Position.x = asdfr.Translation.x; //this doesnt need to be done here
-		testbody1->Position.y = asdfr.Translation.y;
-		testbody1->Mass = length1 * density1;
-		testbody1->MomentInertia = (1.0 / 12.0) * testbody1->Mass * length1 * length1;
-
-		lastPosition = testbody1->LocalToWorld({ length1 / 2.0, 0.0 });
-		//end bar1
-
-		//fix 0, 1
-		Ref<Enyoo::FixedPositionConstraint> fixed1 = CreateRef<Enyoo::FixedPositionConstraint>();
-		m_NewBodySystem->AddConstraint(fixed1);
-		glm::dvec2 local1 = testbody1->WorldToLocal({ 0.0, 1.0 });
-		fixed1->SetBody(testbody1.get());
-		fixed1->SetLocalPosition(local1);
-		fixed1->SetWorldPosition({ 0.0, 1.0 });
-		//end fix
-
-		//bar3
-		m_NewBodySystem->AddRigidBody(testbody4.get());
-		testbody4->Theta = asdfr44.Rotation.z;
-		const double length3 = asdfr44.Scale.x;
-
-		glm::dvec2 world3 = testbody4->LocalToWorld({ -length3 / 2.0, 0.0 });
-		testbody4->Position.x = asdfr44.Translation.x;
-		testbody4->Position.y = asdfr44.Translation.y;
-		testbody4->Mass = length3 * density3;
-		testbody4->MomentInertia = (1.0 / 12.0) * testbody4->Mass * length3 * length3;
-		Ref<Enyoo::LinkConstraint> link3 = CreateRef<Enyoo::LinkConstraint>();
-		m_NewBodySystem->AddConstraint(link3);
-		glm::dvec2 locallink3 = testbody2->WorldToLocal(lastPosition);
-		link3->SetFirstBody(testbody4.get());
-		link3->SetSecondBody(testbody2.get());
-		link3->SetFirstBodyLocal({ -length3 / 2.0, 0.0 });
-		link3->SetSecondBodyLocal({ 6.03 / 2.0, 0.0 });
-
-		lastPosition = testbody4->LocalToWorld({ length3 / 2.0, 0.0 });
-		//end bar3
-	
-		//fix3 16, 1 //NOTE: in order for this to anywhere, we need to set the rigidbodies cooords to that of its respective ents transform
-		Ref<Enyoo::FixedPositionConstraint> fixed3 = CreateRef<Enyoo::FixedPositionConstraint>();
-		m_NewBodySystem->AddConstraint(fixed3);
-		glm::dvec2 local6 = testbody4->WorldToLocal({ 16.0, 1.0 });
-		fixed3->SetBody(testbody4.get());
-		fixed3->SetLocalPosition(local6);
-		fixed3->SetWorldPosition({ 16.0, 1.0 });
-		//end3 fix
-
-		//bar2
-		m_NewBodySystem->AddRigidBody(testbody2.get());
-		testbody2->Theta = asdfr4.Rotation.z;
-		const double length2 = asdfr4.Scale.x;
-
-		glm::dvec2 world2 = testbody2->LocalToWorld({ -length2 / 2.0, 0.0 });
-		testbody2->Position.x = asdfr4.Translation.x;
-		testbody2->Position.y = asdfr4.Translation.y;
-		testbody2->Mass = length2 * density2;
-		testbody2->MomentInertia = (1.0 / 12.0) * testbody2->Mass * length2 * length2;
-
-		glm::dvec2 locallink2 = testbody1->WorldToLocal(lastPosition);
-		Ref<Enyoo::LinkConstraint> link2 = CreateRef<Enyoo::LinkConstraint>();
-		m_NewBodySystem->AddConstraint(link2);
-		link2->SetFirstBody(testbody2.get());  //body we are linking from
-		link2->SetSecondBody(testbody1.get()); //body we are linking to 
-		link2->SetFirstBodyLocal({ -length2 / 2.0, 0.0 }); // position to link from on body we are linking
-		link2->SetSecondBodyLocal({ 8.5 / 2.0, 0.0 }); // position to link to on body we are linking to
-
-		lastPosition = testbody2->LocalToWorld({ length2 / 2.0, 0.0 });
-		//end bar2
-
-		//bar4
-		lastPosition = { 0.0, 1.0 };
-
-		m_NewBodySystem->AddRigidBody(testbody5.get());
-		testbody5->Theta = asdfr45.Rotation.z;
-		const double length4 = asdfr45.Scale.x;
-
-		glm::dvec2 world4 = testbody5->LocalToWorld({ -length4 / 2.0, 0.0 });
-		testbody5->Position.x = asdfr45.Translation.x;
-		testbody5->Position.y = asdfr45.Translation.y;
-		testbody5->Mass = length4 * density4;
-		testbody5->MomentInertia = (1.0 / 12.0) * testbody5->Mass * length4 * length4;
-
-		lastPosition = testbody5->LocalToWorld({ length4 / 2.0, 0.0 });
-		//end bar4
-
-		//fix2 0, 1
-		Ref<Enyoo::FixedPositionConstraint> fixed2 = CreateRef<Enyoo::FixedPositionConstraint>();
-		m_NewBodySystem->AddConstraint(fixed2);
-		glm::dvec2 local5 = testbody5->WorldToLocal({ 0.0, 1.0 });
-		fixed2->SetBody(testbody5.get());
-		fixed2->SetLocalPosition(local5);
-		fixed2->SetWorldPosition({ 0.0, 1.0 });
-		//end2 fix
-		
-
-		auto view2 = m_Registry.view<ForceGeneratorComponent>();
-		for (auto e : view2)
-		{
-			Entity entity = { e, this };
-			auto& fgc = entity.GetComponent<ForceGeneratorComponent>();
-
-			switch (fgc.Type)
-			{
-				case ForceGeneratorComponent::GeneratorType::Gravity:
-				{
-					Ref<Enyoo::GravitationalAccelerator> gravGen = CreateRef<Enyoo::GravitationalAccelerator>();
-					gravGen->SetGravity(fgc.LocalGravity);
-					m_NewBodySystem->AddForceGen(gravGen.get());
-					fgc.RuntimeGenerator = gravGen;
-					break;
-				}
-				case ForceGeneratorComponent::GeneratorType::Test1:
-				{
-
-				}
-				case ForceGeneratorComponent::GeneratorType::Test2:
-				{
-
-				}
-			}
-		}
-#endif
-		m_NewBodySystem->Initialize();
+		m_ConstrainedBodySystem->Initialize();
 	}
 
 	void Scene::OnPhysicsStop()
@@ -613,11 +397,8 @@ namespace Hazel
 
 	void Scene::UpdatePhysics(Timestep ts)
 	{
-		//Timer time;
-		m_NewBodySystem->Step(0.01667, 1);
-		//if(Input::IsKeyPressed(HZ_KEY_SPACE))
-		//	m_NewBodySystem->Step(0.01667, 75);
-		
+		m_ConstrainedBodySystem->Step(0.01667, 1);
+
 		auto view = m_Registry.view<RigidBodyComponent>();
 		for (auto e : view)
 		{
@@ -633,7 +414,6 @@ namespace Hazel
 				transform.Rotation.z = body->Theta;
 			}
 		}
-		//HZ_CORE_TRACE("Time: {0}ms", time.ElapsedMilliseconds());
 	}
 
 	void Scene::UpdateScripts(Timestep ts)

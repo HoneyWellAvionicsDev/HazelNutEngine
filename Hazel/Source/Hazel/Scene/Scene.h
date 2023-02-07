@@ -19,7 +19,9 @@ namespace Hazel
 	class Scene
 	{
 	public:
-		using LinkPointMapIterator = std::unordered_multimap<UUID, glm::dvec2>::iterator;
+		using LinkPointMap = std::unordered_multimap<UUID, glm::dvec2>;
+		using LinkPointMapIterator = LinkPointMap::iterator;
+		using IteratorPair = std::pair<LinkPointMapIterator, LinkPointMapIterator>;
 
 		Scene();
 		~Scene();
@@ -45,7 +47,6 @@ namespace Hazel
 		void OnViewportResize(uint32_t width, uint32_t height);
 
 		Entity DuplicateEntity(Entity entity);
-
 		Entity GetEntity(UUID uuid);
 		Entity GetPrimaryCameraEntity();
 
@@ -55,8 +56,11 @@ namespace Hazel
 			return m_Registry.view<Components...>();
 		}
 
-		std::pair<LinkPointMapIterator, LinkPointMapIterator> GetLinkPoints(UUID uuid) { return m_EntityLinkPointMap.equal_range(uuid); }
+		IteratorPair GetLinkPoints(UUID uuid) { return m_EntityLinkPointMap.equal_range(uuid); }
 		void AddLinkPoint(UUID uuid, glm::dvec2 linkPoint);
+
+		LinkPointMap GetLinkPointMap() const { return m_EntityLinkPointMap; }
+		Ref<Enyoo::RigidBodySystem> GetRigidBodySystem() const { return m_ConstrainedBodySystem; }
 
 		void SetVelocityIterations(uint16_t iter) { m_VelocityIterations = iter; }
 		void SetPositionIterations(uint16_t iter) { m_PositionIterations = iter; }
@@ -84,14 +88,13 @@ namespace Hazel
 		glm::vec2 m_LocalGravity{ 0.0f };
 		b2World* m_PhysicsWorld = nullptr;
 
-		Scope<Enyoo::RigidBodySystem> m_NewBodySystem = nullptr;
+		Ref<Enyoo::RigidBodySystem> m_ConstrainedBodySystem = nullptr;
 		std::unordered_multimap<UUID, glm::dvec2> m_EntityLinkPointMap;
 
 		friend class Entity;
 		friend class EditorLayer;
 		friend class SceneSerializer;
 		friend class SceneHierarchyPanel;
-		friend class DynamicSystemAssembler;
 	};
 }
 
