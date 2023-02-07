@@ -52,6 +52,13 @@ namespace Hazel
 		{
 			HZ_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
+
+			if (typeid(T) == typeid(LinkPointsComponent))
+			{
+				auto [first, last] = m_Scene->GetLinkPoints(GetUUID());
+
+				m_Scene->GetLinkPointMap().erase(first, last);
+			}
 		}
 
 		void MarkForDeletion() { m_MarkedForDelete = true; }
