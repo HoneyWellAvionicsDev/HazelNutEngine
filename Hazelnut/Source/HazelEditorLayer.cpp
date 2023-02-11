@@ -125,7 +125,7 @@ namespace Hazel
         //------------------Object Snapping--------------------------
         if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
         {
-            if (m_SceneState == SceneState::Edit && selectedEntity.HasComponent<LinkPointsComponent>())
+            if (m_SceneState == SceneState::Edit && selectedEntity.HasComponent<LinkPointsComponent>() && !ImGuizmo::IsUsing())
             {  
                 auto view = m_ActiveScene->m_Registry.view<LinkPointsComponent, TransformComponent>();
                 auto& selectedTransform = selectedEntity.GetComponent<TransformComponent>();

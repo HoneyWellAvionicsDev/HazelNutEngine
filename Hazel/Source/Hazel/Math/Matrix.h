@@ -2,6 +2,7 @@
 
 #include <iostream> //temp for debug
 #include <iomanip>
+
 namespace Hazel::Math
 {
     /*
@@ -155,19 +156,3 @@ namespace Hazel::Math
 
     inline Matrix operator*(double scale, Matrix& mat) { return mat.Scale(mat, scale); } //since this definition is inside a header file it needs to be marked as inline
 }
-
-/*
-TODO:
-Done: Solve the matrix equation (requires SLE solver)
-Done: SLE solver (conjugate gradient method) can be optimized
-Done: Figure out creation of objects 
-Done: Better ODE solver (RK4)
-Entities contain the constraints
-more constraint classes
-
-
-
-     
-
-*/
-

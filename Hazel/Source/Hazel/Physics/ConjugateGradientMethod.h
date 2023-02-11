@@ -14,7 +14,7 @@ namespace Enyoo
 	public:
 		ConjugateGradientMethod();
 
-		bool Solve(Matrix& leftMatrix, Vector& rightVector, Vector* resultVector);
+		bool Solve(Matrix& leftMatrix, Vector& rightVector, Vector& resultVector);
 
 		void Initialize(size_t rows);
 

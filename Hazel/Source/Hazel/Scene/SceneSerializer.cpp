@@ -137,7 +137,7 @@ namespace Hazel
 		switch (genType)
 		{
 			case ForceGeneratorComponent::GeneratorType::Gravity:	return "Gravity";
-			case ForceGeneratorComponent::GeneratorType::Test1:	return "Test1";
+			case ForceGeneratorComponent::GeneratorType::Spring:	return "Test1";
 			case ForceGeneratorComponent::GeneratorType::Test2:	return "Test2";
 		}
 
@@ -148,7 +148,7 @@ namespace Hazel
 	static ForceGeneratorComponent::GeneratorType ForceGenTypeFromString(const std::string& genTypeStr)
 	{
 		if (genTypeStr == "Gravity")		return ForceGeneratorComponent::GeneratorType::Gravity;
-		if (genTypeStr == "Test1")		return ForceGeneratorComponent::GeneratorType::Test1;
+		if (genTypeStr == "Test1")		return ForceGeneratorComponent::GeneratorType::Spring;
 		if (genTypeStr == "Test2")		return ForceGeneratorComponent::GeneratorType::Test2;
 
 		HZ_CORE_ASSERT(false, "Unknown generator type");
@@ -164,8 +164,8 @@ namespace Hazel
 	{
 		HZ_CORE_ASSERT(entity.HasComponent<IDComponent>(), "Entity must have a UUID");
 
-		out << YAML::BeginMap; //Entity
-		out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID(); //UUID goes here
+		out << YAML::BeginMap; 
+		out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID(); 
 
 		if (entity.HasComponent<TagComponent>())
 		{
@@ -194,13 +194,13 @@ namespace Hazel
 		if (entity.HasComponent<CameraComponent>())
 		{
 			out << YAML::Key << "CameraComponent";
-			out << YAML::BeginMap; //cam comp
+			out << YAML::BeginMap; 
 
 			auto& cameraComponent = entity.GetComponent<CameraComponent>();
 			auto& camera = cameraComponent.Camera;
 
 			out << YAML::Key << "Camera" << YAML::Value;
-			out << YAML::BeginMap; //cam
+			out << YAML::BeginMap; 
 			out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.GetProjectionType();
 			out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.GetPerspectiveVerticalFOV();
 			out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.GetPerspectiveNearClip();
@@ -208,22 +208,22 @@ namespace Hazel
 			out << YAML::Key << "OrthographicSize" << YAML::Value << camera.GetOrthographicSize();
 			out << YAML::Key << "OrthographicNear" << YAML::Value << camera.GetOrthographicNearClip();
 			out << YAML::Key << "OrthographicFar" << YAML::Value << camera.GetOrthographicFarClip();
-			out << YAML::EndMap; //cam
+			out << YAML::EndMap; 
 
 			out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
 			out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComponent.FixedAspectRatio;
 
-			out << YAML::EndMap; //cam comp
+			out << YAML::EndMap; 
 		}
 
 		if (entity.HasComponent<LinkPointsComponent>())
 		{
 			out << YAML::Key << "LinkPointsComponent";
-			out << YAML::BeginMap; // link points
+			out << YAML::BeginMap; 
 			
 			auto& linkPointsComponent = entity.GetComponent<LinkPointsComponent>();
 
-			out << YAML::Key << "Count" << YAML::Value << linkPointsComponent.Count;
+			out << YAML::Key << "Count" << YAML::Value << linkPointsComponent.Count; //this count is so stupid, just use the count method
 
 			auto range = m_Scene->GetLinkPoints(entity.GetUUID());
 			int i = 0;
@@ -234,7 +234,7 @@ namespace Hazel
 				i++;
 			}
 
-			out << YAML::EndMap; // link points
+			out << YAML::EndMap; 
 		}
 
 		if (entity.HasComponent<SpriteRendererComponent>())

@@ -151,7 +151,7 @@ namespace Hazel
 
 	struct ForceGeneratorComponent
 	{
-		enum class GeneratorType : uint8_t { Gravity = 0, Test1, Test2 };
+		enum class GeneratorType : uint8_t { Gravity = 0, Spring, Test2 };
 		GeneratorType Type = GeneratorType::Gravity;
 		glm::vec2 LocalGravity = { 0.0, -9.81 };
 

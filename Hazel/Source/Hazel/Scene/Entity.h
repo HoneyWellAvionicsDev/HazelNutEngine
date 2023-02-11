@@ -51,17 +51,9 @@ namespace Hazel
 		void RemoveComponent()
 		{
 			HZ_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
+			m_Scene->OnComponentRemoved<T>(*this, GetComponent<T>());
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
-
-			if (typeid(T) == typeid(LinkPointsComponent))
-			{
-				auto [first, last] = m_Scene->GetLinkPoints(GetUUID());
-
-				m_Scene->GetLinkPointMap().erase(first, last);
-			}
 		}
-
-		void MarkForDeletion() { m_MarkedForDelete = true; }
 
 		UUID GetUUID() { return GetComponent<IDComponent>().ID; }
 		entt::entity GetHandle() const { return m_EntityHandle; }
@@ -79,7 +71,6 @@ namespace Hazel
 
 	private:
 		entt::entity m_EntityHandle{ entt::null };
-		bool m_MarkedForDelete = false;
 		Scene* m_Scene = nullptr; 
 	};
 }

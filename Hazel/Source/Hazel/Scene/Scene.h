@@ -12,7 +12,7 @@ class b2World;
 
 namespace Hazel
 {
-	using LinkPointMap = std::unordered_multimap<UUID, glm::dvec2>;
+	using LinkPointMap = std::unordered_multimap<UUID, glm::vec2>;
 	using LinkPointMapIterator = LinkPointMap::iterator;
 	using IteratorPair = std::pair<LinkPointMapIterator, LinkPointMapIterator>;
 
@@ -45,6 +45,7 @@ namespace Hazel
 		void OnViewportResize(uint32_t width, uint32_t height);
 
 		Entity DuplicateEntity(Entity entity);
+
 		Entity GetEntity(UUID uuid);
 		Entity GetPrimaryCameraEntity();
 
@@ -69,6 +70,8 @@ namespace Hazel
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
+		template<typename T>
+		void OnComponentRemoved(Entity entity, T& component);
 
 		void OnPhysics2DStart();
 		void OnPhysics2DStop();
@@ -91,12 +94,13 @@ namespace Hazel
 		b2World* m_PhysicsWorld = nullptr;
 
 		Ref<Enyoo::RigidBodySystem> m_ConstrainedBodySystem = nullptr;
-		std::unordered_multimap<UUID, glm::dvec2> m_EntityLinkPointMap;
+		std::unordered_multimap<UUID, glm::vec2> m_EntityLinkPointMap;
 
 		friend class Entity;
 		friend class EditorLayer;
 		friend class SceneSerializer;
 		friend class SceneHierarchyPanel;
+		friend class DynamicSystemAssembler;
 	};
 }
 

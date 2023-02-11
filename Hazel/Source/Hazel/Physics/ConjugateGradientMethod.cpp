@@ -9,7 +9,7 @@ namespace Enyoo
 	{
 	}
 
-	bool ConjugateGradientMethod::Solve(Matrix& A, Vector& b, Vector* x)
+	bool ConjugateGradientMethod::Solve(Matrix& A, Vector& b, Vector& x)
 	{
 		HZ_CORE_ASSERT(b.Columns() == 1);
 
@@ -40,7 +40,7 @@ namespace Enyoo
 
 			if (rkrk < m_Tolerance * m_Tolerance)
 			{
-				*x = x0;
+				x = x0;
 				return true;
 			}
 

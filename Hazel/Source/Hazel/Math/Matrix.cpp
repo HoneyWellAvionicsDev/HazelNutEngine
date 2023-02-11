@@ -47,7 +47,7 @@ namespace Hazel::Math
 
 	void Matrix::Initialize(size_t rows, size_t columns, double value)
 	{
-		m_Matrix = CreateScope<double[]>(rows * columns);
+ 		m_Matrix = CreateScope<double[]>(rows * columns);
 		m_Rows = rows;
 		m_Columns = columns;
 

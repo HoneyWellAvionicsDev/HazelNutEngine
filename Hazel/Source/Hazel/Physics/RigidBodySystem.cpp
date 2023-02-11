@@ -43,6 +43,7 @@ namespace Enyoo
     void RigidBodySystem::AddRigidBody(RigidBody* body)
     {
         m_RigidBodies.push_back(body);
+        HZ_CORE_TRACE("Body added to system");
         body->Index = m_RigidBodies.size() - 1;
     }
 
@@ -239,7 +240,7 @@ namespace Enyoo
         Matrix A = m_Matrices.SparseJacobian * WJT;
         
         // solve matrix equation
-        m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, &m_Matrices.lambda);
+        m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, m_Matrices.lambda);
 
         // disperse matrices to state
         m_Matrices.Qhat = SparseJacobianTranspose * m_Matrices.lambda;

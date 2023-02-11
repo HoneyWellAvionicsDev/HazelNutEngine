@@ -35,7 +35,7 @@ namespace Hazel
 	}
 
 	Scene::Scene()
-		: m_SceneName("Untilted")
+		: m_SceneName("Untitled")
 	{
 
 	}
@@ -94,6 +94,7 @@ namespace Hazel
 		newScene->m_ViewportWidth = source->m_ViewportWidth;
 		newScene->m_ViewportHeight = source->m_ViewportHeight;
 		newScene->m_EntityLinkPointMap = source->m_EntityLinkPointMap;
+		newScene->m_SceneName = source->m_SceneName;
 		
 
 		auto& srcSceneRegistry = source->m_Registry;
@@ -529,6 +530,101 @@ namespace Hazel
 
 	template<>
 	void Scene::OnComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
+	{
+
+	}
+
+	template<typename T>
+	void Scene::OnComponentRemoved(Entity entity, T& component)
+	{
+		static_assert(sizeof(T) == 0);
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<IDComponent>(Entity entity, IDComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<TransformComponent>(Entity entity, TransformComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<CameraComponent>(Entity entity, CameraComponent& component)
+	{
+		
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<LinkPointsComponent>(Entity entity, LinkPointsComponent& component)
+	{
+		auto range = GetLinkPoints(entity.GetUUID());
+		std::vector<LinkPointMapIterator> toBeDeleted;
+		for (auto it = range.first; it != range.second; it++)
+		{
+			toBeDeleted.push_back(it);
+
+		}
+
+		for (auto it : toBeDeleted)
+		{
+			RemoveLinkPoint(it);
+		}
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<TagComponent>(Entity entity, TagComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<RigidBody2DComponent>(Entity entity, RigidBody2DComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<ForceGeneratorComponent>(Entity entity, ForceGeneratorComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
 	{
 
 	}

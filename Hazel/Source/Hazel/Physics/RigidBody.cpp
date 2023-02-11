@@ -12,8 +12,9 @@ namespace Enyoo
     {
         const double kineticEnergy = 0.5 * Mass * (Velocity.x * Velocity.x + Velocity.y * Velocity.y);
         const double rotationalEnergy = 0.5 * MomentInertia * AngularVelocity * AngularVelocity;
+        const double potentialEnergy = 9.8 * Mass * (Position.y - -100);
 
-        return kineticEnergy + rotationalEnergy;
+        return kineticEnergy + rotationalEnergy + potentialEnergy;
     }
     
     glm::dvec2 RigidBody::LocalToWorld(glm::dvec2 point)
