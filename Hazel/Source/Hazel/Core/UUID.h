@@ -27,7 +27,7 @@ namespace std
 	{
 		size_t operator()(const Hazel::UUID& uuid) const
 		{
-			return (uint64_t)uuid;
+			return static_cast<uint64_t>(uuid);
 		}
 	};
 }

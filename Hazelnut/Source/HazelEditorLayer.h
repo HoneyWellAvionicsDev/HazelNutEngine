@@ -22,6 +22,7 @@ namespace Hazel
 	private:
 		bool OnKeyPressed(KeyPressedEvent& event);
 		bool OnMouseClick(MouseButtonEvent& event);
+		bool OnMouseRelease(MouseButtonEvent& event);
 
 		void OnOverlayRender();
 
@@ -39,6 +40,7 @@ namespace Hazel
 
 		void OnDuplicateEntity();
 		void CarrySelectionContext();
+		void ObjectSnapping(Entity entity);
 	private:
 		Ref<FrameBuffer> m_FrameBuffer;
 		Ref<Scene> m_ActiveScene;

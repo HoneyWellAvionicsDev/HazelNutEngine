@@ -45,7 +45,7 @@ namespace Hazel
 		{
 			HZ_CORE_INFO("Initializing GLFW");
 			int success = glfwInit();
-			HZ_CORE_ASSERT(success, "Could not initalize GLFW!");                                                         //will add a break point here if glfw fails
+			HZ_CORE_ASSERT(success, "Could not initalize GLFW!"); 
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 

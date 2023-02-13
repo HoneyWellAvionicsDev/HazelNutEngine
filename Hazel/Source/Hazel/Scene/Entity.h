@@ -84,7 +84,7 @@ namespace std
 	{
 		size_t operator()(const Hazel::Entity& entity) const
 		{
-			return (uint32_t)entity;
+			return static_cast<uint32_t>(entity);
 		}
 	};
 }
