@@ -12,6 +12,8 @@ namespace Enyoo
 {
 	struct TreeNode
 	{
+		using TreeNodePtr = std::unique_ptr<TreeNode>;
+
 		TreeNode() : Index(-1), Axis(-1)
 		{
 			Next[0] = nullptr;
@@ -19,9 +21,11 @@ namespace Enyoo
 		}
 
 		size_t Index;
-		TreeNode* Next[2];
+		TreeNodePtr Next[2];
 		uint32_t Axis;
 	};
+
+	using TreeNodePtr = TreeNode::TreeNodePtr;
 
 	template<class T, class Compare = std::less<T>>
 	class BoundedPriorityQueue
@@ -60,7 +64,7 @@ namespace Enyoo
 		std::vector<size_t> RadiusSearch(const T& query, double radius) const;
 
 	private:
-		TreeNode* BuildRecursive(size_t* indices, uint32_t numPoints, uint32_t depth);
+		TreeNodePtr BuildRecursive(size_t* indices, uint32_t numPoints, uint32_t depth);
 		void ClearRecursive(TreeNode* node);
 		void ValidateRecursive(const TreeNode* node, uint32_t depth) const;
 		void NnSearchRecursive(const T& query, const TreeNode* node, size_t* guess, double* minDistance) const;
@@ -70,8 +74,9 @@ namespace Enyoo
 		static double Distance(const T& p, const T& q);
 
 		class Exception : public std::exception { using std::exception::exception; };
+
 	private:
-		TreeNode* m_Root;
+		TreeNodePtr m_Root;
 		std::vector<T> m_Points;
 	};
 
@@ -103,7 +108,7 @@ namespace Enyoo
 	template<class T>
 	inline void KDTree<T>::Clear()
 	{
-		ClearRecursive(m_Root);
+		ClearRecursive(m_Root.get());
 		m_Root = nullptr;
 		m_Points.clear();
 	}
@@ -113,7 +118,7 @@ namespace Enyoo
 	{
 		try
 		{
-			ValidateRecursive(m_Root, 0);
+			ValidateRecursive(m_Root.get(), 0);
 		}
 		catch (const Exception&)
 		{
@@ -129,10 +134,10 @@ namespace Enyoo
 		size_t guess;
 		double minDistance = std::numeric_limits<double>::max();
 
-		NnSearchRecursive(query, m_Root, &guess, &minDistance);
+		NnSearchRecursive(query, m_Root.get(), &guess, &minDistance);
 
 		if (minimumDistance)
-			*minDistance = minDistance;
+			*minimumDistance = minDistance;
 
 		return guess;
 	}
@@ -141,7 +146,7 @@ namespace Enyoo
 	inline std::vector<size_t> KDTree<T>::KNearestSearch(const T& query, uint32_t k) const
 	{
 		KnQueue queue(k);
-		KnSearchRecursive(query, m_Root, queue, k);
+		KnSearchRecursive(query, m_Root.get(), queue, k);
 
 		std::vector<size_t> indices(queue.Size());
 		for (size_t i = 0; i < queue.Size(); i++)
@@ -154,12 +159,12 @@ namespace Enyoo
 	inline std::vector<size_t> KDTree<T>::RadiusSearch(const T& query, double radius) const
 	{
 		std::vector<size_t> indices;
-		RadiusSearchRecursive(query, m_Root, indices, radius);
+		RadiusSearchRecursive(query, m_Root.get(), indices, radius);
 		return indices;
 	}
 
 	template<class T>
-	inline TreeNode* KDTree<T>::BuildRecursive(size_t* indices, uint32_t numPoints, uint32_t depth)
+	inline TreeNodePtr KDTree<T>::BuildRecursive(size_t* indices, uint32_t numPoints, uint32_t depth)
 	{
 		if (numPoints <= 0)
 			return nullptr;
@@ -172,13 +177,13 @@ namespace Enyoo
 			return m_Points[lhs][axis] < m_Points[rhs][axis];
 		});
 
-		TreeNode* node = new TreeNode(); 
+		TreeNodePtr node = std::make_unique<TreeNode>();
 		node->Index = indices[mid];
 		node->Axis = axis;
 
 		node->Next[0] = BuildRecursive(indices, mid, depth + 1);
 		node->Next[1] = BuildRecursive(indices + mid + 1, numPoints - mid - 1, depth + 1);
-
+		
 		return node;
 	}
 
@@ -188,13 +193,11 @@ namespace Enyoo
 		if (!node)
 			return;
 
-		if (node->Next[0])
-			ClearRecursive(node->Next[0]);
+		if (node->Next[0].get())
+			ClearRecursive(node->Next[0].get());
 
-		if (node->Next[1])
-			ClearRecursive(node->Next[1]);
-
-		delete node;
+		if (node->Next[1].get())
+			ClearRecursive(node->Next[1].get());
 	}
 
 	template<class T>
@@ -204,8 +207,8 @@ namespace Enyoo
 			return;
 
 		const uint32_t axis = node->Axis;
-		const TreeNode* node0 = node->Next[0];
-		const TreeNode* node1 = node->Next[1];
+		const TreeNode* node0 = node->Next[0].get();
+		const TreeNode* node1 = node->Next[1].get();
 
 		if (node0 && node1)
 		{
@@ -240,11 +243,11 @@ namespace Enyoo
 
 		const uint32_t axis = node->Axis;
 		const uint32_t direction = query[axis] < train[axis] ? 0 : 1;
-		NnSearchRecursive(query, node->Next[direction], guess, minDistance);
+		NnSearchRecursive(query, node->Next[direction].get(), guess, minDistance);
 
 		const double difference = glm::abs(query[axis] - train[axis]);
 		if (difference < *minDistance)
-			NnSearchRecursive(query, node->Next[!direction], guess, minDistance);
+			NnSearchRecursive(query, node->Next[!direction].get(), guess, minDistance);
 	}
 
 	template<class T>
@@ -260,11 +263,11 @@ namespace Enyoo
 
 		const uint32_t axis = node->Axis;
 		const uint32_t direction = query[axis] < train[axis] ? 0 : 1;
-		KnSearchRecursive(query, node->Next[direction], queue, k);
+		KnSearchRecursive(query, node->Next[direction].get(), queue, k);
 
 		const double difference = glm::abs(query[axis] - train[axis]);
 		if (static_cast<uint32_t>(queue.Size()) < k || difference < queue.Back().first)
-			KnSearchRecursive(query, node->Next[!direction], queue, k);
+			KnSearchRecursive(query, node->Next[!direction].get(), queue, k);
 	}
 
 	template<class T>
@@ -281,12 +284,12 @@ namespace Enyoo
 
 		const uint32_t axis = node->Axis;
 		const uint32_t direction = query[axis] < train[axis] ? 0 : 1;
-		TreeNodePtr dir = query[axis] < train[axis] ? no
-		RadiusSearchRecursive(query, node->Next[direction], indices, radius);
+
+		RadiusSearchRecursive(query, node->Next[direction].get(), indices, radius);
 
 		const double difference = glm::abs(query[axis] - train[axis]);
 		if (difference < radius)
-			RadiusSearchRecursive(query, node->Next[!direction], indices, radius);
+			RadiusSearchRecursive(query, node->Next[!direction].get(), indices, radius);
 	}
 
 	template<class T>

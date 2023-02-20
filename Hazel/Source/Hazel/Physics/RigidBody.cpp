@@ -4,7 +4,7 @@
 namespace Enyoo
 {
     RigidBody::RigidBody()
-        : Index(-1), Position{0.0, 0.0}, Velocity{0.0, 0.0}, Theta(0.0), Mass(0.0), AngularVelocity(0.0), MomentInertia(0.0), Fixed(false)
+        : Index(-1), Position{0.0, 0.0}, Velocity{0.0, 0.0}, Theta(0.0), Mass(0.0), AngularVelocity(0.0), MomentInertia(0.0), Fixed(false), Disable(false)
     {
     }
 

@@ -2,261 +2,303 @@
 
 #include "RigidBodySystem.h"
 
+#include "Hazel/Renderer/Renderer2D.h"
+
 namespace Enyoo
 {
-    void RigidBodySystem::Initialize()
-    { //this needs to be called AFTER all constraints have been added to the phys system
-        m_LinearEquationSolver.Initialize(GetTotalConstraintCount());
-    }
+	static constexpr size_t s_MatrixOffset = 3;
 
-    void RigidBodySystem::Step(double dt, uint32_t steps)
-    {
-        PopulateSystemState();
-        PopulateMassMatrices(m_Matrices.Mass, m_Matrices.W);
+	void RigidBodySystem::Initialize()
+	{ //this needs to be called AFTER all constraints have been added to the phys system
+		m_LinearEquationSolver.Initialize(GetTotalConstraintCount());
 
-        for (uint32_t i = 0; i < steps; i++)
-        {
-            m_TimeIntegrator.Start(m_State, dt / steps);
+		for (ConstraintPtr constraint : m_Constraints)
+		{
+			for (RigidBody* body : constraint->GetBodies())
+			{
+				PointerPair key{ constraint.get(), body };
+				m_ConstaintBodyIndex[key] = body->Index * s_MatrixOffset; 
+			}
+		}
 
-            while (true)
-            {
-                const bool done = m_TimeIntegrator.Step(m_State);
-                UpdateForces();
-                ResolveConstraints();
-                m_TimeIntegrator.Integrate(m_State);
-                if (done) break;
-            }
+		s_RigidBodyPoints = std::make_shared<std::vector<BodyPoint>>();
 
-            m_TimeIntegrator.End();
-        }
+		for (RigidBodyPtr body : m_RigidBodies)
+			s_RigidBodyPoints->emplace_back(body->Position, body->Index);
+		
+		s_RigidBodyKDTree = std::make_shared<KDTree<BodyPoint>>(*s_RigidBodyPoints);
+		HZ_CORE_ASSERT(s_RigidBodyKDTree->Validate());
+	}
 
-        for (size_t i = 0; i < GetRigidBodyCount(); i++) // assign updated state to rigid bodies
-        {
-            m_RigidBodies[i]->Velocity = m_State.Velocity[i];
-            m_RigidBodies[i]->Position = m_State.Position[i];
+	void RigidBodySystem::Step(double dt, uint32_t steps)
+	{
+		PopulateSystemState();
+		PopulateMassMatrices(m_Matrices.Mass, m_Matrices.W);
 
-            m_RigidBodies[i]->AngularVelocity = m_State.AngularVelocity[i];
-            m_RigidBodies[i]->Theta = m_State.Theta[i];
-        }
-    }
+		for (uint32_t i = 0; i < steps; i++)
+		{
+			m_TimeIntegrator.Start(m_State, dt / steps);
 
-    void RigidBodySystem::AddRigidBody(RigidBody* body)
-    {
-        m_RigidBodies.push_back(body);
-        HZ_CORE_TRACE("Body added to system");
-        body->Index = m_RigidBodies.size() - 1;
-    }
+			while (true)
+			{
+				const bool done = m_TimeIntegrator.Step(m_State);
+				UpdateForces();
+				ResolveConstraints();
+				m_TimeIntegrator.Integrate(m_State);
+				if (done) break;
+			}
 
-    void RigidBodySystem::AddForceGen(ForceGenerator* forceGen)
-    {
-        m_ForceGenerators.push_back(forceGen);
-        forceGen->SetIndex(m_ForceGenerators.size() - 1);
-    }
+			m_TimeIntegrator.End();
+		}
 
-    void RigidBodySystem::AddConstraint(const Hazel::Ref<Constraint>& constraint)
-    {
-        m_Constraints.push_back(constraint);
-        constraint->SetIndex(m_Constraints.size() - 1);
-    }
+		for (size_t i = 0; i < GetRigidBodyCount(); i++) // assign updated state to rigid bodies
+		{
+			if (m_RigidBodies[i]->Disable)
+				continue;
 
-    void RigidBodySystem::RemoveRigidBody(RigidBody* body)
-    {
-    }
+			m_RigidBodies[i]->Velocity = m_State.Velocity[i];
+			m_RigidBodies[i]->Position = m_State.Position[i];
 
-    void RigidBodySystem::RemoveForceGen(ForceGenerator* forceGen)
-    {
-    }
+			m_RigidBodies[i]->AngularVelocity = m_State.AngularVelocity[i];
+			m_RigidBodies[i]->Theta = m_State.Theta[i];
+		}
+	}
 
-    void RigidBodySystem::RemoveConstraint(const Hazel::Ref<Constraint>& constraint)
-    {
-    }
+	void RigidBodySystem::AddRigidBody(const RigidBodyPtr& body)
+	{
+		m_RigidBodies.push_back(body);
+		body->Index = m_RigidBodies.size() - 1;
+	}
 
-    size_t RigidBodySystem::GetTotalConstraintCount() const
-    {
-        size_t total = 0;
+	void RigidBodySystem::RemoveRigidBody(const RigidBodyPtr& body)
+	{
+		auto it = std::find_if(m_RigidBodies.begin(), m_RigidBodies.end(), 
+			[&](const RigidBodyPtr& other) { return body->Index == other->Index; });
 
-        for (Hazel::Ref<Constraint> c : m_Constraints)
-            total += c->GetConstraintCount();
+		if(it != m_RigidBodies.end())
+			m_RigidBodies.erase(it);
+	}
 
-        return total;
-    }
+	void RigidBodySystem::AddForceGen(const ForceGeneratorPtr& forceGen)
+	{
+		m_ForceGenerators.push_back(forceGen);
+		forceGen->SetIndex(m_ForceGenerators.size() - 1);
+	}
 
-    double RigidBodySystem::GetTotalSystemEnergy() const
-    {
-        double total = 0.0;
+	void RigidBodySystem::RemoveForceGen(const ForceGeneratorPtr& forceGen)
+	{
 
-        for (RigidBody* body : m_RigidBodies)
-            total += body->CalculateEnergy();
+	}
 
-        return total;
-    }
+	void RigidBodySystem::AddConstraint(const ConstraintPtr& constraint)
+	{
+		m_Constraints.push_back(constraint);
+		constraint->SetIndex(m_Constraints.size() - 1);
+	}
 
-    void RigidBodySystem::PopulateSystemState()
-    {
-        m_State.Resize(GetRigidBodyCount(), GetTotalConstraintCount());
+	void RigidBodySystem::RemoveConstraint(const ConstraintPtr& constraint)
+	{
 
-        for (size_t i = 0; i < GetRigidBodyCount(); i++)
-        {
-            m_State.Acceleration[i] = glm::dvec2{ 0.0 };
+	}
 
-            m_State.Velocity[i] = m_RigidBodies[i]->Velocity;
-            m_State.Position[i] = m_RigidBodies[i]->Position;
+	size_t RigidBodySystem::GetTotalConstraintCount() const //TODO: increment a counter everytime we add a constraint and return that instead
+	{
+		size_t total = 0;
 
-            m_State.AngularAcceleration[i] = 0;
-            m_State.AngularVelocity[i] = m_RigidBodies[i]->AngularVelocity;
-            m_State.Theta[i] = m_RigidBodies[i]->Theta;
+		for (ConstraintPtr c : m_Constraints)
+			total += c->GetConstraintCount();
 
-            m_State.Mass[i] = m_RigidBodies[i]->Mass;
-        }
+		return total;
+	}
 
-        for (size_t i = 0, constraintCount = 0; i < GetConstraintCount(); i++)
-        {
-            constraintCount += m_Constraints[i]->GetConstraintCount();
-        }
-    }
+	std::vector<size_t> RigidBodySystem::NnRadiusIndexSearch(RigidBody* body, double radius)
+	{
+		BodyPoint bodyPoint = BodyPoint(body->Position, body->Index);
+		return s_RigidBodyKDTree->RadiusSearch(bodyPoint, radius);
+	}
 
-    void RigidBodySystem::PopulateMassMatrices(Matrix& mass, Matrix& massInverse)
-    {
-        const size_t n = GetRigidBodyCount();
+	size_t RigidBodySystem::TreeIndexToBodyIndex(size_t index)
+	{
+		return s_RigidBodyPoints->at(index).Index;
+	}
 
-        mass.Resize(n * 3, 1);
-        massInverse.Resize(n * 3, 1);
+	double RigidBodySystem::GetTotalSystemEnergy() const
+	{
+		double total = 0.0;
 
-        for (size_t i = 0; i < n; i++)
-        {
-            mass[i * 3 + 0][0] = m_RigidBodies[i]->Mass;
-            mass[i * 3 + 1][0] = m_RigidBodies[i]->Mass;
-            mass[i * 3 + 2][0] = m_RigidBodies[i]->MomentInertia;
-     
-            massInverse[i * 3 + 0][0] = 1.0 / m_RigidBodies[i]->Mass;
-            massInverse[i * 3 + 1][0] = 1.0 / m_RigidBodies[i]->Mass;
-            massInverse[i * 3 + 2][0] = 1.0 / m_RigidBodies[i]->MomentInertia;
-        }
-    }
+		for (RigidBodyPtr body : m_RigidBodies)
+			total += body->CalculateEnergy();
 
-    void RigidBodySystem::UpdateForces()
-    {
-        // zero out forces
-        for (size_t i = 0; i < GetRigidBodyCount(); i++)
-        {
-            m_State.Force[i] = glm::dvec2{ 0.0 };
-            m_State.Torque[i] = 0.0;
-        }
-        // loop through force generators and apply their force to the state
-        for (ForceGenerator* forceGen : m_ForceGenerators)
-            forceGen->ApplyForce(m_State);
-    }
+		return total;
+	}
 
-    void RigidBodySystem::ResolveConstraints()
-    {
-        size_t n = GetRigidBodyCount();
-        size_t m = GetConstraintCount();
-        size_t m_t = GetTotalConstraintCount();
+	void RigidBodySystem::PopulateSystemState()
+	{
+		m_State.Resize(GetRigidBodyCount(), GetTotalConstraintCount());
 
-        // populate vectors and matrices
-        m_Matrices.qdot.Resize(3 * n, 1);
+		for (size_t i = 0; i < GetRigidBodyCount(); i++)
+		{
+			m_State.Acceleration[i] = glm::dvec2{ 0.0 };
 
-        for (size_t i = 0; i < n; i++)
-        {
-            m_Matrices.qdot[i * 3 + 0][0] = m_State.Velocity[i].x;
-            m_Matrices.qdot[i * 3 + 1][0] = m_State.Velocity[i].y;
-            m_Matrices.qdot[i * 3 + 2][0] = m_State.AngularVelocity[i];
-        }
+			m_State.Velocity[i] = m_RigidBodies[i]->Velocity;
+			m_State.Position[i] = m_RigidBodies[i]->Position;
 
-        m_Matrices.SparseJacobian.Initialize(m_t, n * 3);
-        m_Matrices.SparseJacobianDot.Initialize(m_t, n * 3);
-        m_Matrices.Q.Initialize(n * 3, 1);
-        m_Matrices.ks.Initialize(m_t, 1);
-        m_Matrices.kd.Initialize(m_t, 1);
-        m_Matrices.C.Initialize(m_t, 1);
+			m_State.AngularAcceleration[i] = 0;
+			m_State.AngularVelocity[i] = m_RigidBodies[i]->AngularVelocity;
+			m_State.Theta[i] = m_RigidBodies[i]->Theta;
 
-        // caluclate constraints and store them in respective matrices
-        std::unordered_map<size_t, size_t> indexMap;
-        ConstraintOutput constraintSlice;
-        size_t currentConstraintIndex = 0;
-        size_t currentBodyIndex = 0;
-        size_t currentIndex = 0;
+			m_State.Mass[i] = m_RigidBodies[i]->Mass;
+		}
 
-        for (Hazel::Ref<Constraint> constraint : m_Constraints)
-        {
-            constraint->Calculate(constraintSlice, &m_State);
+		for (size_t i = 0, constraintCount = 0; i < GetConstraintCount(); i++)
+		{
+			constraintCount += m_Constraints[i]->GetConstraintCount();
+		}
+	}
 
-            for (uint32_t i = 0; i < constraint->GetBodyCount(); i++)
-            {
-                const size_t index = constraint->GetBody(i)->Index;
+	void RigidBodySystem::PopulateMassMatrices(Matrix& mass, Matrix& massInverse)
+	{
+		const size_t n = GetRigidBodyCount();
 
-                if (indexMap.count(index))
-                {
-                    m_Matrices.SparseJacobian.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.J[i]);
-                    m_Matrices.SparseJacobianDot.InsertMatrix(currentConstraintIndex, indexMap.at(index), constraintSlice.Jdot[i]);
-                }
-                else
-                {
-                    m_Matrices.SparseJacobian.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.J[i]);
-                    m_Matrices.SparseJacobianDot.InsertMatrix(currentConstraintIndex, currentBodyIndex, constraintSlice.Jdot[i]);
+		mass.Resize(n * 3, 1);
+		massInverse.Resize(n * 3, 1);
 
-                    indexMap[index] = currentBodyIndex;
-                    currentBodyIndex += 3;
-                }
-            }
+		for (size_t i = 0; i < n; i++)
+		{
+			mass[i * 3 + 0][0] = m_RigidBodies[i]->Mass;
+			mass[i * 3 + 1][0] = m_RigidBodies[i]->Mass;
+			mass[i * 3 + 2][0] = m_RigidBodies[i]->MomentInertia;
+	 
+			massInverse[i * 3 + 0][0] = 1.0 / m_RigidBodies[i]->Mass;
+			massInverse[i * 3 + 1][0] = 1.0 / m_RigidBodies[i]->Mass;
+			massInverse[i * 3 + 2][0] = 1.0 / m_RigidBodies[i]->MomentInertia;
+		}
+	}
 
-            for (uint32_t i = 0; i < constraint->GetConstraintCount(); i++, currentIndex++)
-            {
-                m_Matrices.C[currentIndex][0] = constraintSlice.C[i][0];
-                m_Matrices.ks[currentIndex][0] = constraintSlice.ks[i][0];
-                m_Matrices.kd[currentIndex][0] = constraintSlice.kd[i][0];
-            }
+	void RigidBodySystem::UpdateForces()
+	{
+		// zero out forces
+		for (size_t i = 0; i < GetRigidBodyCount(); i++)
+		{
+			m_State.Force[i] = glm::dvec2{ 0.0 };
+			m_State.Torque[i] = 0.0;
+		}
+		// loop through force generators and apply their force to the state
 
-            currentConstraintIndex += constraint->GetConstraintCount();
-        }
-        //m_Matrices.SparseJacobian.Print();
+		for (ForceGeneratorPtr forceGen : m_ForceGenerators)
+		{
+			if (!forceGen->IsActive())
+				continue;
 
-        Matrix Cdot = m_Matrices.SparseJacobian * m_Matrices.qdot;
-        for (size_t i = 0; i < m_t; i++)
-        {
-            m_Matrices.ks[i][0] *= m_Matrices.C[i][0];
-            m_Matrices.kd[i][0] *= Cdot[i][0];
-        }
+			forceGen->ApplyForce(m_State);
+		}
+	}
 
-        for (size_t i = 0; i < n; i++)
-        {
-            m_Matrices.Q[i * 3 + 0][0] = m_State.Force[i].x;
-            m_Matrices.Q[i * 3 + 1][0] = m_State.Force[i].y;
-            m_Matrices.Q[i * 3 + 2][0] = m_State.Torque[i];
-        }
-       
-        // set up matrix equation
+	void RigidBodySystem::ResolveConstraints()
+	{
+
+		size_t n = GetRigidBodyCount();
+		size_t m = GetConstraintCount();
+		size_t m_t = GetTotalConstraintCount();
+
+		// populate vectors and matrices
+		m_Matrices.qdot.Resize(3 * n, 1);
+
+		for (size_t i = 0; i < n; i++)
+		{
+			m_Matrices.qdot[i * 3 + 0][0] = m_State.Velocity[i].x;
+			m_Matrices.qdot[i * 3 + 1][0] = m_State.Velocity[i].y;
+			m_Matrices.qdot[i * 3 + 2][0] = m_State.AngularVelocity[i];
+		}
+
+		m_Matrices.SparseJacobian.Initialize(m_t, n * 3);
+		m_Matrices.SparseJacobianDot.Initialize(m_t, n * 3);
+		m_Matrices.Q.Initialize(n * 3, 1);
+		m_Matrices.ks.Initialize(m_t, 1);
+		m_Matrices.kd.Initialize(m_t, 1);
+		m_Matrices.C.Initialize(m_t, 1);
+
+		// caluclate constraints and store them in respective matrices
+		ConstraintOutput constraintSlice;
+		size_t currentConstraintIndex = 0;
+		size_t currentBodyIndex = 0;
+		size_t currentIndex = 0;
+
+		for (ConstraintPtr constraint : m_Constraints)
+		{
+			constraint->Calculate(constraintSlice, m_State);
+
+			for (uint32_t i = 0; i < constraint->GetBodyCount(); i++)
+			{
+				RigidBody* body = constraint->GetBody(i);
+				PointerPair index = { constraint.get() ,body };
+
+				m_Matrices.SparseJacobian.InsertMatrix(currentConstraintIndex, m_ConstaintBodyIndex.at(index), constraintSlice.J[i]);
+				m_Matrices.SparseJacobianDot.InsertMatrix(currentConstraintIndex, m_ConstaintBodyIndex.at(index), constraintSlice.Jdot[i]);
+			}
+
+			for (uint32_t i = 0; i < constraint->GetConstraintCount(); i++, currentIndex++)
+			{
+				m_Matrices.C[currentIndex][0] = constraintSlice.C[i][0];
+				m_Matrices.ks[currentIndex][0] = constraintSlice.ks[i][0];
+				m_Matrices.kd[currentIndex][0] = constraintSlice.kd[i][0];
+			}
+
+			currentConstraintIndex += constraint->GetConstraintCount();
+		}
+		//m_Matrices.SparseJacobian.Print();
+
+
+		Matrix Cdot = m_Matrices.SparseJacobian * m_Matrices.qdot;
+		for (size_t i = 0; i < m_t; i++)
+		{
+			m_Matrices.ks[i][0] *= m_Matrices.C[i][0];
+			m_Matrices.kd[i][0] *= Cdot[i][0];
+		}
+
+		for (size_t i = 0; i < n; i++)
+		{
+			m_Matrices.Q[i * 3 + 0][0] = m_State.Force[i].x;
+			m_Matrices.Q[i * 3 + 1][0] = m_State.Force[i].y;
+			m_Matrices.Q[i * 3 + 2][0] = m_State.Torque[i];
+		}
+	   
+		// set up matrix equation
  
-        Matrix::ScaleLeftDiagonal(m_Matrices.Q, m_Matrices.W, m_Matrices.WQ);
-        Matrix::Multiply(m_Matrices.SparseJacobian, m_Matrices.WQ, m_Matrices.JWQ);
-        Matrix::Multiply(m_Matrices.SparseJacobianDot, m_Matrices.qdot, m_Matrices.JdotQdot);
+		Matrix::ScaleLeftDiagonal(m_Matrices.Q, m_Matrices.W, m_Matrices.WQ);
+		Matrix::Multiply(m_Matrices.SparseJacobian, m_Matrices.WQ, m_Matrices.JWQ);
+		Matrix::Multiply(m_Matrices.SparseJacobianDot, m_Matrices.qdot, m_Matrices.JdotQdot);
 
-        m_Matrices.JdotQdot = -1 * m_Matrices.JdotQdot;
-        m_Matrices.JdotQdot -= m_Matrices.JWQ;
-        m_Matrices.JdotQdot -= m_Matrices.ks;
-        m_Matrices.JdotQdot -= m_Matrices.kd;
-        Matrix SparseJacobianTranspose = m_Matrices.SparseJacobian.Transpose();
-        Matrix WJT = SparseJacobianTranspose.ScaleLeftDiagonal(m_Matrices.W);
-        Matrix A = m_Matrices.SparseJacobian * WJT;
-        
-        // solve matrix equation
-        m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, m_Matrices.lambda);
+		m_Matrices.JdotQdot = -1 * m_Matrices.JdotQdot;
+		m_Matrices.JdotQdot -= m_Matrices.JWQ;
+		m_Matrices.JdotQdot -= m_Matrices.ks;
+		m_Matrices.JdotQdot -= m_Matrices.kd;
+		Matrix SparseJacobianTranspose = m_Matrices.SparseJacobian.Transpose();
+		Matrix WJT = SparseJacobianTranspose.ScaleLeftDiagonal(m_Matrices.W);
+		Matrix A = m_Matrices.SparseJacobian * WJT;
+		
+		// solve matrix equation
+		Hazel::Timer timer;
+		bool solved = m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, m_Matrices.lambda);
+		//if (!solved)
+		//    HZ_CORE_TRACE("Not solved");
+		//HZ_CORE_TRACE("Time: {0}ms", timer.ElapsedMilliseconds());
 
-        // disperse matrices to state
-        m_Matrices.Qhat = SparseJacobianTranspose * m_Matrices.lambda;
+		// disperse matrices to state
+		m_Matrices.Qhat = SparseJacobianTranspose * m_Matrices.lambda;
 
-        // xdotdot = (AppiliedForce + ConstraintForce) / m
-        for (size_t i = 0; i < n; i++)
-        {
-            m_State.Acceleration[i].x      = m_Matrices.Q[i * 3 + 0][0] + m_Matrices.Qhat[i * 3 + 0][0];
-            m_State.Acceleration[i].y      = m_Matrices.Q[i * 3 + 1][0] + m_Matrices.Qhat[i * 3 + 1][0];
-            m_State.AngularAcceleration[i] = m_Matrices.Q[i * 3 + 2][0] + m_Matrices.Qhat[i * 3 + 2][0];
-        }
-        
-        for (size_t i = 0; i < n; i++)
-        {
-            m_State.Acceleration[i] *= m_Matrices.W[i * 3 + 0][0];
-            m_State.AngularAcceleration[i] *= m_Matrices.W[i * 3 + 2][0];
-        }
-    }
+		// xdotdot = (AppiliedForce + ConstraintForce) / m
+		for (size_t i = 0; i < n; i++)
+		{
+			m_State.Acceleration[i].x      = m_Matrices.Q[i * 3 + 0][0] + m_Matrices.Qhat[i * 3 + 0][0];
+			m_State.Acceleration[i].y      = m_Matrices.Q[i * 3 + 1][0] + m_Matrices.Qhat[i * 3 + 1][0];
+			m_State.AngularAcceleration[i] = m_Matrices.Q[i * 3 + 2][0] + m_Matrices.Qhat[i * 3 + 2][0];
+		}
+		
+		for (size_t i = 0; i < n; i++)
+		{
+			m_State.Acceleration[i] *= m_Matrices.W[i * 3 + 0][0];
+			m_State.AngularAcceleration[i] *= m_Matrices.W[i * 3 + 2][0];
+		}
+	}
 }

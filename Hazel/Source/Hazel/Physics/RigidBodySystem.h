@@ -1,10 +1,12 @@
 #pragma once
 
-#include "SystemState.h"
 #include "Hazel/Math/Matrix.h"
 
+#include "SystemState.h"
+#include "KDTree.h"
 #include "RigidBody.h"
 #include "GravitationalAccelerator.h"
+#include "SpringForce.h"
 #include "EulersMethodIntegrator.h"
 #include "RungeKutta4thIntegrator.h"
 #include "ConjugateGradientMethod.h"
@@ -15,31 +17,47 @@
 
 namespace Enyoo
 {
+	static Hazel::Ref<std::vector<BodyPoint>> s_RigidBodyPoints;
+	static Hazel::Ref<KDTree<BodyPoint>> s_RigidBodyKDTree;
+	
+
 	class RigidBodySystem
 	{
 		using Matrix = Hazel::Math::Matrix;
 		using Vector = Hazel::Math::Matrix;
+		using RigidBodyPtr = Hazel::Ref<RigidBody>;
+		using ConstraintPtr = Hazel::Ref<Constraint>;
+		using ForceGeneratorPtr = Hazel::Ref<ForceGenerator>;
+		using PointerPair = std::pair<Constraint*, RigidBody*>;
+		using IndexMap = std::unordered_map<PointerPair, size_t, Utilities::HashPointerFn>;
 
 	public:
+
+		//TODO: need a proper constructor 
 		RigidBodySystem() = default;
 
-		void Initialize(); 
+		void Initialize();
 
 		void Step(double dt, uint32_t steps = 1);
 
-		void AddRigidBody(RigidBody* body);
-		void AddForceGen(ForceGenerator* forceGen);
-		void AddConstraint(const Hazel::Ref<Constraint>& constraint);
-		void RemoveRigidBody(RigidBody* body);
-		void RemoveForceGen(ForceGenerator* forceGen);
-		void RemoveConstraint(const Hazel::Ref<Constraint>& constraint);
+		void AddRigidBody(const RigidBodyPtr& body);
+		void RemoveRigidBody(const RigidBodyPtr& body);
+		void AddForceGen(const ForceGeneratorPtr& forceGen);
+		void RemoveForceGen(const ForceGeneratorPtr& forceGen);
+		void AddConstraint(const ConstraintPtr& constraint);
+		void RemoveConstraint(const ConstraintPtr& constraint);
 
-		size_t GetRigidBodyCount() const { return m_RigidBodies.size(); }
+		constexpr size_t GetRigidBodyCount() const { return m_RigidBodies.size(); }
 		size_t GetForceGenCount() const { return m_ForceGenerators.size(); }
 		size_t GetConstraintCount() const { return m_Constraints.size(); }
 		size_t GetTotalConstraintCount() const;
+		std::vector<RigidBodyPtr> GetAllRigidBodies() const { return m_RigidBodies; }
 
 		double GetTotalSystemEnergy() const;
+		
+		static std::vector<size_t> NnRadiusIndexSearch(RigidBody* body, double radius);
+		static size_t TreeIndexToBodyIndex(size_t index);
+
 	private:
 		void PopulateSystemState();
 		void PopulateMassMatrices(Matrix& Mass, Matrix& massInverse);
@@ -47,10 +65,10 @@ namespace Enyoo
 		void ResolveConstraints();
 	private:
 		SystemState m_State;
-
-		std::vector<RigidBody*> m_RigidBodies;
-		std::vector<ForceGenerator*> m_ForceGenerators;
-		std::vector<Hazel::Ref<Constraint>> m_Constraints;
+		
+		std::vector<RigidBodyPtr> m_RigidBodies;
+		std::vector<ForceGeneratorPtr> m_ForceGenerators;
+		std::vector<ConstraintPtr> m_Constraints;
 
 		RungeKutta4thIntegrator m_TimeIntegrator;
 		ConjugateGradientMethod m_LinearEquationSolver;
@@ -71,24 +89,13 @@ namespace Enyoo
 			Matrix JdotQdot;
 			Matrix WQ;
 			Matrix JWQ;
-		} 
+		};
 
-		m_Matrices;
+
+		Matrices m_Matrices;
+		IndexMap m_ConstaintBodyIndex;
+
 	};
-
-	namespace Utilities
-	{
-		static glm::vec2 LocalToWorld(const glm::dvec2& local, const glm::vec3& rotation, const glm::vec3& translation)
-		{
-			glm::dvec2 world;
-			world.x = glm::cos(rotation.z)
-				* local.x - glm::sin(rotation.z)
-				* local.y + translation.x;
-			world.y = glm::sin(rotation.z)
-				* local.x + glm::cos(rotation.z)
-				* local.y + translation.y;
-
-			return world;
-		}
-	}
 }
+
+

@@ -56,6 +56,7 @@ namespace Hazel
 		}
 
 		UUID GetUUID() { return GetComponent<IDComponent>().ID; }
+		Scene* GetScene() const { return m_Scene; }
 		entt::entity GetHandle() const { return m_EntityHandle; }
 		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 		glm::mat4 GetTransform() { return GetComponent<TransformComponent>().GetTransform(); } //TODO: this should return a reference

@@ -20,5 +20,7 @@ namespace Enyoo
 		double MomentInertia;
 
 		bool Fixed;
+		bool Disable;
 	};
 }
+

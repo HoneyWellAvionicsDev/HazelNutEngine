@@ -5,7 +5,7 @@
 #include "RigidBody.h"
 #include "SystemState.h"
 
-#include <vector>
+#include <queue>
 
 namespace Enyoo
 {
@@ -15,17 +15,12 @@ namespace Enyoo
 	struct ConstraintOutput
 	{
 		Vector C;
-		//Matrix J1;
-		//Matrix J2;
-		//Matrix J1dot;
-		//Matrix J2dot;
 		std::vector<Matrix> J;
 		std::vector<Matrix> Jdot;
 		//vbias
 		//limits
 		Vector ks;
 		Vector kd;
-
 	};
 
 	class Constraint
@@ -34,19 +29,17 @@ namespace Enyoo
 		Constraint(uint32_t ConstraintCount, uint32_t BodyCount);
 		virtual ~Constraint() {}
 
-		virtual void Calculate(ConstraintOutput& output, SystemState* state) = 0;
+		virtual void Calculate(ConstraintOutput& output, SystemState& state) = 0;
 
 		void SetIndex(size_t index) { m_Index = index; }
-		size_t GetConstraintCount() const { return m_ConstraintCount; }
-		size_t GetBodyCount() const { return m_BodyCount; }
-		size_t GetIndex() const { return m_Index; }
+		std::deque<RigidBody*> GetBodies() const { return m_Bodies; }
+		constexpr size_t GetConstraintCount() const { return m_ConstraintCount; }
+		constexpr size_t GetBodyCount() const { return m_BodyCount; }
+		constexpr size_t GetIndex() const { return m_Index; }
 		RigidBody* GetBody(size_t index) { return m_Bodies[index]; }
-	public: //TODO: do something about this maybe
-		Matrix ConstraintForceX;
-		Matrix ConstraintForceY;
-		Matrix ConstraintTorque;
+
 	protected:
-		RigidBody** m_Bodies; //and this
+		std::deque<RigidBody*> m_Bodies;
 		size_t m_Index;
 		uint32_t m_BodyCount;
 		uint32_t m_ConstraintCount;

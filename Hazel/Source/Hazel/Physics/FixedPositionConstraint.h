@@ -4,8 +4,8 @@
 
 namespace Enyoo
 {
-	static constexpr int MaxConstraintCount = 3;
-	static constexpr int MaxBodyCount = 2;
+	//static constexpr int MaxConstraintCount = 3;
+	//static constexpr int MaxBodyCount = 2;
 
 	class FixedPositionConstraint : public Constraint
 	{
@@ -13,12 +13,12 @@ namespace Enyoo
 		FixedPositionConstraint();
 		virtual ~FixedPositionConstraint();
 
-		void SetBody(RigidBody* body, size_t index = 0) { m_Bodies[index] = body; }
+		void SetBody(RigidBody* body) { m_Bodies.push_back(body); }
 
 		void SetWorldPosition(glm::dvec2 position) { m_WorldPosition = position; }
 		void SetLocalPosition(glm::dvec2 position) { m_LocalPosition = position; }
 
-		virtual void Calculate(ConstraintOutput& output, SystemState* state) override;
+		virtual void Calculate(ConstraintOutput& output, SystemState& state) override;
 	private:
 		glm::dvec2 m_LocalPosition;
 		glm::dvec2 m_WorldPosition;

@@ -2,8 +2,6 @@
 
 #include "Hazel/Math/Matrix.h"
 
-#include <vector>
-
 namespace Enyoo
 {
 	class ConjugateGradientMethod

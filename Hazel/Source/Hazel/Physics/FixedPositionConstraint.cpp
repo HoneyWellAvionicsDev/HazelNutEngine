@@ -4,7 +4,7 @@
 namespace Enyoo
 {
 	FixedPositionConstraint::FixedPositionConstraint()
-		: Constraint(2, 1), m_LocalPosition{ 0.0, 0.0 }, m_WorldPosition{ 0.0, 0.0 }, m_ks(10.0), m_kd(1.0)
+		: Constraint(2, 1), m_LocalPosition{ 0.0, 0.0 }, m_WorldPosition{ 0.0, 0.0 }, m_ks(20.0), m_kd(2.0)
 	{
         J1.Initialize(m_ConstraintCount, 3);
         J1dot.Initialize(m_ConstraintCount, 3);
@@ -14,15 +14,15 @@ namespace Enyoo
 	{
 	}
 	
-	void FixedPositionConstraint::Calculate(ConstraintOutput& output, SystemState* state)
+	void FixedPositionConstraint::Calculate(ConstraintOutput& output, SystemState& state)
 	{
 		const size_t body = m_Bodies[0]->Index;
 
-        const double q1 = state->Position[body].x;
-        const double q2 = state->Position[body].y;
-        const double q3 = state->Theta[body];
+        const double q1 = state.Position[body].x;
+        const double q2 = state.Position[body].y;
+        const double q3 = state.Theta[body];
 
-        const double q3dot = state->AngularVelocity[body];
+        const double q3dot = state.AngularVelocity[body];
 
         const double cos_q3 = glm::cos(q3);
         const double sin_q3 = glm::sin(q3);

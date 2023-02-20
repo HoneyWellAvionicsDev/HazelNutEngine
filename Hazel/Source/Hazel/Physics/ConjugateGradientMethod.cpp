@@ -5,7 +5,7 @@
 namespace Enyoo
 {
 	ConjugateGradientMethod::ConjugateGradientMethod()
-		: m_MaxIterations(300), m_Tolerance(1E-5)
+		: m_MaxIterations(300), m_Tolerance(1E-10)
 	{
 	}
 
@@ -38,10 +38,10 @@ namespace Enyoo
 			x0 += p_ka;
 			r0 += Apa;
 
-			if (rkrk < m_Tolerance * m_Tolerance)
+			if (r0.Magnitude() < m_Tolerance)
 			{
 				x = x0;
-				return true;
+				return true; 
 			}
 
 			const double rk1_mag = r0.MagnitudeSquared();

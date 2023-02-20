@@ -22,20 +22,16 @@ namespace Hazel::Math
         Matrix(const Matrix&);
         ~Matrix();
 
-        FORCEINLINE constexpr size_t Rows() const { return m_Rows; }
-        FORCEINLINE constexpr size_t Columns() const { return m_Columns; }
+        constexpr size_t Rows() const { return m_Rows; }
+        constexpr size_t Columns() const { return m_Columns; }
 
         void Resize(size_t rows, size_t columns);
         void Initialize(size_t rows, size_t columns, double value = 0.0);
         void InsertMatrix(size_t row, size_t column, const Matrix& subMatrix);
 
         //operators
-        FORCEINLINE double* operator[](size_t row) const { HZ_CORE_ASSERT(row < m_Rows); return row * m_Columns + m_Matrix.get(); }
-        FORCEINLINE double& operator()(size_t row, size_t column) const
-        { 
-            HZ_CORE_ASSERT(row < m_Rows || column < m_Columns);  
-            return m_Matrix[row * m_Columns + column]; 
-        }
+        FORCEINLINE double* operator[](size_t row) const                { HZ_CORE_ASSERT(row < m_Rows);                       return row * m_Columns + m_Matrix.get(); }
+        FORCEINLINE double& operator()(size_t row, size_t column) const { HZ_CORE_ASSERT(row < m_Rows || column < m_Columns); return m_Matrix[row * m_Columns + column]; }
 
         Matrix& operator=(const Matrix& other)
         {
@@ -54,7 +50,7 @@ namespace Hazel::Math
 
             return *this;
         }
-        
+        //TODO: all of this is so stupid, I dont like operator overloading anymore so lets just remove this later
         Matrix operator*(Matrix& B) { return Times(B); }
         Matrix operator*(double scale) { return Scale(*this, scale); }
         Matrix operator+(Matrix& B) { return Add(B); }
@@ -69,6 +65,7 @@ namespace Hazel::Math
         //Debug methods
         void Print() 
         {
+            std::cout << "----------------------------------------------\n";
             for (size_t i = 0; i < m_Rows; i++)
             {
                 for (size_t j = 0; j < m_Columns; j++)
@@ -77,7 +74,7 @@ namespace Hazel::Math
                 }
                 std::cout << '\n';
             }
-            std::cout << "\n";
+            std::cout << "----------------------------------------------\n";
         }
     
         //Matrix operations

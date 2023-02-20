@@ -5,7 +5,7 @@
 namespace Enyoo
 {
 	LinkConstraint::LinkConstraint()
-		: Constraint(2, 2), m_FirstBodyLocal({0.0, 0.0}), m_SecondBodyLocal({0.0, 0.0}), m_ks(10.0), m_kd(1.0)
+		: Constraint(2, 2), m_FirstBodyLocal({0.0, 0.0}), m_SecondBodyLocal({0.0, 0.0}), m_ks(20.0), m_kd(2.0)
 	{
 		J1.Initialize(m_ConstraintCount, 3);
 		J2.Initialize(m_ConstraintCount, 3);
@@ -13,16 +13,16 @@ namespace Enyoo
 		J2dot.Initialize(m_ConstraintCount, 3);
 	}
 
-	void LinkConstraint::Calculate(ConstraintOutput& output, SystemState* state)
+	void LinkConstraint::Calculate(ConstraintOutput& output, SystemState& state)
 	{
-		const size_t body = m_Bodies[0]->Index;
-		const size_t linkedBody = m_Bodies[1]->Index;
+		const size_t focusBody = m_Bodies[0]->Index;
+		const size_t targetBody = m_Bodies[1]->Index;
 
-		const double q3 = state->Theta[body];
-		const double q6 = state->Theta[linkedBody];
+		const double q3 = state.Theta[focusBody];
+		const double q6 = state.Theta[targetBody];
 
-		const double q3dot = state->AngularVelocity[body]; 
-		const double q6dot = state->AngularVelocity[linkedBody];
+		const double q3dot = state.AngularVelocity[focusBody]; 
+		const double q6dot = state.AngularVelocity[targetBody];
 
 		const double sinQ3 = glm::sin(q3);
 		const double cosQ3 = glm::cos(q3);
@@ -30,11 +30,11 @@ namespace Enyoo
 		const double sinQ6 = glm::sin(q6);
 		const double cosQ6 = glm::cos(q6);
 
-		const double bodyX = state->Position[body].x + cosQ3 * m_FirstBodyLocal.x - sinQ3 * m_FirstBodyLocal.y;
-		const double bodyY = state->Position[body].y + sinQ3 * m_FirstBodyLocal.x + cosQ3 * m_FirstBodyLocal.y;
+		const double bodyX = state.Position[focusBody].x + cosQ3 * m_FirstBodyLocal.x - sinQ3 * m_FirstBodyLocal.y;
+		const double bodyY = state.Position[focusBody].y + sinQ3 * m_FirstBodyLocal.x + cosQ3 * m_FirstBodyLocal.y;
 
-		const double linkedBodyX = state->Position[linkedBody].x + cosQ6 * m_SecondBodyLocal.x - sinQ6 * m_SecondBodyLocal.y;
-		const double linkedBodyY = state->Position[linkedBody].y + sinQ6 * m_SecondBodyLocal.x + cosQ6 * m_SecondBodyLocal.y;
+		const double linkedBodyX = state.Position[targetBody].x + cosQ6 * m_SecondBodyLocal.x - sinQ6 * m_SecondBodyLocal.y;
+		const double linkedBodyY = state.Position[targetBody].y + sinQ6 * m_SecondBodyLocal.x + cosQ6 * m_SecondBodyLocal.y;
 
 		output.ks.Resize(m_ConstraintCount, 1);
 		output.kd.Resize(m_ConstraintCount, 1);
