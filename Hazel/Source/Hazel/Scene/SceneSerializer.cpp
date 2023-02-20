@@ -138,7 +138,7 @@ namespace Hazel
 		{
 			case ForceGeneratorComponent::GeneratorType::Gravity:	return "Gravity";
 			case ForceGeneratorComponent::GeneratorType::Spring:	return "Test1";
-			case ForceGeneratorComponent::GeneratorType::Test2:	return "Test2";
+			case ForceGeneratorComponent::GeneratorType::GravitationalAccelerator:	return "Test2";
 		}
 
 		HZ_CORE_ASSERT(false, "Unknown generator type");
@@ -149,7 +149,7 @@ namespace Hazel
 	{
 		if (genTypeStr == "Gravity")		return ForceGeneratorComponent::GeneratorType::Gravity;
 		if (genTypeStr == "Test1")		return ForceGeneratorComponent::GeneratorType::Spring;
-		if (genTypeStr == "Test2")		return ForceGeneratorComponent::GeneratorType::Test2;
+		if (genTypeStr == "Test2")		return ForceGeneratorComponent::GeneratorType::GravitationalAccelerator;
 
 		HZ_CORE_ASSERT(false, "Unknown generator type");
 		return ForceGeneratorComponent::GeneratorType::Gravity;
@@ -309,6 +309,8 @@ namespace Hazel
 			out << YAML::Key << "GeneratorType" << YAML::Value << ForceGenTypeToString(forceGenComponent.Type);
 			if (forceGenComponent.Type == ForceGeneratorComponent::GeneratorType::Gravity)
 				out << YAML::Key << "LocalGravity" << YAML::Value << forceGenComponent.LocalGravity;
+			
+			out << YAML::Key << "ReplusiveForce" << YAML::Value << forceGenComponent.RepulsiveForce;
 
 			out << YAML::EndMap;
 		}
@@ -510,7 +512,7 @@ namespace Hazel
 					fgc.Type = ForceGenTypeFromString(forceGenComponent["GeneratorType"].as<std::string>());
 					if (fgc.Type == ForceGeneratorComponent::GeneratorType::Gravity)
 						fgc.LocalGravity = forceGenComponent["LocalGravity"].as<glm::vec2>();
-					
+					fgc.RepulsiveForce = forceGenComponent["ReplusiveForce"].as<bool>();
 				}
 
 				auto boxCollider2DComponent = entity["BoxCollider2DComponent"];

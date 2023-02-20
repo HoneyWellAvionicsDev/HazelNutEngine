@@ -110,7 +110,7 @@ namespace Hazel
 				{ ShaderDataType::Float3, "a_Posistion"	   },        //these names are needed for direct x but not opengl
 				{ ShaderDataType::Float4, "a_Color"		   },
 				{ ShaderDataType::Float2, "a_TextureCoord" },
-				{ ShaderDataType::Float,  "a_TextureIndex"	   },
+				{ ShaderDataType::Float,  "a_TextureIndex" },
 				{ ShaderDataType::Float,  "a_TileFactor"   },
 				{ ShaderDataType::Int,    "a_EntityID"     }
 		});
@@ -222,11 +222,8 @@ namespace Hazel
 	{
 		HZ_PROFILE_FUNCTION();
 
-		//s_Data.QuadShader->Bind();
-		//s_Data.QuadShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2Ddata::CameraData));
 		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
+		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2Ddata::CameraData));
 
 		StartBatch();
 	}
@@ -279,7 +276,7 @@ namespace Hazel
 		}
 
 		if (s_Data.LineVertexCount)
-		{
+	{
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase);
 			s_Data.LineVertexBuffer->SetData(s_Data.LineVertexBufferBase, dataSize);
 
@@ -291,7 +288,7 @@ namespace Hazel
 	}
 
 	void Renderer2D::StartNewBatch()
-	{
+	{	
 		HZ_PROFILE_FUNCTION();
 		Flush();
 		StartBatch();

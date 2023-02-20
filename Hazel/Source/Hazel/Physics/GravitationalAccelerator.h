@@ -4,6 +4,19 @@
 
 namespace Enyoo
 {
+	class LocalGravity : public ForceGenerator
+	{
+	public:
+		LocalGravity();
+
+		virtual void ApplyForce(SystemState& state) override;
+
+		void SetGravity(glm::dvec2 gravity) { m_LocalGravity = gravity; }
+		glm::dvec2 GetGravity() const { return m_LocalGravity; }
+	private:
+		glm::dvec2 m_LocalGravity;
+	};
+
 	class GravitationalAccelerator : public ForceGenerator
 	{
 	public:
@@ -11,9 +24,13 @@ namespace Enyoo
 
 		virtual void ApplyForce(SystemState& state) override;
 
-		void SetGravity(glm::dvec2 gravity) { m_g = gravity; }
-		glm::dvec2 GetGravity() const { return m_g; }
+		void SetSourceBody(RigidBody* body) { m_SourceBody = body; }
+		void SetInfluenceRadius(double radius) { m_InfluenceRadius = radius; }
+		void SetRepulisveForce(bool force) { m_AntiForce = force; }
 	private:
-		glm::dvec2 m_g;
+		RigidBody* m_SourceBody;
+		uint32_t m_IterationCounter;
+		double m_InfluenceRadius;
+		bool m_AntiForce;
 	};
 }

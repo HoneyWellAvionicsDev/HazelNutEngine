@@ -151,9 +151,10 @@ namespace Hazel
 
 	struct ForceGeneratorComponent
 	{
-		enum class GeneratorType : uint8_t { Gravity = 0, Spring, Test2 };
+		enum class GeneratorType : uint8_t { Gravity = 0, Spring, GravitationalAccelerator };
 		GeneratorType Type = GeneratorType::Gravity;
 		glm::vec2 LocalGravity = { 0.0, -9.81 };
+		bool RepulsiveForce = false;
 
 		Ref<Enyoo::ForceGenerator> RuntimeGenerator = nullptr;
 
