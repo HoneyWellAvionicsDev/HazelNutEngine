@@ -15,6 +15,7 @@ namespace Hazel
 
 		void SetContext(const Ref<Scene>& scene);
 		void SetSelectionContext(const Entity& ent) { m_SelectionContext = ent; }
+		void DeleteDeffered();
 		void OnImGuiRender();
 
 		Entity GetSelectedEntity() const { return m_SelectionContext; }
@@ -23,9 +24,10 @@ namespace Hazel
 		void DrawComponents(Entity entity);
 		template<typename T>
 		void DisplayAddComponentEntry(const std::string& entryName);
-
+	private:
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
+		std::vector<Entity> m_DefferedEntities;
 	};
 }
 

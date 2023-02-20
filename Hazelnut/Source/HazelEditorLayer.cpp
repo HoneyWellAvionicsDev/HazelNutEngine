@@ -23,7 +23,6 @@ namespace Hazel
 	{
 		HZ_PROFILE_FUNCTION();
 
-
 		FrameBufferSpecification FrameBufferSpec;
 		FrameBufferSpec.Attachments = { FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::RED_INTEGER, FrameBufferTextureFormat::Depth };
 		FrameBufferSpec.Width = 1280;
@@ -46,16 +45,24 @@ namespace Hazel
 				HZ_CORE_ERROR("Could not deserialize scene from {0}", sceneFilePath);
 		}
 
-		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 100000.0f);
+		m_EditorCamera = EditorCamera(m_CameraFOV, 1.778f, 0.1f, 100000.0f);
 		Renderer2D::SetLineWidth(6.0f);
 
 		m_EditorCamera.SetDistance(50.f);
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+		m_MouseBody = CreateRef<Enyoo::RigidBody>();
+		m_MouseBody->Disable = true;
+		m_InteractionSpring = CreateRef<Enyoo::Spring>();
+		m_InteractionSpring->SetRestLength(0.2);
+		m_InteractionSpring->SetSpringConstant(9000.0);
+		m_InteractionSpring->SetDampingValue(23.9);
+		m_InteractionSpring->SetSecondBody(m_MouseBody.get());
+		m_InteractionSpring->SetActive(false);
 	}
 	
 	void EditorLayer::OnDetach()
 	{
-		HZ_PROFILE_FUNCTION();
 	}
 	
 	void EditorLayer::OnUpdate(Timestep ts)
@@ -66,16 +73,19 @@ namespace Hazel
 			m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
 			(spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
 		{
-			m_FrameBuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+			m_FrameBuffer->Resize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
 			m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+			m_ActiveScene->OnViewportResize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
 		}
 		
 		//------------------Update----------------------------------
 		m_ActiveScene->SetLevelGravity({ m_Gravity[0], m_Gravity[1] });
 		m_ActiveScene->SetVelocityIterations(m_VeloctiyIterations);
 		m_ActiveScene->SetPositionIterations(m_PositionIterations);
+		m_EditorCamera.DisableRotation(m_DisableCameraRotation);
+		m_EditorCamera.SetFOV(m_CameraFOV);
 
+	
 		//------------------Render----------------------------------
 		Renderer2D::ResetStats();
 		m_FrameBuffer->Bind();
@@ -84,12 +94,13 @@ namespace Hazel
 		
 		m_FrameBuffer->ClearAttachment(1, -1); //Clear ent ID to -1
 		//------------------Scene----------------------------------
+	
+
 		switch (m_SceneState)
 		{
 			case SceneState::Edit:
 			{
-				if (m_ViewportHovered || m_ViewportFocused)
-					m_EditorCamera.OnUpdate(ts);
+				m_EditorCamera.OnUpdate(ts);
 
 				m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
 				break;
@@ -97,6 +108,7 @@ namespace Hazel
 			case SceneState::Simulate:
 			{
 				Timer timer;
+
 				m_EditorCamera.OnUpdate(ts);
 
 				m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
@@ -121,7 +133,6 @@ namespace Hazel
 				break;
 			}
 		}
-		
 
 		//------------------Mouse Picking----------------------------
 		auto [mx, my] = ImGui::GetMousePos();
@@ -129,13 +140,15 @@ namespace Hazel
 		my -= m_ViewportBounds[0].y;
 		glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
 		my = viewportSize.y - my;
-		int mouseX = (int)mx;
-		int mouseY = (int)my;
-		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y) 
+		int mouseX = static_cast<int>(mx);
+		int mouseY = static_cast<int>(my);
+		if (mouseX >= 0 && mouseY >= 0 && mouseX < static_cast<int>(viewportSize.x) && mouseY < static_cast<int>(viewportSize.y))
 		{
 			int pixelData = m_FrameBuffer->ReadPixel(1, mouseX, mouseY);
-			m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
+			m_HoveredEntity = pixelData == -1 ? Entity() : Entity(static_cast<entt::entity>(pixelData), m_ActiveScene.get());
 		}
+
+		DragHoveredEntity();
 
 		OnOverlayRender();
 
@@ -207,12 +220,13 @@ namespace Hazel
 				if (ImGui::MenuItem("Open...", "Ctrl+O"))
 					OpenScene();
 
-				if (ImGui::MenuItem("Save", "Ctrl+S"));
+				if (ImGui::MenuItem("Save", "Ctrl+S"))
+					SaveScene();
 
 				if (ImGui::MenuItem("Save As", "Ctrl+Shift+S"))
 					SaveSceneAs();
 
-				if (ImGui::MenuItem("Quit"))
+				if (ImGui::MenuItem("Quit", "Alt+F4"))
 					Application::Get().CloseWindow();
 
 				ImGui::EndMenu();
@@ -225,14 +239,18 @@ namespace Hazel
 		ImGui::Begin("Statistics");
 
 		std::string name = "None";
+		std::string name2 = "None";
 		if (m_HoveredEntity)
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
+		if (m_DragEntity)
+			name = m_DragEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
+		ImGui::Text("Mouse Entity: %s", name2.c_str());
 
 		auto stats = Renderer2D::GetStats();
 		ImGui::Text("Renderer2D Stats: ");
 		auto [mousex, mousey] = ImGui::GetMousePos();
-		ImGui::Text("Mouse pos x: %i y: %i", (int)mousex, (int)mousey);
+		ImGui::Text("Mouse pos x: %i y: %i", static_cast<int>(mousex), static_cast<int>(mousey));
 		ImGui::Text("Frametime: %f ms", Application::Get().GetLastFrameTime());
 		ImGui::Text("FPS: %f", 1.f / Application::Get().GetLastFrameTime());
 		ImGui::Text("Draw Calls: %d", stats.DrawCalls);
@@ -257,6 +275,13 @@ namespace Hazel
 		ImGui::SliderInt("Position Iterations", &m_PositionIterations, 1, 500);
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 		ImGui::Checkbox("Use editor camera for runtime", &m_UseEditorCameraOnRuntime);
+		ImGui::Checkbox("Disable camera rotation", &m_DisableCameraRotation);
+		if (ImGui::Button("Reset camera position"))
+			m_EditorCamera.SetFocalPoint(glm::vec3(0.0f));
+		ImGui::SliderFloat("FOV", &m_CameraFOV, 10.0f, 120.0f);
+		ImGui::SameLine();
+		if (ImGui::Button("x"))
+			m_CameraFOV = 45.0f;
 
 		ImGui::ShowDemoWindow(&dockspaceOpen);
 		ImGui::End();
@@ -277,7 +302,10 @@ namespace Hazel
 		Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportHovered && !m_ViewportFocused && !(Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL)));
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+		ImVec2 viewportMousePos = ImGui::GetCursorScreenPos();
+
 		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+		m_MouseViewportPos = { viewportMousePos.x , viewportMousePos.y };
 
 		uint32_t textureID = m_FrameBuffer->GetColorAttachmentRendererID();
 		ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
@@ -299,8 +327,8 @@ namespace Hazel
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 
-			float windowWidth = (float)ImGui::GetWindowWidth();
-			float windowHeight = (float)ImGui::GetWindowHeight();
+			float windowWidth = ImGui::GetWindowWidth();
+			float windowHeight = ImGui::GetWindowHeight();
 			ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
 			//Get Editor cam
@@ -321,7 +349,7 @@ namespace Hazel
 			float snapValues[3] = { snapValue, snapValue, snapValue };
 
 			ImGuizmo:Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-			(ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+			static_cast<ImGuizmo::OPERATION>(m_GizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
 			nullptr, snap ? snapValues : nullptr);
 
 			if (ImGuizmo::IsUsing())
@@ -353,7 +381,7 @@ namespace Hazel
 
 		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar || ImGuiWindowFlags_NoScrollWithMouse);
 
-		bool toolbarEnabled = (bool)m_ActiveScene;
+		bool toolbarEnabled = static_cast<bool>(m_ActiveScene);
 
 		ImVec4 tintColor = ImVec4(1, 1, 1, 1);
 		if (!toolbarEnabled)
@@ -363,7 +391,7 @@ namespace Hazel
 		{
 			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate) ? m_IconPlay : m_IconStop;
 			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+			if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(icon->GetRendererID()), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
 			{
 				if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate)
 					OnScenePlay();
@@ -374,7 +402,7 @@ namespace Hazel
 		ImGui::SameLine();
 		{
 			Ref<Texture2D> icon = m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play ? m_IconSimulate : m_IconStop;
-			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+			if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(icon->GetRendererID()), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 			{
 				if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play)
 					OnSceneSimulate();
@@ -391,104 +419,6 @@ namespace Hazel
 		ImGui::End();
 	}
   
-	void EditorLayer::OnEvent(Event& event)
-	{
-		if(m_ViewportHovered)
-			m_EditorCamera.OnEvent(event);
-
-		EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); 
-		dispatcher.Dispatch<MouseButtonPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnMouseClick));
-		dispatcher.Dispatch<MouseButtonReleasedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnMouseRelease));
-	}
-
-	bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
-	{
-		if (event.IsRepeat())
-			return false;
-
-		bool control = Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL);
-		bool shift = Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT) || Input::IsKeyPressed(HZ_KEY_RIGHT_SHIFT);
-		bool alt = Input::IsKeyPressed(HZ_KEY_LEFT_ALT) || Input::IsKeyPressed(HZ_KEY_RIGHT_ALT);
-
-		switch (event.GetKeyCode())
-		{
-			//file shortcuts
-			case HZ_KEY_N:
-			{
-				if (control)
-					NewScene();
-				break;
-			}
-			case HZ_KEY_O:
-			{
-				if (control)
-					OpenScene();
-				break;
-			}
-			case HZ_KEY_S:
-			{
-				if (control)
-				{
-					if (shift)
-						SaveSceneAs();
-					else
-						SaveScene();
-				}
-
-				break;
-			}
-			case HZ_KEY_D:
-			{
-				if (control)
-					OnDuplicateEntity();
-				break;
-			}
-			//gizmo shortcuts
-			case HZ_KEY_Q:
-				if(!ImGuizmo::IsUsing())
-					m_GizmoType = -1;
-				break;
-			case HZ_KEY_W: 
-				if (!ImGuizmo::IsUsing())
-					m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-				break;
-			case HZ_KEY_E:
-				if (!ImGuizmo::IsUsing())
-					m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-				break;
-			case HZ_KEY_R:
-				if (!ImGuizmo::IsUsing())
-					m_GizmoType = ImGuizmo::OPERATION::SCALE;
-				break;
-			//settings
-			case HZ_KEY_X:
-				if (alt)
-					m_ShowPhysicsColliders ^= true;
-				break;
-		}
-	}
-
-	bool EditorLayer::OnMouseClick(MouseButtonEvent& event)
-	{
-		if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT)
-		{
-			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_5))           
-				m_SceneHierarchyPanel.SetSelectionContext(m_HoveredEntity);
-		}
-
-		
-		return false;
-	}
-
-	bool EditorLayer::OnMouseRelease(MouseButtonEvent& event)
-	{
-		if (Input::IsMouseButtonReleased(HZ_MOUSE_BUTTON_LEFT) && m_SceneState == SceneState::Edit)
-		   ObjectSnapping(m_SceneHierarchyPanel.GetSelectedEntity());
-
-		return false;
-	}
-
 	void EditorLayer::OnOverlayRender()
 	{
 		if (m_SceneState == SceneState::Play && !m_UseEditorCameraOnRuntime)
@@ -587,10 +517,125 @@ namespace Hazel
 		Renderer2D::EndScene();
 	}
 
+	void EditorLayer::OnEvent(Event& event)
+	{
+		if(m_ViewportHovered)
+			m_EditorCamera.OnEvent(event);
+
+		EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); 
+		dispatcher.Dispatch<MouseButtonPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnMouseClick));
+		dispatcher.Dispatch<MouseButtonReleasedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnMouseRelease));
+	}
+
+	bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
+	{
+		if (event.IsRepeat())
+			return false;
+
+		bool control = Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(HZ_KEY_RIGHT_CONTROL);
+		bool shift = Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT) || Input::IsKeyPressed(HZ_KEY_RIGHT_SHIFT);
+		bool alt = Input::IsKeyPressed(HZ_KEY_LEFT_ALT) || Input::IsKeyPressed(HZ_KEY_RIGHT_ALT);
+
+		switch (event.GetKeyCode())
+		{
+			//file shortcuts
+			case HZ_KEY_N:
+			{
+				if (control)
+					NewScene();
+				break;
+			}
+			case HZ_KEY_O:
+			{
+				if (control)
+					OpenScene();
+				break;
+			}
+			case HZ_KEY_S:
+			{
+				if (control)
+				{
+					if (shift)
+						SaveSceneAs();
+					else
+						SaveScene();
+				}
+
+				break;
+			}
+			case HZ_KEY_D:
+			{
+				if (control)
+					OnDuplicateEntity();
+				break;
+			}
+			case HZ_KEY_F4:
+			{
+				if (alt)
+					Application::Get().CloseWindow();
+				break;
+			}
+			//gizmo shortcuts
+			case HZ_KEY_Q:
+				if(!ImGuizmo::IsUsing())
+					m_GizmoType = -1;
+				break;
+			case HZ_KEY_W: 
+				if (!ImGuizmo::IsUsing())
+					m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+				break;
+			case HZ_KEY_E:
+				if (!ImGuizmo::IsUsing())
+					m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+				break;
+			case HZ_KEY_R:
+				if (!ImGuizmo::IsUsing())
+					m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				break;
+			//settings
+			case HZ_KEY_X:
+				if (alt)
+					m_ShowPhysicsColliders ^= true;
+				break;
+		}
+	}
+
+	bool EditorLayer::OnMouseClick(MouseButtonEvent& event)
+	{
+		if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT)
+		{
+			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_5))           
+				m_SceneHierarchyPanel.SetSelectionContext(m_HoveredEntity);
+
+			if (m_HoveredEntity && m_HoveredEntity.HasComponent<RigidBodyComponent>() && 
+				(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate))
+			{
+				m_DragEntity = m_HoveredEntity;
+
+				auto* body = m_DragEntity.GetComponent<RigidBodyComponent>().RuntimeBody.get();
+				auto [x, y] = ImGui::GetMousePos();
+				glm::dvec2 local = body->WorldToLocal(GetWorldPosFromMouse({ x, y }));
+				m_InteractionSpring->SetFirstBody(body);
+				m_InteractionSpring->SetFirstPosition(local); 
+			}			
+		}
+
+		return false;
+	}
+
+	bool EditorLayer::OnMouseRelease(MouseButtonEvent& event)
+	{
+		if (m_SceneState == SceneState::Edit)
+		   ObjectSnapping(m_SceneHierarchyPanel.GetSelectedEntity());
+
+		return false;
+	}
+
 	void EditorLayer::NewScene()
 	{
 		m_EditorScene = CreateRef<Scene>();
-		m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+		m_EditorScene->OnViewportResize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 		m_ActiveScene = m_EditorScene;
 
@@ -623,7 +668,7 @@ namespace Hazel
 		if (serializer.Deserialize(filepath)) 
 		{
 			m_EditorScene = newScene;
-			m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+			m_EditorScene->OnViewportResize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
 			m_SceneHierarchyPanel.SetContext(m_EditorScene);
 
 			m_ActiveScene = m_EditorScene;
@@ -671,7 +716,7 @@ namespace Hazel
 		m_ActiveScene = Scene::Copy(m_EditorScene);
 		m_ActiveScene->OnRuntimeStart();
 
-		CarrySelectionContext();
+		PersistSelectionContext();
 	}
 
 	void EditorLayer::OnSceneSimulate()
@@ -684,8 +729,10 @@ namespace Hazel
 
 		m_ActiveScene = Scene::Copy(m_EditorScene);
 		m_ActiveScene->OnSimulationStart();
+		m_ActiveScene->GetRigidBodySystem()->AddForceGen(m_InteractionSpring);
+		m_MouseBody->Index = -1;
 
-		CarrySelectionContext();
+		PersistSelectionContext();
 	}
 
 	void EditorLayer::OnSceneStop()
@@ -701,7 +748,38 @@ namespace Hazel
 		m_ActiveScene = m_EditorScene;
 		m_HoveredEntity = {};
 
-		CarrySelectionContext();
+		PersistSelectionContext();
+	}
+
+	void EditorLayer::DragHoveredEntity()
+	{
+		if (m_SceneState != SceneState::Simulate && m_SceneState != SceneState::Play)
+			return;
+
+		auto [x, y] = ImGui::GetMousePos();
+		glm::vec2 mouseWorld = GetWorldPosFromMouse({ x, y });
+		m_MouseBody->Position = { mouseWorld.x, -mouseWorld.y };
+		if (!m_DragEntity)
+			return;
+		
+		if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_LEFT))
+		{
+			Renderer2D::BeginScene(m_EditorCamera);
+			auto* body = m_DragEntity.GetComponent<RigidBodyComponent>().RuntimeBody.get();
+
+
+			m_InteractionSpring->SetActive(true);
+
+			glm::mat4 transform = glm::translate(glm::mat4(1.f), { mouseWorld, 0.2f })
+				* glm::scale(glm::mat4(1.f), glm::vec3(0.5));
+			Hazel::Renderer2D::DrawCircle(transform, { 1.0f, 0.2f, 0.3f, 1.0f });
+			Renderer2D::EndScene();
+		}
+		else
+		{
+			m_DragEntity = Entity(); 
+			m_InteractionSpring->SetActive(false);
+		}	
 	}
 
 	void EditorLayer::OnDuplicateEntity()
@@ -715,12 +793,12 @@ namespace Hazel
 			m_SceneHierarchyPanel.SetSelectionContext(m_EditorScene->DuplicateEntity(selectedEntity));
 	}
 
-	void EditorLayer::CarrySelectionContext()
+	void EditorLayer::PersistSelectionContext()
 	{
 		if (m_SceneHierarchyPanel.GetSelectedEntity() != Entity())
 		{
 			auto view = m_ActiveScene->GetAllEntitiesWith<IDComponent>();
-			auto newSelection = view.find((entt::entity)m_SceneHierarchyPanel.GetSelectedEntity());
+			auto newSelection = view.find(static_cast<entt::entity>(m_SceneHierarchyPanel.GetSelectedEntity()));
 			m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 			m_SceneHierarchyPanel.SetSelectionContext(Entity(*newSelection, m_ActiveScene.get()));
 			return;
@@ -768,8 +846,23 @@ namespace Hazel
 					}
 				}
 			}
-		}
-		
-		
+		}	
+	}
+
+	glm::vec2 EditorLayer::GetWorldPosFromMouse(glm::vec2 mousePos)
+	{
+		//this method only works when there is no rotation or FOV changes from the editor camera (both need to be disabled to work)
+
+		glm::vec2 ndc = (mousePos - m_MouseViewportPos) / m_ViewportSize;
+		ndc.x = 2.0f * ndc.x - 1.0f;
+		ndc.y = 1.0f - (2.0f * ndc.y);
+		float cameraWidth = m_EditorCamera.GetBounds().GetWidth();
+		float cameraHeight = m_EditorCamera.GetBounds().GetHeight();
+		glm::vec3 focalPoint = m_EditorCamera.GetFocalPoint();
+		glm::vec2 worldPos = { ndc.x * cameraWidth / 2.0f, ndc.y * cameraHeight / 2.0f };
+		worldPos.x += focalPoint.x;
+		worldPos.y += focalPoint.y;
+
+		return worldPos;
 	}
 }

@@ -25,8 +25,6 @@ namespace Hazel
 		glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
 		m_InitialMousePosition = mouse;
 
-		
-		
 		if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_MIDDLE))
 			MousePan(delta);
 		else if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_4))
@@ -68,11 +66,18 @@ namespace Hazel
 	{
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 		m_Projection = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
+		
+		m_Bounds.Left = -m_AspectRatio * m_Distance * 0.825 / 2;
+		m_Bounds.Right = m_AspectRatio * m_Distance * 0.825 / 2; 
+		m_Bounds.Top = m_Distance * 0.825 / 2;
+		m_Bounds.Bottom = -m_Distance * 0.825 / 2;
 	}
 
 	void EditorCamera::UpdateView()
 	{
-		//m_Yaw = m_Pitch = 0.0f; // lock cameras rotation
+		if(m_DisableRotation)
+			m_Yaw = m_Pitch = 0.0f; 
+
 		m_Position = CalculatePosition();
 		glm::quat orientation = GetOrientation();
 		m_ViewMatrix = glm::translate(glm::mat4(1.0f), m_Position) * glm::toMat4(orientation);
@@ -136,8 +141,8 @@ namespace Hazel
 	{
 		float distance = m_Distance * 0.2f;
 		distance = std::max(distance, 0.0f);
-		float speed = distance * distance;
-		speed = std::min(speed, 100.0f); // max speed = 100
+		float speed  = distance * distance * distance;
+		speed = std::min(speed, 100.0f);
 		return speed;
 	}
 }

@@ -4,6 +4,15 @@
 
 namespace Hazel
 {
+	struct CameraBounds
+	{
+		float Left, Right;
+		float Bottom, Top;
+
+		float GetWidth() { return Right - Left; }
+		float GetHeight() { return Top - Bottom; }
+	};
+
 	class Camera
 	{
 	public:

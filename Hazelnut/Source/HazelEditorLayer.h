@@ -20,11 +20,11 @@ namespace Hazel
 		void OnEvent(Event& event) override;
 	
 	private:
+		void OnOverlayRender();
+
 		bool OnKeyPressed(KeyPressedEvent& event);
 		bool OnMouseClick(MouseButtonEvent& event);
 		bool OnMouseRelease(MouseButtonEvent& event);
-
-		void OnOverlayRender();
 
 		void NewScene();
 		void OpenScene();
@@ -38,19 +38,25 @@ namespace Hazel
 		void OnSceneSimulate();
 		void OnSceneStop();
 
+		void DragHoveredEntity();
 		void OnDuplicateEntity();
-		void CarrySelectionContext();
+		void PersistSelectionContext();
 		void ObjectSnapping(Entity entity);
+		glm::vec2 GetWorldPosFromMouse(glm::vec2 mousePos);
 	private:
+		EditorCamera m_EditorCamera;
+
 		Ref<FrameBuffer> m_FrameBuffer;
 		Ref<Scene> m_ActiveScene;
 		Ref<Scene> m_EditorScene, m_RuntimeScene;
 		Ref<Texture2D> m_IconPlay, m_IconSimulate, m_IconStop;
+		Ref<Enyoo::Spring> m_InteractionSpring = nullptr;
+		Ref<Enyoo::RigidBody> m_MouseBody = nullptr;
 		Entity m_HoveredEntity;
+		Entity m_DragEntity;
 
-		EditorCamera m_EditorCamera;
-	
-		glm::vec2 m_ViewportSize = {0.0f, 0.0f};
+		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
+		glm::vec2 m_MouseViewportPos = { 0.0f, 0.0f };
 		glm::vec2 m_ViewportBounds[2];
 		bool m_ViewportFocused = false;
 		bool m_ViewportHovered = false;
@@ -59,6 +65,8 @@ namespace Hazel
 		int m_GizmoType = -1;
 		bool m_ShowPhysicsColliders = false;
 		bool m_UseEditorCameraOnRuntime = false;
+		bool m_DisableCameraRotation = false;
+		float m_CameraFOV = 45.0f;
 		float m_Gravity[2] = { 0.f, -9.81f };
 		int m_VeloctiyIterations = 6;
 		int m_PositionIterations = 2;

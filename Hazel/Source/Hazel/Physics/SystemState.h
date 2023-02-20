@@ -1,8 +1,10 @@
 #pragma once
 
+#include <functional>
+#include <unordered_map>
+
 #include <glm/glm.hpp>
-
-
+#include "Hazel/Core/UUID.h"
 
 namespace Enyoo
 {
@@ -20,20 +22,19 @@ namespace Enyoo
 		void Resize(size_t bodyCount, size_t constraintCount);
 		void Destroy();
 
-		//data
-		Hazel::Scope<glm::dvec2[]> Position;
-		Hazel::Scope<glm::dvec2[]> Velocity;
-		Hazel::Scope<glm::dvec2[]> Acceleration; //accereration of a given body
-		Hazel::Scope<glm::dvec2[]> Force; //applied force accumulator 
-		Hazel::Scope<glm::dvec2[]> ConstraintForce; //constraint Force
+		std::shared_ptr<glm::dvec2[]> Position;
+		std::shared_ptr<glm::dvec2[]> Velocity;
+		std::shared_ptr<glm::dvec2[]> Acceleration; 
+		std::shared_ptr<glm::dvec2[]> Force; 
+		std::shared_ptr<glm::dvec2[]> ConstraintForce; 
+		
+		std::shared_ptr<double[]> Theta;
+		std::shared_ptr<double[]> AngularVelocity;
+		std::shared_ptr<double[]> AngularAcceleration;
+		std::shared_ptr<double[]> Torque;
+		std::shared_ptr<double[]> ConstraintTorque;
 
-		Hazel::Scope<double[]> Theta;
-		Hazel::Scope<double[]> AngularVelocity;
-		Hazel::Scope<double[]> AngularAcceleration;
-		Hazel::Scope<double[]> Torque;
-		Hazel::Scope<double[]> ConstraintTorque;
-
-		Hazel::Scope<double[]> Mass;
+		std::shared_ptr<double[]> Mass;
 
 		uint32_t RigidBodyCount;
 		uint32_t ConstraintCount;

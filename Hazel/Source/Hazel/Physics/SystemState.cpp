@@ -53,7 +53,7 @@ namespace Enyoo
 
     SystemState::~SystemState()
     {
-        
+        Destroy();
     }
 
     SystemState& SystemState::operator=(const SystemState& state)
@@ -112,12 +112,15 @@ namespace Enyoo
     void SystemState::ApplyForce(glm::dvec2 point, glm::dvec2 force, size_t index)
     {
         glm::dvec2 world = LocalToWorld(point, index);
+        glm::dvec2 r = point - world;
+        float theta = 3.1415 / 2.0f;
 
         this->Force[index].x += force.x;
         this->Force[index].y += force.y;
 
         this->Torque[index] += (world.y - this->Position[index].y) * -force.x
                             +  (world.x - this->Position[index].x) * force.y;
+        //this->Torque[index] += glm::length(force) * glm::length(r) * glm::sin(theta);
     }
 
     void SystemState::Resize(size_t bodyCount, size_t constraintCount)
@@ -130,17 +133,17 @@ namespace Enyoo
         this->RigidBodyCount = bodyCount;
         this->ConstraintCount = constraintCount;
 
-        this->Position            = Hazel::CreateScope<glm::dvec2[]>(RigidBodyCount);
-        this->Velocity            = Hazel::CreateScope<glm::dvec2[]>(RigidBodyCount);
-        this->Acceleration        = Hazel::CreateScope<glm::dvec2[]>(RigidBodyCount);
-        this->Force               = Hazel::CreateScope<glm::dvec2[]>(RigidBodyCount);
-        this->ConstraintForce     = Hazel::CreateScope<glm::dvec2[]>(ConstraintCount * 2);
-        this->Theta               = Hazel::CreateScope<double[]>(RigidBodyCount);
-        this->AngularVelocity     = Hazel::CreateScope<double[]>(RigidBodyCount);
-        this->AngularAcceleration = Hazel::CreateScope<double[]>(RigidBodyCount);
-        this->Torque              = Hazel::CreateScope<double[]>(RigidBodyCount);
-        this->ConstraintTorque    = Hazel::CreateScope<double[]>(ConstraintCount * 2);
-        this->Mass                = Hazel::CreateScope<double[]>(RigidBodyCount);
+        this->Position            = std::make_shared<glm::dvec2[]>(RigidBodyCount);
+        this->Velocity            = std::make_shared<glm::dvec2[]>(RigidBodyCount);
+        this->Acceleration        = std::make_shared<glm::dvec2[]>(RigidBodyCount);
+        this->Force               = std::make_shared<glm::dvec2[]>(RigidBodyCount);
+        this->ConstraintForce     = std::make_shared<glm::dvec2[]>(ConstraintCount * 2);
+        this->Theta               = std::make_shared<double[]>(RigidBodyCount);
+        this->AngularVelocity     = std::make_shared<double[]>(RigidBodyCount);
+        this->AngularAcceleration = std::make_shared<double[]>(RigidBodyCount);
+        this->Torque              = std::make_shared<double[]>(RigidBodyCount);
+        this->ConstraintTorque    = std::make_shared<double[]>(ConstraintCount * 2);
+        this->Mass                = std::make_shared<double[]>(RigidBodyCount);
     }
 
     void SystemState::Destroy()

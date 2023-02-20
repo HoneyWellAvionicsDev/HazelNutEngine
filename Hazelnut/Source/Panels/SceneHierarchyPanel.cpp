@@ -56,16 +56,24 @@ namespace Hazel
 				ImGui::EndPopup();
 			}
 
-			m_Context->m_Registry.each([&](auto entityID)
+			//m_Context->m_Registry.each([&](auto entityID)
+			//{
+			//	Entity entity{(entt::entity)((m_Context->m_Registry.size() - 1) - (int)entityID), m_Context.get() };
+			//	if(filter.PassFilter(entity.GetName().c_str()))
+			//		DrawEntityNode(entity);
+			//});
+
+			auto view = m_Context->GetAllEntitiesWith<IDComponent>();
+			for (auto e : view)
 			{
-				Entity entity{(entt::entity)((m_Context->m_Registry.size() - 1) - (int)entityID), m_Context.get() };
-				if(filter.PassFilter(entity.GetName().c_str()))
+				Entity entity{ e, m_Context.get() };
+				if (filter.PassFilter(entity.GetName().c_str()))
 					DrawEntityNode(entity);
-			});
+			}
 		}
 
 		ImGui::End();
-		
+		//DeleteDeffered();
 		ImGui::Begin("Properties");
 		if (m_SelectionContext)
 		{
@@ -83,12 +91,11 @@ namespace Hazel
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)entity, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 			m_SelectionContext = entity;
-
-		bool entityDeleted = false;
+		bool deleted = false;
 		if (ImGui::BeginPopupContextItem()) //TODO: only display this menu if SceneState == Edit (we dont wanna delete entities during runtime)
 		{
 			if (ImGui::MenuItem("Delete Entity"))
-				entityDeleted = true; //the entity should contain this bool
+				deleted = true; 
 
 			ImGui::EndPopup();
 		}
@@ -99,7 +106,7 @@ namespace Hazel
 			ImGui::TreePop();
 		}
 
-		if (entityDeleted) //deletion should not be done here (this is inside a lambda that gets sent over to entt)
+		if (deleted)
 		{
 			m_Context->DestroyEntity(entity);
 			if (m_SelectionContext == entity)
@@ -165,6 +172,57 @@ namespace Hazel
 		ImGui::SameLine();
 		ImGui::DragFloat("##Z", &values.z, sliderSpeedfloat, 0.f, 0.f, "%.2f");
 		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+		ImGui::Columns(1);
+		ImGui::PopID();
+	}
+
+	static void DrawVec2Control(const std::string& label, glm::vec2& values, float sliderSpeedfloat, float resetValue = 0.f, float columnWidth = 100.f)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
+		ImGui::PushID(label.c_str());
+
+		ImGui::Columns(2);
+		ImGui::SetColumnWidth(0, columnWidth);
+		ImGui::Text(label.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.f;
+		ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.4f, 0.05f, 0.075f, 1.f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("X", buttonSize))
+			values.x = resetValue;
+		ImGui::PopStyleColor(3);
+		ImGui::PopFont();
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X", &values.x, sliderSpeedfloat, 0.f, 0.f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.35f, 0.1f, 1.f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("Y", buttonSize))
+			values.y = resetValue;
+		ImGui::PopStyleColor(3);
+		ImGui::PopFont();
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y", &values.y, sliderSpeedfloat, 0.f, 0.f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
 
 		ImGui::PopStyleVar();
 		ImGui::Columns(1);
@@ -259,6 +317,9 @@ namespace Hazel
 		{
 			ImGui::Separator();
 			ImGui::Text("ID: %I64u", component.ID);
+			ImGui::SameLine();
+			if (ImGui::Button("Copy"))
+				ImGui::SetClipboardText(std::to_string(component.ID).c_str());
 			ImGui::Separator();
 		});
 
@@ -403,29 +464,32 @@ namespace Hazel
 			}
 		});
 		
-		DrawComponent<LinkPointsComponent>("Link Points", entity, [=](auto& component)
+		DrawComponent<LinkPointsComponent>("Link Points", entity, [&](auto& component)
 		{
 			static double xOffset = 0.0;
 			static double yOffset = 0.0;
 			ImGui::InputDouble("X Offset", &xOffset);
 			ImGui::InputDouble("Y Offset", &yOffset);
 
-			auto range = m_Context->GetLinkPoints(uuid);
 			if (ImGui::Button("Add", ImVec2(40.f, 0.f)))
 			{
 				component.Count++;
-				m_Context->AddLinkPoint(uuid, {xOffset, yOffset});
+				m_Context->AddLinkPoint(entity.GetUUID(), {xOffset, yOffset});
+				xOffset = yOffset = 0.0;
 			}
 
 			ImGui::Separator();
 
 			LinkPointMapIterator iteratorToDelete = LinkPointMapIterator();
 			bool deletePoint = false;
-
-			for (auto it = range.first; it != range.second; it++)
+			int imGuiID = 0;
+			auto range = m_Context->GetLinkPoints(entity.GetUUID());
+			for (auto it = range.first; it != range.second; it++, imGuiID++)
 			{
-				ImGui::Text("X: %f Y: %f", it->second.x, it->second.y);
+				ImGui::PushID(imGuiID);
+				DrawVec2Control("Offset", it->second, 0.01);
 				ImGui::SameLine();
+				
 				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.f;
 				ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
 				if (ImGui::Button("x", buttonSize))
@@ -434,6 +498,7 @@ namespace Hazel
 					iteratorToDelete = it;
 					component.Count--;
 				}
+				ImGui::PopID();
 			}
 
 			if (deletePoint)
@@ -467,13 +532,20 @@ namespace Hazel
 
 		DrawComponent<RigidBodyComponent>("Rigid Body", entity, [](auto& component)
 		{
-			ImGui::DragFloat("Density", &component.Density, 0.100f, 0.001f, 10000.0f);
+			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.f;
+			ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
+
+			if (ImGui::Button("X", buttonSize))
+				component.Density = 1.0;
+
+			ImGui::SameLine();
+			ImGui::DragFloat("Density", &component.Density, 1.0f, 0.001f, 100000.0f);
 			ImGui::Checkbox("Fixed Body", &component.Fixed);
 		});
 
 		DrawComponent<ForceGeneratorComponent>("Force Generator", entity, [](auto& component)
 		{
-			const char* genTypeStrings[] = { "Gravity", "Test1", "Test2" };
+			const char* genTypeStrings[] = { "Gravity", "Spring", "Gravitational Accelerator" };
 			const char* currentGenTypeString = genTypeStrings[(int)component.Type];
 			if (ImGui::BeginCombo("Generator Type", currentGenTypeString))
 			{
@@ -501,7 +573,12 @@ namespace Hazel
 					component.LocalGravity = { 0.0f, -9.81f };
 
 				ImGui::SameLine();
-				ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity), 0.100f, 0.000f, 60.0f);
+				ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity), 0.100f, -60.0f, 60.0f);
+			}
+
+			if (component.Type == ForceGeneratorComponent::GeneratorType::GravitationalAccelerator)
+			{
+				ImGui::Checkbox("Repulsive Force", &component.RepulsiveForce);
 			}
 		});
 
@@ -525,6 +602,17 @@ namespace Hazel
 			ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
 		});
 
+	}
+
+	void SceneHierarchyPanel::DeleteDeffered()
+	{
+		for (auto entity : m_DefferedEntities)
+		{
+			HZ_CORE_TRACE("DELETING: {0}", entity.GetUUID());
+			m_Context->DestroyEntity(entity);
+			if (m_SelectionContext == entity)
+				m_SelectionContext = {};
+		}
 	}
 
 	template<typename T>
