@@ -132,6 +132,29 @@ namespace Hazel
 		return RigidBody2DComponent::BodyType::Static;
 	}
 
+	static RigidBodyComponent::BodyShape RigidBodyShapeFromString(const std::string& bodyShapeString)
+	{
+		if (bodyShapeString == "Rect")		return RigidBodyComponent::BodyShape::Rect;
+		if (bodyShapeString == "Circle")	return RigidBodyComponent::BodyShape::Circle;
+		//if (bodyTypeString == "")	return RigidBody2DComponent::BodyType::;
+
+		HZ_CORE_ASSERT(false, "Unknown body type");
+		return RigidBodyComponent::BodyShape::Rect;
+	}
+
+	static std::string RigidBodyBodyShapeToString(RigidBodyComponent::BodyShape bodyShape)
+	{
+		switch (bodyShape)
+		{
+			case RigidBodyComponent::BodyShape::Rect:    return "Rect";
+			case RigidBodyComponent::BodyShape::Circle:   return "Circle";
+			//case RigidBodyComponent::BodyShape::: return "";
+		}
+
+		HZ_CORE_ASSERT(false, "Unknown body type");
+		return "Rect";
+	}
+
 	static std::string ForceGenTypeToString(ForceGeneratorComponent::GeneratorType genType)
 	{
 		switch (genType)
@@ -311,6 +334,13 @@ namespace Hazel
 				out << YAML::Key << "LocalGravity" << YAML::Value << forceGenComponent.LocalGravity;
 			
 			out << YAML::Key << "ReplusiveForce" << YAML::Value << forceGenComponent.RepulsiveForce;
+
+			if (forceGenComponent.Type == ForceGeneratorComponent::GeneratorType::Spring)
+			{
+				out << YAML::Key << "SpringConstant" << YAML::Value << forceGenComponent.SpringConstant;
+				out << YAML::Key << "SpringDamp" << YAML::Value << forceGenComponent.SpringDamp;
+				out << YAML::Key << "SpringRestLength" << YAML::Value << forceGenComponent.SpringRestLen;
+			}
 
 			out << YAML::EndMap;
 		}
@@ -513,6 +543,12 @@ namespace Hazel
 					if (fgc.Type == ForceGeneratorComponent::GeneratorType::Gravity)
 						fgc.LocalGravity = forceGenComponent["LocalGravity"].as<glm::vec2>();
 					fgc.RepulsiveForce = forceGenComponent["ReplusiveForce"].as<bool>();
+					if (fgc.Type == ForceGeneratorComponent::GeneratorType::Spring)
+					{
+						fgc.SpringConstant = forceGenComponent["SpringConstant"].as<float>();
+						fgc.SpringDamp = forceGenComponent["SpringDamp"].as<float>();
+						fgc.SpringRestLen = forceGenComponent["SpringRestLength"].as<float>();
+					}
 				}
 
 				auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
@@ -537,6 +573,18 @@ namespace Hazel
 					cc2d.Friction = circleCollider2DComponent["Friction"].as<float>();
 					cc2d.Restitution = circleCollider2DComponent["Restitution"].as<float>();
 					cc2d.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
+				}
+
+				if (rigidBodyComponent && circleRendererComponent)
+				{
+					auto& rbc = deserializedEntity.GetComponent<RigidBodyComponent>();
+					rbc.Shape = RigidBodyComponent::BodyShape::Circle;
+				}
+
+				if (rigidBodyComponent && spriteRendererComponent)
+				{
+					auto& rbc = deserializedEntity.GetComponent<RigidBodyComponent>();
+					rbc.Shape = RigidBodyComponent::BodyShape::Rect;
 				}
 			}
 		}

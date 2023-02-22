@@ -21,7 +21,8 @@ namespace Enyoo
 		void SetSecondBody(RigidBody* body) { m_SecondBody = body; }
 		void SetSpringConstant(double k) { m_Ks = k; }
 		void SetDampingValue(double value) { m_Kd = value; }
-
+		void TorqueLock(bool lock) { m_TorqueLock = lock; }
+		
 	private:
 		double m_RestLength;
 		double m_Ks;
@@ -32,5 +33,7 @@ namespace Enyoo
 
 		RigidBody* m_FirstBody;
 		RigidBody* m_SecondBody;
+
+		bool m_TorqueLock;
 	};
 }

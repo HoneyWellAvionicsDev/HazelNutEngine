@@ -21,7 +21,7 @@ namespace Enyoo
 		glm::dvec2 secondPointVelocity{ 0.0, 0.0 };
 
 
-		if (m_FirstBody->Index != -1)
+		if (m_FirstBody->Index != -1 && !m_FirstBody->Fixed)
 		{
 			firstWorldPosition = systemState.LocalToWorld(m_FirstBodyLocal, m_FirstBody->Index);
 			firstPointVelocity = systemState.VelocityAtPoint(m_FirstBodyLocal, m_FirstBody->Index);
@@ -31,7 +31,7 @@ namespace Enyoo
 			firstWorldPosition = m_FirstBody->LocalToWorld(m_FirstBodyLocal);
 		}
 
-		if (m_SecondBody->Index != -1)
+		if (m_SecondBody->Index != -1 && !m_SecondBody->Fixed)
 		{
 			secondWorldPosition = systemState.LocalToWorld(m_SecondBodyLocal, m_SecondBody->Index);
 			secondPointVelocity = systemState.VelocityAtPoint(m_SecondBodyLocal, m_SecondBody->Index);
@@ -72,7 +72,6 @@ namespace Enyoo
 			},
 			m_FirstBody->Index
 		);
-		systemState.Torque[m_FirstBody->Index] = 0.0;
 
 		systemState.ApplyForce(
 			m_SecondBodyLocal,
@@ -82,7 +81,12 @@ namespace Enyoo
 			},
 			m_SecondBody->Index
 		);
-		systemState.Torque[m_SecondBody->Index] = 0.0;
+
+		if (m_TorqueLock)
+		{
+			systemState.Torque[m_FirstBody->Index] = 0.0;
+			systemState.Torque[m_SecondBody->Index] = 0.0;
+		}
 	}
 
 	void Spring::GetEnds(glm::dvec2& firstPosition, glm::dvec2& secondPosition)

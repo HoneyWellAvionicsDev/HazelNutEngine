@@ -66,8 +66,10 @@ namespace Hazel
 		bool m_ShowPhysicsColliders = false;
 		bool m_UseEditorCameraOnRuntime = false;
 		bool m_DisableCameraRotation = false;
+		bool m_DragFromCentre = false;
 		float m_CameraFOV = 45.0f;
 		float m_Gravity[2] = { 0.f, -9.81f };
+		float m_SpringConstMult = 40.0;
 		int m_VeloctiyIterations = 6;
 		int m_PositionIterations = 2;
 		//panels

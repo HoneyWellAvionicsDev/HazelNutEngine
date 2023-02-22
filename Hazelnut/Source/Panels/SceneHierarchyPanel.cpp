@@ -1,6 +1,7 @@
 #include "SceneHierarchyPanel.h"
 #include "Hazel/Scene/Components.h"
 #include "Hazel/Scene/ScriptableEntity.h"
+#include "Hazel/Math/Math.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -64,9 +65,9 @@ namespace Hazel
 			//});
 
 			auto view = m_Context->GetAllEntitiesWith<IDComponent>();
-			for (auto e : view)
+			for (auto it = view.rbegin(); it != view.rend(); it++)
 			{
-				Entity entity{ e, m_Context.get() };
+				Entity entity{ *it, m_Context.get() };
 				if (filter.PassFilter(entity.GetName().c_str()))
 					DrawEntityNode(entity);
 			}
@@ -108,6 +109,7 @@ namespace Hazel
 
 		if (deleted)
 		{
+			m_Context->RemoveLinkPoints(entity.GetUUID());
 			m_Context->DestroyEntity(entity);
 			if (m_SelectionContext == entity)
 				m_SelectionContext = {};
@@ -543,9 +545,9 @@ namespace Hazel
 			ImGui::Checkbox("Fixed Body", &component.Fixed);
 		});
 
-		DrawComponent<ForceGeneratorComponent>("Force Generator", entity, [](auto& component)
+		DrawComponent<ForceGeneratorComponent>("Force Generator", entity, [&](auto& component)
 		{
-			const char* genTypeStrings[] = { "Gravity", "Spring", "Gravitational Accelerator" };
+			const char* genTypeStrings[] = { "Gravity", "Gravitational Accelerator", "Spring" };
 			const char* currentGenTypeString = genTypeStrings[(int)component.Type];
 			if (ImGui::BeginCombo("Generator Type", currentGenTypeString))
 			{
@@ -565,20 +567,53 @@ namespace Hazel
 				ImGui::EndCombo();
 			}
 
-			if (component.Type == ForceGeneratorComponent::GeneratorType::Gravity)
+			switch (component.Type)
 			{
-				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.f;
-				ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
-				if (ImGui::Button("X", buttonSize))
-					component.LocalGravity = { 0.0f, -9.81f };
+				case ForceGeneratorComponent::GeneratorType::Gravity:
+				{
+					float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.f;
+					ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
+					if (ImGui::Button("X", buttonSize))
+						component.LocalGravity = { 0.0f, -9.81f };
 
-				ImGui::SameLine();
-				ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity), 0.100f, -60.0f, 60.0f);
-			}
+					ImGui::SameLine();
+					ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity), 0.100f, -60.0f, 60.0f);
+					break;
+				}
+				case ForceGeneratorComponent::GeneratorType::GravitationalAccelerator:
+				{
+					ImGui::Checkbox("Repulsive Force", &component.RepulsiveForce);
+					break;
+				}
+				case ForceGeneratorComponent::GeneratorType::Spring:
+				{
+					ImGui::DragFloat("Spring Constant", &component.SpringConstant, 1.0f, 0.01f, 40000.0f);
+					ImGui::DragFloat("Spring Dampening", &component.SpringDamp, 0.01f, 0.0f, 40.0f);
+					ImGui::DragFloat("Spring Length", &component.SpringRestLen, 0.1f, 0.02f, 4000.0f);
+					ImGui::SameLine();
+					auto range = m_Context->GetLinkPoints(entity.GetUUID());
+					glm::vec2 p0, p1;
+					bool foundTop = false, foundBottom = false;
+					for (auto it = range.first; it != range.second && !(foundTop && foundBottom); it++)
+					{
+						if (!foundTop)
+						{
+							p0 = it->second;
+							foundTop = true;
+						}
+						else if (!foundBottom)
+						{
+							p1 = it->second;
+							foundBottom = true;
+						}
+					}
+					if (!foundTop || !foundBottom)
+						break;
+					if (ImGui::Button("Reset Length"))
+						component.SpringRestLen = Math::Distance(p0, p1); //GetDistBetweenTwoLinkPoints(entity);
+					break;
+				}
 
-			if (component.Type == ForceGeneratorComponent::GeneratorType::GravitationalAccelerator)
-			{
-				ImGui::Checkbox("Repulsive Force", &component.RepulsiveForce);
 			}
 		});
 

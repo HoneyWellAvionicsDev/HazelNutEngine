@@ -95,7 +95,6 @@ namespace Hazel
 		newScene->m_ViewportHeight = source->m_ViewportHeight;
 		newScene->m_EntityLinkPointMap = source->m_EntityLinkPointMap;
 		newScene->m_SceneName = source->m_SceneName;
-		
 
 		auto& srcSceneRegistry = source->m_Registry;
 		auto& dstSceneRegistry = newScene->m_Registry;
@@ -296,6 +295,17 @@ namespace Hazel
 		return {};
 	}
 
+	void Scene::RemoveLinkPoints(UUID uuid)
+	{
+		auto range = GetLinkPoints(uuid);
+		std::vector<LinkPointMapIterator> toBeDeleted;
+		for (auto it = range.first; it != range.second; it++)
+			toBeDeleted.push_back(it);
+
+		for (auto it : toBeDeleted)
+			RemoveLinkPoint(it);
+	}
+
 	void Scene::OnPhysics2DStart()
 	{
 		m_PhysicsWorld = new b2World({ 0.f, 0.f });
@@ -380,11 +390,44 @@ namespace Hazel
 	void Scene::OnPhysicsStart()
 	{
 		m_ConstrainedBodySystem = CreateRef<Enyoo::RigidBodySystem>(); 
-
-		Scope<DynamicSystemAssembler> SystemAssembler = CreateScope<DynamicSystemAssembler>(this);
+#if 1
+		auto view = GetAllEntitiesWith<RigidBodyComponent, LinkPointsComponent>();
+		Scope<DynamicSystemAssembler> SystemAssembler = CreateScope<DynamicSystemAssembler>(this, view);
 		SystemAssembler->GenerateRigidBodies();
-		SystemAssembler->GenerateForceGens();
 		SystemAssembler->GenerateConstraints();
+		SystemAssembler->GenerateForceGens();
+		//Entity ent1 = GetEntity(7809189181779906021);
+		//Entity ent2 = GetEntity(10824741570482348801);
+		//Entity ent3 = GetEntity(7582156039611883941);
+		//Ref<Enyoo::Spring> spring1 = SystemAssembler->CreateSpringForce(ent1, ent2, { 0.0, 0.0 }, { 0.0, 0.0 });
+		//Ref<Enyoo::Spring> spring2 = SystemAssembler->CreateSpringForce(ent3, ent2, { 0.0, 0.0 }, { 0.0, 0.0 });
+		//spring1->SetRestLength(8.0);
+		//spring2->SetRestLength(5.0);
+		//m_ConstrainedBodySystem->AddForceGen(spring1);
+		//m_ConstrainedBodySystem->AddForceGen(spring2);
+#else
+		Entity ent1 = GetEntity(10238990714028384176);
+		Entity ent2 = GetEntity(14690547557776545084);
+		Entity ent3 = GetEntity(2616743183767254176);
+		Entity ent4 = GetEntity(5154152766761199550);
+		Entity ent5 = GetEntity(5297384271848824557);
+		Entity ent6 = GetEntity(1872339921844532343);
+		//Entity ent7 = GetEntity(7113960336125019134);
+		Entity ent8 = GetEntity(10980884617468069392);
+
+		Scope<DynamicSystemAssembler> systemAssembler = CreateScope<DynamicSystemAssembler>(this);
+		systemAssembler->GenerateRigidBodies();
+		systemAssembler->GenerateForceGens();
+
+		auto [focusLocal, targetLocal] = systemAssembler->GetMatchingLocals(ent1, ent3);
+		auto [focusLocal2, targetLocal2] = systemAssembler->GetMatchingLocals(ent4, ent8);
+		systemAssembler->CreateFixedConstraint(ent3, ent1, targetLocal);
+		systemAssembler->CreateFixedConstraint(ent4, ent8, focusLocal2);
+		systemAssembler->CreateLinkConstraint(ent4, ent3);
+		
+
+		
+#endif
 		m_ConstrainedBodySystem->Initialize();
 	}
 
@@ -394,7 +437,7 @@ namespace Hazel
 
 	void Scene::UpdatePhysics(Timestep ts)
 	{
-		m_ConstrainedBodySystem->Step(0.01667, 1);
+		m_ConstrainedBodySystem->Step(0.01667, 4);
 
 		auto view = m_Registry.view<RigidBodyComponent>();
 		for (auto e : view)
@@ -561,18 +604,7 @@ namespace Hazel
 	template<>
 	void Scene::OnComponentRemoved<LinkPointsComponent>(Entity entity, LinkPointsComponent& component)
 	{
-		auto range = GetLinkPoints(entity.GetUUID());
-		std::vector<LinkPointMapIterator> toBeDeleted;
-		for (auto it = range.first; it != range.second; it++)
-		{
-			toBeDeleted.push_back(it);
-
-		}
-
-		for (auto it : toBeDeleted)
-		{
-			RemoveLinkPoint(it);
-		}
+		RemoveLinkPoints(entity.GetUUID());
 	}
 
 	template<>

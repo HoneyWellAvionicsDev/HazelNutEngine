@@ -27,13 +27,13 @@ namespace Enyoo
 		std::shared_ptr<glm::dvec2[]> Acceleration; 
 		std::shared_ptr<glm::dvec2[]> Force; 
 		std::shared_ptr<glm::dvec2[]> ConstraintForce; 
-		
+			 
 		std::shared_ptr<double[]> Theta;
 		std::shared_ptr<double[]> AngularVelocity;
 		std::shared_ptr<double[]> AngularAcceleration;
 		std::shared_ptr<double[]> Torque;
 		std::shared_ptr<double[]> ConstraintTorque;
-
+			 
 		std::shared_ptr<double[]> Mass;
 
 		uint32_t RigidBodyCount;

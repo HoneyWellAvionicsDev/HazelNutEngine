@@ -61,6 +61,7 @@ namespace Hazel
 
 		IteratorPair GetLinkPoints(UUID uuid) { return m_EntityLinkPointMap.equal_range(uuid); }
 		void AddLinkPoint(UUID uuid, glm::dvec2 linkPoint) { m_EntityLinkPointMap.emplace(uuid, linkPoint); }
+		void RemoveLinkPoints(UUID uuid);
 		void RemoveLinkPoint(LinkPointMapIterator iter) { m_EntityLinkPointMap.erase(iter); }
 
 		void SetSceneName(const std::filesystem::path& fileName) { m_SceneName = fileName; }

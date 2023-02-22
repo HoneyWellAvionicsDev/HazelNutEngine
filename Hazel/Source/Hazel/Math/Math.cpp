@@ -77,4 +77,9 @@ namespace Hazel::Math
 
 		return true;
 	}
+
+	float Distance(const glm::vec2 p0, const glm::vec2 p1)
+	{
+		return glm::distance(p0, p1);
+	}
 }

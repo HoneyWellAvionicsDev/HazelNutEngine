@@ -53,7 +53,7 @@ namespace Enyoo
 
 		for (size_t i = 0; i < GetRigidBodyCount(); i++) // assign updated state to rigid bodies
 		{
-			if (m_RigidBodies[i]->Disable)
+			if (m_RigidBodies[i]->Fixed)
 				continue;
 
 			m_RigidBodies[i]->Velocity = m_State.Velocity[i];
@@ -183,8 +183,8 @@ namespace Enyoo
 			m_State.Force[i] = glm::dvec2{ 0.0 };
 			m_State.Torque[i] = 0.0;
 		}
-		// loop through force generators and apply their force to the state
 
+		// loop through force generators and apply their force to the state
 		for (ForceGeneratorPtr forceGen : m_ForceGenerators)
 		{
 			if (!forceGen->IsActive())

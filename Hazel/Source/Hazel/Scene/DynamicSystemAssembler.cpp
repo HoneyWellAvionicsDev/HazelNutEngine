@@ -9,14 +9,18 @@
 
 namespace Hazel
 {
-	DynamicSystemAssembler::DynamicSystemAssembler(Scene* scene)
-		: m_Scene(scene)
+	DynamicSystemAssembler::DynamicSystemAssembler(Scene* scene, EntityView entityView)
+		: m_Scene(scene), m_EntityView(entityView)
 	{
+		GenerateAdjacencyList(m_EntityView);
 	}
 
 	void DynamicSystemAssembler::CreateLinkConstraint(Entity focus, Entity target)
 	{
 		HZ_CORE_ASSERT(focus != target);
+
+		if (SpringBody(focus) || SpringBody(target))
+			return;
 
 		auto& focusBody = focus.GetComponent<RigidBodyComponent>().RuntimeBody;
 		auto& targetBody = target.GetComponent<RigidBodyComponent>().RuntimeBody;
@@ -26,7 +30,7 @@ namespace Hazel
 		Joint joint = Joint(focus, target, world);
 		size_t hash = HashJoint(joint);
 
-		if (m_Joints.count(hash))
+		if (m_Joints.count(hash)) 
 			return;
 
 		Ref<Enyoo::LinkConstraint> linkConstraint = CreateRef<Enyoo::LinkConstraint>();
@@ -45,6 +49,14 @@ namespace Hazel
 	{
 		auto& focusBody = focus.GetComponent<RigidBodyComponent>().RuntimeBody;
 		auto& targetBody = target.GetComponent<RigidBodyComponent>().RuntimeBody;
+		auto [t, targetLocal] = GetMatchingLocals(focus, target);
+		glm::dvec2 worldJ = targetBody->LocalToWorld(targetLocal);
+
+		Joint joint = Joint(focus, target, worldJ);
+		size_t hash = HashJoint(joint);
+
+		if (m_Joints.count(hash))
+			return;
 
 		Ref<Enyoo::FixedPositionConstraint> fixedPositionConstraint = CreateRef<Enyoo::FixedPositionConstraint>();
 		glm::dvec2 world = focusBody->LocalToWorld(focusLocal);
@@ -52,9 +64,10 @@ namespace Hazel
 		fixedPositionConstraint->SetLocalPosition(focusLocal);
 		fixedPositionConstraint->SetWorldPosition(world);
 		m_Scene->GetRigidBodySystem()->AddConstraint(fixedPositionConstraint);
+		HZ_CORE_TRACE("FIXED: {0} to {1}", focus.GetUUID(), target.GetUUID());
 	}
 
-	void DynamicSystemAssembler::CreateSpringForce(Entity endBody1, Entity endBody2, const glm::dvec2& body1Local, const glm::dvec2& body2Local, double restLength)
+	Ref<Enyoo::Spring> DynamicSystemAssembler::CreateSpringForce(Entity endBody1, Entity endBody2, const glm::dvec2& body1Local, const glm::dvec2& body2Local)
 	{
 		auto& focusBody = endBody1.GetComponent<RigidBodyComponent>().RuntimeBody;
 		auto& targetBody = endBody2.GetComponent<RigidBodyComponent>().RuntimeBody;
@@ -64,8 +77,8 @@ namespace Hazel
 		springForceGenerator->SetSecondBody(targetBody.get());
 		springForceGenerator->SetFirstPosition(body1Local);
 		springForceGenerator->SetSecondPosition(body2Local);
-		springForceGenerator->SetRestLength(restLength);
-		m_Scene->GetRigidBodySystem()->AddForceGen(springForceGenerator);
+		HZ_CORE_TRACE("Springed: {0} to {1}", endBody1.GetUUID(), endBody2.GetUUID());
+		return springForceGenerator;
 	}
 
 	void DynamicSystemAssembler::GenerateRigidBodies()
@@ -78,13 +91,29 @@ namespace Hazel
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rbc = entity.GetComponent<RigidBodyComponent>();
 
+			double Mass = 1.0;
+			double MomentInertia = 1.0;
+
+			switch (rbc.Shape)
+			{
+			case RigidBodyComponent::BodyShape::Rect:
+				Mass = transform.Scale.x * transform.Scale.y * rbc.Density;
+				MomentInertia = (1.0 / 12.0) * Mass * transform.Scale.x * transform.Scale.x * transform.Scale.y * transform.Scale.y;
+				break;
+			case RigidBodyComponent::BodyShape::Circle:
+				rbc.Density *= 10.0;
+				Mass = rbc.Density * glm::pi<double>() * transform.Scale.x * transform.Scale.y * (1.0 / 4.0);
+				MomentInertia = (1.0 / 8.0) * Mass * transform.Scale.x * transform.Scale.y;
+				break;
+			}
+
 			Ref<Enyoo::RigidBody> body = CreateRef<Enyoo::RigidBody>();
 			body->Position = { transform.Translation.x, transform.Translation.y };
 			body->Theta = transform.Rotation.z;
 			body->Velocity = glm::dvec2{ 0.0 };
 			body->AngularVelocity = 0.0;
-			body->Mass = transform.Scale.x * rbc.Density; //*scale.y
-			body->MomentInertia = (1.0 / 12.0) * body->Mass * transform.Scale.x * transform.Scale.x; //for right now we are assuming pretty uniform rectangles
+			body->Mass = Mass;
+			body->MomentInertia = MomentInertia; 
 			body->Fixed = rbc.Fixed;
 
 			rbc.RuntimeBody = body;
@@ -111,6 +140,7 @@ namespace Hazel
 		{
 			Entity entity = { e, m_Scene };
 			auto& fgc = entity.GetComponent<ForceGeneratorComponent>();
+			auto& tc = entity.GetComponent<TransformComponent>();
 
 			switch (fgc.Type)
 			{
@@ -135,7 +165,41 @@ namespace Hazel
 				}
 				case ForceGeneratorComponent::GeneratorType::Spring:
 				{
+					auto [rangeAdjB, rangeAdjE] = m_AdjacencyList.equal_range(entity);
+					auto [rangeB, rangeE] = m_Scene->GetLinkPoints(entity.GetUUID());
+					bool foundTop = false, foundBottom = false;
+					LinkPointMapIterator firstLP, secondLP;
+					for (auto it = rangeB; it != rangeE && !(foundTop && foundBottom); it++)
+					{
+						if (!foundTop) 
+						{
+							firstLP = it;
+							foundTop = true;
+						}
+						else if (!foundBottom) 
+						{
+							secondLP = it;
+							foundBottom = true;
+						}
+					}
+					if (!foundTop || !foundBottom)
+						break;
 					
+					Entity top = FindBody(firstLP->second, tc.Rotation, tc.Translation, firstLP->first);
+					Entity bottom = FindBody(secondLP->second, tc.Rotation, tc.Translation, secondLP->first);
+					if (!top || !bottom)
+						break;
+					auto [localTop, entLocal] = GetMatchingLocals(top, entity);
+					auto [localBottom, entLocal_] = GetMatchingLocals(bottom, entity);
+
+					Ref<Enyoo::Spring> spring = CreateSpringForce(top, bottom, localTop, localBottom);
+					spring->SetSpringConstant(static_cast<double>(fgc.SpringConstant));
+					spring->SetDampingValue(static_cast<double>(fgc.SpringDamp));
+					spring->SetRestLength(static_cast<double>(fgc.SpringRestLen));	
+
+					m_Scene->GetRigidBodySystem()->AddForceGen(spring);
+					fgc.RuntimeGenerator = spring;
+					break;
 				}
 			}
 		}
@@ -143,7 +207,7 @@ namespace Hazel
 		return false;
 	}
 
-	bool DynamicSystemAssembler::Adjacent(Entity focus, Entity target)
+	bool DynamicSystemAssembler::Adjacent(Entity focus, Entity target) const
 	{
 		auto range = m_AdjacencyList.equal_range(target);
 
@@ -156,7 +220,7 @@ namespace Hazel
 		return false;
 	}
 
-	DynamicSystemAssembler::LocalPoints DynamicSystemAssembler::GetMatchingLocals(Entity focusEntity, Entity targetEntity)
+	DynamicSystemAssembler::LocalPoints DynamicSystemAssembler::GetMatchingLocals(Entity focusEntity, Entity targetEntity) const
 	{
 		auto focusRange = m_Scene->GetLinkPoints(focusEntity.GetUUID());
 		auto targetRange = m_Scene->GetLinkPoints(targetEntity.GetUUID());
@@ -170,7 +234,7 @@ namespace Hazel
 				auto focusWorld = Enyoo::Utilities::LocalToWorld(it->second, focusTransform.Rotation, focusTransform.Translation);
 				auto targetWorld = Enyoo::Utilities::LocalToWorld(iter->second, targetTransform.Rotation, targetTransform.Translation);
 
-				if (std::fabs(targetWorld.x - focusWorld.x) < 0.1 && std::fabs(targetWorld.y - focusWorld.y) < 0.1)
+				if (Close(focusWorld, targetWorld))
 					return { it->second, iter->second };
 			}
 		}
@@ -184,14 +248,42 @@ namespace Hazel
 		return entity.GetComponent<RigidBodyComponent>().Fixed;
 	}
 
-	bool DynamicSystemAssembler::Handled(Entity entity) const
+	bool DynamicSystemAssembler::SpringBody(Entity entity) const
 	{
-		return m_HandledBodies.count(entity);
+		if (!entity.HasComponent<ForceGeneratorComponent>())
+			return false;
+
+		return entity.GetComponent<ForceGeneratorComponent>().Type == ForceGeneratorComponent::GeneratorType::Spring;
 	}
 
-	bool DynamicSystemAssembler::Close(const glm::dvec2& focusWorld, const glm::dvec2& targetWorld)
+	bool DynamicSystemAssembler::Close(const glm::dvec2& focusWorld, const glm::dvec2& targetWorld) const
 	{
-		return std::fabs(targetWorld.x - focusWorld.x) < 0.1 && std::fabs(targetWorld.y - focusWorld.y) < 0.1;
+		return std::fabs(targetWorld.x - focusWorld.x) < s_LinkPointRadius && std::fabs(targetWorld.y - focusWorld.y) < s_LinkPointRadius;
+	}
+
+	size_t DynamicSystemAssembler::HashJoint(const Joint& joint) const
+	{
+		size_t seed = 0;
+		Entity ent1{ joint.Ent1.GetHandle(), joint.Ent1.GetScene() };
+		Entity ent2{ joint.Ent2.GetHandle(),  joint.Ent2.GetScene() };
+
+		size_t hash1 = static_cast<size_t>(ent1.GetUUID() * ent2.GetUUID());
+		size_t hash2 = static_cast<size_t>(joint.WorldPoint.x * joint.WorldPoint.y);
+		seed ^= hash1 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		seed ^= hash2 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		return seed;
+	}
+
+	Entity DynamicSystemAssembler::FindAdjacentFixedBody(Entity entity) const
+	{
+		auto [first, last] = m_AdjacencyList.equal_range(entity);
+		for (auto it = first; it != last; it++)
+		{
+			if (FixedBody(it->second))
+				return it->second;
+		}
+
+		return Entity();
 	}
 
 	void DynamicSystemAssembler::GenerateAdjacencyList(const EntityView& view)
@@ -201,9 +293,8 @@ namespace Hazel
 			Entity focus = { e, m_Scene };
 			auto& focusTransform = focus.GetComponent<TransformComponent>();
 			auto& focusBody = focus.GetComponent<RigidBodyComponent>().RuntimeBody;
-			uint32_t constraintCount = 0;
-
 			auto range = m_Scene->GetLinkPoints(focus.GetUUID());
+
 			for (auto it = range.first; it != range.second; it++)
 			{
 				glm::dvec2 focusWorld = Enyoo::Utilities::LocalToWorld(it->second, focusTransform.Rotation, focusTransform.Translation);
@@ -225,7 +316,7 @@ namespace Hazel
 			}
 		}
 	}
-
+	
 	void DynamicSystemAssembler::HandleFixedBodies(const EntityView& view)
 	{
 		for (auto e : view)
@@ -237,7 +328,6 @@ namespace Hazel
 			if (!rbc.Fixed)
 				continue;
 
-			m_HandledBodies.insert(entity);
 			auto range = m_AdjacencyList.equal_range(entity);
 			
 			for (auto it = range.first; it != range.second; it++)
@@ -247,9 +337,13 @@ namespace Hazel
 			
 				auto [focusLocal, targetLocal] = GetMatchingLocals(it->second, entity);
 				auto& body = it->second.GetComponent<RigidBodyComponent>().RuntimeBody;
-			
+				glm::dvec2 world = body->LocalToWorld(focusLocal);
+
+				Joint joint = Joint( it->second, entity, world);
+				size_t hash = HashJoint(joint);
 				CreateFixedConstraint(it->second, entity, focusLocal);
 				m_Fixed.insert(it->second);
+				m_Joints.insert(hash);
 			}
 		}
 	}
@@ -260,13 +354,13 @@ namespace Hazel
 		{
 			Entity entity{ e, m_Scene };
 
-			if (Handled(entity))
+			if (FixedBody(entity)) 
 				continue;
 
 			auto [first, second] = m_AdjacencyList.equal_range(entity);
 			for (auto it = first; it != second; it++)
 			{
-				if (Handled(it->second))
+				if (FixedBody(it->second))
 					continue;
 
 				if (m_Fixed.count(it->second))
@@ -275,5 +369,27 @@ namespace Hazel
 				CreateLinkConstraint(entity, it->second);
 			}
 		}
+	}
+
+
+	Entity DynamicSystemAssembler::FindBody(const glm::dvec2& linkPoint, const glm::dvec3& rotation, const glm::dvec3& translation, UUID uuid) const
+	{
+		glm::dvec2 focusWorld = Enyoo::Utilities::LocalToWorld(linkPoint, rotation, translation);
+
+		auto LinkMap = m_Scene->GetLinkPointMap();
+		for (auto it = LinkMap.begin(); it != LinkMap.end(); it++)
+		{
+			if (it->first == uuid)
+				continue;
+
+			Entity target = m_Scene->GetEntity(it->first);
+			auto& targetTransform = target.GetComponent<TransformComponent>();
+			glm::dvec2 targetWorld = Enyoo::Utilities::LocalToWorld(it->second, targetTransform.Rotation, targetTransform.Translation);
+
+			if (Close(focusWorld, targetWorld))
+				return target;
+		}
+
+		return Entity();
 	}
 }

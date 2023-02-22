@@ -242,10 +242,7 @@ namespace Hazel
 		std::string name2 = "None";
 		if (m_HoveredEntity)
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
-		if (m_DragEntity)
-			name = m_DragEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
-		ImGui::Text("Mouse Entity: %s", name2.c_str());
 
 		auto stats = Renderer2D::GetStats();
 		ImGui::Text("Renderer2D Stats: ");
@@ -270,20 +267,22 @@ namespace Hazel
 
 		ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
 		ImGui::SliderFloat("Padding", &padding, 0, 32);
+		ImGui::DragFloat("Spring Constant Multiplier", &m_SpringConstMult, 0.01f, 0.001, 120.0f);
 		ImGui::SliderFloat2("Local Gravity", m_Gravity, -20, 20);
 		ImGui::SliderInt("Velocity Iterations", &m_VeloctiyIterations, 1, 500);
 		ImGui::SliderInt("Position Iterations", &m_PositionIterations, 1, 500);
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 		ImGui::Checkbox("Use editor camera for runtime", &m_UseEditorCameraOnRuntime);
 		ImGui::Checkbox("Disable camera rotation", &m_DisableCameraRotation);
+		ImGui::Checkbox("Grab from centre", &m_DragFromCentre);
 		if (ImGui::Button("Reset camera position"))
 			m_EditorCamera.SetFocalPoint(glm::vec3(0.0f));
 		ImGui::SliderFloat("FOV", &m_CameraFOV, 10.0f, 120.0f);
 		ImGui::SameLine();
 		if (ImGui::Button("x"))
 			m_CameraFOV = 45.0f;
-
-		ImGui::ShowDemoWindow(&dockspaceOpen);
+		
+		//ImGui::ShowDemoWindow(&dockspaceOpen);
 		ImGui::End();
 
 		m_SceneHierarchyPanel.OnImGuiRender();
@@ -615,9 +614,10 @@ namespace Hazel
 
 				auto* body = m_DragEntity.GetComponent<RigidBodyComponent>().RuntimeBody.get();
 				auto [x, y] = ImGui::GetMousePos();
-				glm::dvec2 local = body->WorldToLocal(GetWorldPosFromMouse({ x, y }));
+				glm::dvec2 local = m_DragFromCentre ? glm::dvec2(0.0) : body->WorldToLocal(GetWorldPosFromMouse({ x, y })); 
 				m_InteractionSpring->SetFirstBody(body);
 				m_InteractionSpring->SetFirstPosition(local); 
+				m_InteractionSpring->TorqueLock(m_DragFromCentre);
 			}			
 		}
 
@@ -767,8 +767,8 @@ namespace Hazel
 			Renderer2D::BeginScene(m_EditorCamera);
 			auto* body = m_DragEntity.GetComponent<RigidBodyComponent>().RuntimeBody.get();
 
-
 			m_InteractionSpring->SetActive(true);
+			m_InteractionSpring->SetSpringConstant(body->Mass * static_cast<double>(m_SpringConstMult));
 
 			glm::mat4 transform = glm::translate(glm::mat4(1.f), { mouseWorld, 0.2f })
 				* glm::scale(glm::mat4(1.f), glm::vec3(0.5));

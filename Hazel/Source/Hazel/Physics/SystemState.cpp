@@ -53,7 +53,6 @@ namespace Enyoo
 
     SystemState::~SystemState()
     {
-        Destroy();
     }
 
     SystemState& SystemState::operator=(const SystemState& state)

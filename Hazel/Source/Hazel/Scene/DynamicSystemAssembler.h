@@ -9,6 +9,8 @@
 
 namespace Hazel
 {
+	static constexpr float s_LinkPointRadius = 0.1;
+
 	struct Joint
 	{
 		Entity Ent1;
@@ -18,19 +20,6 @@ namespace Hazel
 		Joint(Entity focus, Entity target, const glm::dvec2& worldPoint)
 			: Ent1(focus), Ent2(target), WorldPoint(worldPoint) {}
 	};
-
-	static size_t HashJoint(const Joint& joint)
-	{
-		size_t seed = 0;
-		Entity ent1{ joint.Ent1.GetHandle(), joint.Ent1.GetScene() };
-		Entity ent2{ joint.Ent2.GetHandle(),  joint.Ent2.GetScene() };
-
-		size_t hash1 = static_cast<size_t>(ent1.GetUUID() * ent2.GetUUID());
-		size_t hash2 = static_cast<size_t>(joint.WorldPoint.x * joint.WorldPoint.y);
-		seed ^= hash1 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-		seed ^= hash2 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-		return seed;
-	}
 
 	class Scene;
 
@@ -42,30 +31,34 @@ namespace Hazel
 		using AllBodiesView = entt::basic_view<entt::entity, entt::get_t<RigidBodyComponent>, entt::exclude_t<>, void>;
 		using AdjacencyList = std::unordered_multimap<Entity, Entity>;
 
-		DynamicSystemAssembler(Scene* scene);
+		DynamicSystemAssembler(Scene* scene, EntityView entityView);
 
 		void CreateLinkConstraint(Entity focus, Entity target);
 		void CreateFixedConstraint(Entity focus, Entity target, const glm::dvec2& focusLocal);
-		void CreateSpringForce(Entity endBody1, Entity endBody2, const glm::dvec2& body1Local, const glm::dvec2& body2Local, double restLength);
+		[[NODISCARD]] Ref<Enyoo::Spring> CreateSpringForce(Entity endBody1, Entity endBody2, const glm::dvec2& body1Local, const glm::dvec2& body2Local);
 
 		void GenerateRigidBodies();
 		bool GenerateConstraints();
 		bool GenerateForceGens();
 
-		LocalPoints GetMatchingLocals(Entity focusEntity, Entity targetEntity);
-		bool Adjacent(Entity focus, Entity target);
+		LocalPoints GetMatchingLocals(Entity focusEntity, Entity targetEntity) const;
+		bool Adjacent(Entity focus, Entity target) const;
 		bool FixedBody(Entity entity) const;
-		bool Handled(Entity entity) const;
-		bool Close(const glm::dvec2& focusWorld, const glm::dvec2& targetWorld);
-		
+		bool SpringBody(Entity entity) const;
+		bool Close(const glm::dvec2& focusWorld, const glm::dvec2& targetWorld) const;
+
 	private:
+		size_t HashJoint(const Joint& joint) const;
+		Entity FindAdjacentFixedBody(Entity entity) const;
+		Entity FindBody(const glm::dvec2& linkPoint, const glm::dvec3& rotation, const glm::dvec3& translation, UUID uuid) const;
 		void GenerateAdjacencyList(const EntityView& view);
 		void HandleFixedBodies(const EntityView& view);
 		void HandleLinkedBodies(const EntityView& view);
 	private:
 		Scene* m_Scene = nullptr;
 		AdjacencyList m_AdjacencyList;
-		std::unordered_set<Entity> m_HandledBodies;
+		AdjacencyList m_FixedGroups;
+		EntityView m_EntityView;
 		std::unordered_set<size_t> m_Joints;
 		std::unordered_set<Entity> m_Fixed;
 	};
@@ -80,6 +73,16 @@ namespace Hazel
 * if not then link both bodies and push the hash into the set
 * otherwise move on to the next adjacent body from the focus body
 * 
-* for now it would still be a good idea to handle fixed bodies first and fix their neighbors
-* when we visit a rigid body like a spring we will want to only create one spring object from the first two link points found. All others will be ignored (handle springs last)
+*
+* 
+* 
+* Weird observations / limitations:
+* Really massive bodies cause system instability with link and fixed constraints (they will start spinning and system will not converge)
+* This also happens upon applying really large forces
+* Two bodies between two fixed points that should be linked to each other will not
+* If you place a third body between the two linked bodies then the link will create but IF the original two bodies are not at an angle, then the system does not converge
+* 
+* Things I wanna do with this class:
+* 1. Handle springs
+* 2. Handle other constraints
 */

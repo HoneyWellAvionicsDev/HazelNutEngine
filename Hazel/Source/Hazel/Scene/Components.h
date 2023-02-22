@@ -140,6 +140,8 @@ namespace Hazel
 
 	struct RigidBodyComponent
 	{
+		enum class BodyShape : uint8_t { Rect = 0, Circle };
+		BodyShape Shape = BodyShape::Rect;
 		float Density = 1.0;
 		bool Fixed = false;
 
@@ -151,10 +153,13 @@ namespace Hazel
 
 	struct ForceGeneratorComponent
 	{
-		enum class GeneratorType : uint8_t { Gravity = 0, Spring, GravitationalAccelerator };
-		GeneratorType Type = GeneratorType::Gravity;
+		enum class GeneratorType : uint8_t { Gravity = 0, GravitationalAccelerator, Spring };
+		GeneratorType Type = GeneratorType::Gravity;                   //TODO: store data depending on generator type
 		glm::vec2 LocalGravity = { 0.0, -9.81 };
 		bool RepulsiveForce = false;
+		float SpringConstant = 10.0;
+		float SpringDamp = 0.000015;
+		float SpringRestLen = 1.0;
 
 		Ref<Enyoo::ForceGenerator> RuntimeGenerator = nullptr;
 
