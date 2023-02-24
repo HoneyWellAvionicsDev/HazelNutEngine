@@ -387,28 +387,28 @@ namespace Hazel
 			tintColor.w = 0.5f;
 
 		float size = ImGui::GetWindowHeight() - 4.0f;
+		
+		Ref<Texture2D> icon1 = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate) ? m_IconPlay : m_IconStop;
+		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+		if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(icon1->GetRendererID()), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
 		{
-			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate) ? m_IconPlay : m_IconStop;
-			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-			if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(icon->GetRendererID()), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
-			{
-				if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate)
-					OnScenePlay();
-				else if (m_SceneState == SceneState::Play)
-					OnSceneStop();
-			}
+			if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate)
+				OnScenePlay();
+			else if (m_SceneState == SceneState::Play)
+				OnSceneStop();
 		}
+		
 		ImGui::SameLine();
+		
+		Ref<Texture2D> icon2 = m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play ? m_IconSimulate : m_IconStop;
+		if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(icon2->GetRendererID()), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 		{
-			Ref<Texture2D> icon = m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play ? m_IconSimulate : m_IconStop;
-			if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(icon->GetRendererID()), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
-			{
-				if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play)
-					OnSceneSimulate();
-				else if (m_SceneState == SceneState::Simulate)
-					OnSceneStop();
-			}
+			if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play)
+				OnSceneSimulate();
+			else if (m_SceneState == SceneState::Simulate)
+				OnSceneStop();
 		}
+		
 
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
@@ -604,6 +604,9 @@ namespace Hazel
 	{
 		if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT)
 		{
+			if (SetDependency(m_SceneHierarchyPanel.GetSelectedEntity(), m_HoveredEntity))
+				return true;
+
 			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_5))           
 				m_SceneHierarchyPanel.SetSelectionContext(m_HoveredEntity);
 
@@ -791,6 +794,25 @@ namespace Hazel
 
 		if (selectedEntity)
 			m_SceneHierarchyPanel.SetSelectionContext(m_EditorScene->DuplicateEntity(selectedEntity));
+	}
+
+	bool EditorLayer::SetDependency(Entity focus, Entity target)
+	{
+		if (!m_SceneHierarchyPanel.DependencyCheck())
+			return false;
+
+		if (!target.HasComponent<RigidBodyComponent>())
+		{
+			m_SceneHierarchyPanel.CheckTerminate();
+			return false;
+		}
+
+		UUID targetuuid = target.GetComponent<IDComponent>().ID;
+		auto& fgc = focus.GetComponent<ForceGeneratorComponent>();
+		fgc.targetID = targetuuid;
+
+		m_SceneHierarchyPanel.CheckTerminate();
+		return true;
 	}
 
 	void EditorLayer::PersistSelectionContext()

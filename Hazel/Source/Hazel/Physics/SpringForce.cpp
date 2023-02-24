@@ -6,7 +6,7 @@ namespace Enyoo
 {
 	Spring::Spring()
 		: m_RestLength(1.0), m_Ks(40.0), m_Kd(0.20115), m_FirstBodyLocal({0.0, 0.0}), 
-		m_SecondBodyLocal({0.0, 0.0}), m_FirstBody(nullptr), m_SecondBody(nullptr)
+		m_SecondBodyLocal({0.0, 0.0}), m_FirstBody(nullptr), m_SecondBody(nullptr), m_TorqueLock(false)
 	{
 	}
 	
@@ -21,7 +21,7 @@ namespace Enyoo
 		glm::dvec2 secondPointVelocity{ 0.0, 0.0 };
 
 
-		if (m_FirstBody->Index != -1 && !m_FirstBody->Fixed)
+		if (m_FirstBody->Index != -1)
 		{
 			firstWorldPosition = systemState.LocalToWorld(m_FirstBodyLocal, m_FirstBody->Index);
 			firstPointVelocity = systemState.VelocityAtPoint(m_FirstBodyLocal, m_FirstBody->Index);
@@ -31,7 +31,7 @@ namespace Enyoo
 			firstWorldPosition = m_FirstBody->LocalToWorld(m_FirstBodyLocal);
 		}
 
-		if (m_SecondBody->Index != -1 && !m_SecondBody->Fixed)
+		if (m_SecondBody->Index != -1)
 		{
 			secondWorldPosition = systemState.LocalToWorld(m_SecondBodyLocal, m_SecondBody->Index);
 			secondPointVelocity = systemState.VelocityAtPoint(m_SecondBodyLocal, m_SecondBody->Index);
@@ -44,7 +44,7 @@ namespace Enyoo
 		double dx = secondWorldPosition.x - firstWorldPosition.x;
 		double dy = secondWorldPosition.y - firstWorldPosition.y;
 
-		const double length = std::sqrt(dx * dx + dy * dy);
+		const double length = glm::sqrt(dx * dx + dy * dy);
 
 		if (length != 0)
 		{
@@ -60,9 +60,6 @@ namespace Enyoo
 		const glm::dvec2 relativeVelocity = secondPointVelocity - firstPointVelocity;
 		const double v = dx * relativeVelocity.x + dy * relativeVelocity.y;
 		const double x = length - m_RestLength;
-
-		//if (glm::abs(x) < 0.01)
-		//	return;
 
 		systemState.ApplyForce(
 			m_FirstBodyLocal,

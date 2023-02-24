@@ -23,6 +23,7 @@ namespace Hazel
 	const std::filesystem::path g_AssetPath = "assets";
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
+		: m_SetDependency(false)
 	{
 		SetContext(context);
 	}
@@ -547,17 +548,17 @@ namespace Hazel
 
 		DrawComponent<ForceGeneratorComponent>("Force Generator", entity, [&](auto& component)
 		{
-			const char* genTypeStrings[] = { "Gravity", "Gravitational Accelerator", "Spring" };
-			const char* currentGenTypeString = genTypeStrings[(int)component.Type];
+			const char* genTypeStrings[] = { "Gravity", "Gravitational Field", "Spring", "Motor" };
+			const char* currentGenTypeString = genTypeStrings[static_cast<int>(component.Type)];
 			if (ImGui::BeginCombo("Generator Type", currentGenTypeString))
 			{
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < 4; i++)
 				{
 					bool isSelected = currentGenTypeString == genTypeStrings[i];
 					if (ImGui::Selectable(genTypeStrings[i], isSelected))
 					{
 						currentGenTypeString = genTypeStrings[i];
-						component.Type = (ForceGeneratorComponent::GeneratorType)i; 
+						component.Type = static_cast<ForceGeneratorComponent::GeneratorType>(i); 
 					}
 
 					if (isSelected)
@@ -580,7 +581,7 @@ namespace Hazel
 					ImGui::DragFloat2("Local Gravity", glm::value_ptr(component.LocalGravity), 0.100f, -60.0f, 60.0f);
 					break;
 				}
-				case ForceGeneratorComponent::GeneratorType::GravitationalAccelerator:
+				case ForceGeneratorComponent::GeneratorType::GravitationalField:
 				{
 					ImGui::Checkbox("Repulsive Force", &component.RepulsiveForce);
 					break;
@@ -610,7 +611,20 @@ namespace Hazel
 					if (!foundTop || !foundBottom)
 						break;
 					if (ImGui::Button("Reset Length"))
-						component.SpringRestLen = Math::Distance(p0, p1); //GetDistBetweenTwoLinkPoints(entity);
+						component.SpringRestLen = Math::Distance(p0, p1);
+					break;
+
+				}
+				case ForceGeneratorComponent::GeneratorType::Motor:
+				{
+					if (component.targetID)
+						ImGui::Text("Target ID: %I64u", component.targetID);
+					ImGui::SameLine();
+					if (ImGui::Button("Set"))
+						m_SetDependency = true;
+
+					ImGui::DragFloat("Max Torque", &component.MaxTorque, 1.0f, 1.0f, 1200.0f);
+					ImGui::DragFloat("Angular Speed", &component.AngularVelocity, 0.1f, 0.01f, 400.0f);
 					break;
 				}
 
@@ -637,17 +651,6 @@ namespace Hazel
 			ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
 		});
 
-	}
-
-	void SceneHierarchyPanel::DeleteDeffered()
-	{
-		for (auto entity : m_DefferedEntities)
-		{
-			HZ_CORE_TRACE("DELETING: {0}", entity.GetUUID());
-			m_Context->DestroyEntity(entity);
-			if (m_SelectionContext == entity)
-				m_SelectionContext = {};
-		}
 	}
 
 	template<typename T>

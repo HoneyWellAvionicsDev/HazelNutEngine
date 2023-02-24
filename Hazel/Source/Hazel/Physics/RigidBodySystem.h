@@ -7,6 +7,7 @@
 #include "RigidBody.h"
 #include "GravitationalAccelerator.h"
 #include "SpringForce.h"
+#include "Motor.h"
 #include "EulersMethodIntegrator.h"
 #include "RungeKutta4thIntegrator.h"
 #include "ConjugateGradientMethod.h"
@@ -102,10 +103,11 @@ namespace Enyoo
 /*
 * TODO:
 * 
-* 1. Fix fixed bodies not actually being fixed in place
-* 2. Correct moment of intertia for each body shape
-* 3. Rolling Constraint
+* 1. Fix fixed bodies not actually being fixed in place (done)
+* 2. Correct moment of intertia for each body shape (done)
+* 3. Rolling Constraint 
 * 4. Speed up matrix multiplication
-* 5. Add UI for step count
+* 5. Add UI for step count (done)
 * 6. Support Removing and adding bodies during runtime
+* 7. Rigidbody system profiler
 */

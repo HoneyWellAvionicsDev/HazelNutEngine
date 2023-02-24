@@ -28,36 +28,35 @@ namespace Hazel
 	public:
 		using LocalPoints = std::pair<glm::dvec2, glm::dvec2>;
 		using EntityView = entt::basic_view<entt::entity, entt::get_t<RigidBodyComponent, LinkPointsComponent>, entt::exclude_t<>, void>;
-		using AllBodiesView = entt::basic_view<entt::entity, entt::get_t<RigidBodyComponent>, entt::exclude_t<>, void>;
 		using AdjacencyList = std::unordered_multimap<Entity, Entity>;
 
 		DynamicSystemAssembler(Scene* scene, EntityView entityView);
 
 		void CreateLinkConstraint(Entity focus, Entity target);
 		void CreateFixedConstraint(Entity focus, Entity target, const glm::dvec2& focusLocal);
-		[[NODISCARD]] Ref<Enyoo::Spring> CreateSpringForce(Entity endBody1, Entity endBody2, const glm::dvec2& body1Local, const glm::dvec2& body2Local);
+		[[NODISCARD]] Ref<Enyoo::Spring> CreateSpring(Entity endBody1, Entity endBody2, const glm::dvec2& body1Local, const glm::dvec2& body2Local);
 
 		void GenerateRigidBodies();
-		bool GenerateConstraints();
+		void GenerateConstraints();
 		bool GenerateForceGens();
 
 		LocalPoints GetMatchingLocals(Entity focusEntity, Entity targetEntity) const;
 		bool Adjacent(Entity focus, Entity target) const;
-		bool FixedBody(Entity entity) const;
-		bool SpringBody(Entity entity) const;
-		bool Close(const glm::dvec2& focusWorld, const glm::dvec2& targetWorld) const;
 
 	private:
+		void CreateSpringForce(Entity entity);
+		bool FixedBody(Entity entity) const;
+		bool SpringBody(Entity entity) const;
+		bool Proximity(const glm::dvec2& focusWorld, const glm::dvec2& targetWorld) const;
 		size_t HashJoint(const Joint& joint) const;
 		Entity FindAdjacentFixedBody(Entity entity) const;
-		Entity FindBody(const glm::dvec2& linkPoint, const glm::dvec3& rotation, const glm::dvec3& translation, UUID uuid) const;
+		Entity FindBody(const glm::dvec2& focusWorld, UUID uuid) const;
 		void GenerateAdjacencyList(const EntityView& view);
 		void HandleFixedBodies(const EntityView& view);
 		void HandleLinkedBodies(const EntityView& view);
 	private:
 		Scene* m_Scene = nullptr;
 		AdjacencyList m_AdjacencyList;
-		AdjacencyList m_FixedGroups;
 		EntityView m_EntityView;
 		std::unordered_set<size_t> m_Joints;
 		std::unordered_set<Entity> m_Fixed;

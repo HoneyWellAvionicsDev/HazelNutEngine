@@ -97,7 +97,7 @@ namespace Hazel
 
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
 	{
-		out << YAML::Flow; //[0 1 2 3] instead of x:1 y:1
+		out << YAML::Flow; 
 		out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
 		return out;
 	}
@@ -146,7 +146,7 @@ namespace Hazel
 	{
 		switch (bodyShape)
 		{
-			case RigidBodyComponent::BodyShape::Rect:    return "Rect";
+			case RigidBodyComponent::BodyShape::Rect:     return "Rect";
 			case RigidBodyComponent::BodyShape::Circle:   return "Circle";
 			//case RigidBodyComponent::BodyShape::: return "";
 		}
@@ -159,9 +159,10 @@ namespace Hazel
 	{
 		switch (genType)
 		{
-			case ForceGeneratorComponent::GeneratorType::Gravity:	return "Gravity";
-			case ForceGeneratorComponent::GeneratorType::Spring:	return "Test1";
-			case ForceGeneratorComponent::GeneratorType::GravitationalAccelerator:	return "Test2";
+			case ForceGeneratorComponent::GeneratorType::Gravity:				return "Gravity";
+			case ForceGeneratorComponent::GeneratorType::Spring:				return "Test1";
+			case ForceGeneratorComponent::GeneratorType::GravitationalField:	return "Test2";
+			case ForceGeneratorComponent::GeneratorType::Motor:					return "Motor";
 		}
 
 		HZ_CORE_ASSERT(false, "Unknown generator type");
@@ -171,8 +172,9 @@ namespace Hazel
 	static ForceGeneratorComponent::GeneratorType ForceGenTypeFromString(const std::string& genTypeStr)
 	{
 		if (genTypeStr == "Gravity")		return ForceGeneratorComponent::GeneratorType::Gravity;
-		if (genTypeStr == "Test1")		return ForceGeneratorComponent::GeneratorType::Spring;
-		if (genTypeStr == "Test2")		return ForceGeneratorComponent::GeneratorType::GravitationalAccelerator;
+		if (genTypeStr == "Test1")			return ForceGeneratorComponent::GeneratorType::Spring;
+		if (genTypeStr == "Test2")			return ForceGeneratorComponent::GeneratorType::GravitationalField;
+		if (genTypeStr == "Motor")			return ForceGeneratorComponent::GeneratorType::Motor;
 
 		HZ_CORE_ASSERT(false, "Unknown generator type");
 		return ForceGeneratorComponent::GeneratorType::Gravity;
@@ -340,6 +342,13 @@ namespace Hazel
 				out << YAML::Key << "SpringConstant" << YAML::Value << forceGenComponent.SpringConstant;
 				out << YAML::Key << "SpringDamp" << YAML::Value << forceGenComponent.SpringDamp;
 				out << YAML::Key << "SpringRestLength" << YAML::Value << forceGenComponent.SpringRestLen;
+			}
+
+			if (forceGenComponent.Type == ForceGeneratorComponent::GeneratorType::Motor)
+			{
+				out << YAML::Key << "TargetID" << YAML::Value << forceGenComponent.targetID;
+				out << YAML::Key << "MaxTorque" << YAML::Value << forceGenComponent.MaxTorque;
+				out << YAML::Key << "AngularVelocity" << YAML::Value << forceGenComponent.AngularVelocity;
 			}
 
 			out << YAML::EndMap;
@@ -548,6 +557,12 @@ namespace Hazel
 						fgc.SpringConstant = forceGenComponent["SpringConstant"].as<float>();
 						fgc.SpringDamp = forceGenComponent["SpringDamp"].as<float>();
 						fgc.SpringRestLen = forceGenComponent["SpringRestLength"].as<float>();
+					}
+					if (fgc.Type == ForceGeneratorComponent::GeneratorType::Motor)
+					{
+						fgc.targetID = forceGenComponent["TargetID"].as<uint64_t>();
+						fgc.MaxTorque = forceGenComponent["MaxTorque"].as<float>();
+						fgc.AngularVelocity = forceGenComponent["AngularVelocity"].as<float>();
 					}
 				}
 

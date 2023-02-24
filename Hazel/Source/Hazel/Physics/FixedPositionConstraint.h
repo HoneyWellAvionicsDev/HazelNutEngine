@@ -4,9 +4,6 @@
 
 namespace Enyoo
 {
-	//static constexpr int MaxConstraintCount = 3;
-	//static constexpr int MaxBodyCount = 2;
-
 	class FixedPositionConstraint : public Constraint
 	{
 	public:
