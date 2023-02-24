@@ -368,8 +368,8 @@ namespace Hazel
 
 	void Scene::Update2DPhysics(Timestep ts)
 	{
-		m_PhysicsWorld->SetGravity({ m_LocalGravity.x, m_LocalGravity.y });
-		m_PhysicsWorld->Step(ts, m_VelocityIterations, m_PositionIterations);
+		m_PhysicsWorld->SetGravity({ 0.0f, -9.81 });
+		m_PhysicsWorld->Step(ts, 6, 2);
 
 		//retrieve transfrom from box2d
 		auto view = m_Registry.view<RigidBody2DComponent>();
@@ -390,44 +390,25 @@ namespace Hazel
 	void Scene::OnPhysicsStart()
 	{
 		m_ConstrainedBodySystem = CreateRef<Enyoo::RigidBodySystem>(); 
-#if 1
+
 		auto view = GetAllEntitiesWith<RigidBodyComponent, LinkPointsComponent>();
 		Scope<DynamicSystemAssembler> SystemAssembler = CreateScope<DynamicSystemAssembler>(this, view);
 		SystemAssembler->GenerateRigidBodies();
 		SystemAssembler->GenerateConstraints();
 		SystemAssembler->GenerateForceGens();
-		//Entity ent1 = GetEntity(7809189181779906021);
-		//Entity ent2 = GetEntity(10824741570482348801);
+		Entity ent1 = GetEntity(9304673390613496804);
+		Entity ent2 = GetEntity(15660925186931433701);
 		//Entity ent3 = GetEntity(7582156039611883941);
-		//Ref<Enyoo::Spring> spring1 = SystemAssembler->CreateSpringForce(ent1, ent2, { 0.0, 0.0 }, { 0.0, 0.0 });
-		//Ref<Enyoo::Spring> spring2 = SystemAssembler->CreateSpringForce(ent3, ent2, { 0.0, 0.0 }, { 0.0, 0.0 });
-		//spring1->SetRestLength(8.0);
-		//spring2->SetRestLength(5.0);
-		//m_ConstrainedBodySystem->AddForceGen(spring1);
-		//m_ConstrainedBodySystem->AddForceGen(spring2);
-#else
-		Entity ent1 = GetEntity(10238990714028384176);
-		Entity ent2 = GetEntity(14690547557776545084);
-		Entity ent3 = GetEntity(2616743183767254176);
-		Entity ent4 = GetEntity(5154152766761199550);
-		Entity ent5 = GetEntity(5297384271848824557);
-		Entity ent6 = GetEntity(1872339921844532343);
-		//Entity ent7 = GetEntity(7113960336125019134);
-		Entity ent8 = GetEntity(10980884617468069392);
+		auto& base = ent1.GetComponent<RigidBodyComponent>().RuntimeBody;
+		auto& roller = ent2.GetComponent<RigidBodyComponent>().RuntimeBody;
 
-		Scope<DynamicSystemAssembler> systemAssembler = CreateScope<DynamicSystemAssembler>(this);
-		systemAssembler->GenerateRigidBodies();
-		systemAssembler->GenerateForceGens();
+		Ref<Enyoo::CircleConstraint> circle = CreateRef<Enyoo::CircleConstraint>();
+		circle->SetBaseBody(base.get());
+		circle->SetRollingBody(roller.get());
+		circle->SetRadius(1.5);
+		circle->SetLocal({ 0.0, 0.25 });
+		m_ConstrainedBodySystem->AddConstraint(circle);
 
-		auto [focusLocal, targetLocal] = systemAssembler->GetMatchingLocals(ent1, ent3);
-		auto [focusLocal2, targetLocal2] = systemAssembler->GetMatchingLocals(ent4, ent8);
-		systemAssembler->CreateFixedConstraint(ent3, ent1, targetLocal);
-		systemAssembler->CreateFixedConstraint(ent4, ent8, focusLocal2);
-		systemAssembler->CreateLinkConstraint(ent4, ent3);
-		
-
-		
-#endif
 		m_ConstrainedBodySystem->Initialize();
 	}
 
@@ -437,7 +418,7 @@ namespace Hazel
 
 	void Scene::UpdatePhysics(Timestep ts)
 	{
-		m_ConstrainedBodySystem->Step(0.01667, 4);
+		m_ConstrainedBodySystem->Step(m_PhysicsDeltaT, m_PhysicsSteps);
 
 		auto view = m_Registry.view<RigidBodyComponent>();
 		for (auto e : view)
@@ -447,12 +428,9 @@ namespace Hazel
 			auto& rbc = entity.GetComponent<RigidBodyComponent>();
 			Ref<Enyoo::RigidBody> body = rbc.RuntimeBody;
 
-			if (!rbc.Fixed)
-			{
-				transform.Translation.x = body->Position.x;
-				transform.Translation.y = body->Position.y;
-				transform.Rotation.z = body->Theta;
-			}
+			transform.Translation.x = body->Position.x;
+			transform.Translation.y = body->Position.y;
+			transform.Rotation.z = body->Theta;
 		}
 	}
 

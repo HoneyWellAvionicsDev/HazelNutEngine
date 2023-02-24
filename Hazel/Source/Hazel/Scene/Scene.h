@@ -65,9 +65,8 @@ namespace Hazel
 		void RemoveLinkPoint(LinkPointMapIterator iter) { m_EntityLinkPointMap.erase(iter); }
 
 		void SetSceneName(const std::filesystem::path& fileName) { m_SceneName = fileName; }
-		void SetVelocityIterations(uint16_t iter) { m_VelocityIterations = iter; }
-		void SetPositionIterations(uint16_t iter) { m_PositionIterations = iter; }
-		void SetLevelGravity(glm::vec2 localAcceleration) { m_LocalGravity = localAcceleration; }
+		void SetPhysicsDT(double dt) { m_PhysicsDeltaT = dt; }
+		void SetPhysicsSteps(uint16_t steps) { m_PhysicsSteps = steps; }
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
@@ -88,10 +87,9 @@ namespace Hazel
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;
 		std::filesystem::path m_SceneName;
+		double m_PhysicsDeltaT = 0.01667;
+		uint16_t m_PhysicsSteps = 1;
 
-		uint16_t m_VelocityIterations = 6;
-		uint16_t m_PositionIterations = 2;
-		glm::vec2 m_LocalGravity{ 0.0f };
 		b2World* m_PhysicsWorld = nullptr;
 
 		Ref<Enyoo::RigidBodySystem> m_ConstrainedBodySystem = nullptr;

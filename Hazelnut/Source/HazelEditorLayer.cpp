@@ -79,9 +79,6 @@ namespace Hazel
 		}
 		
 		//------------------Update----------------------------------
-		m_ActiveScene->SetLevelGravity({ m_Gravity[0], m_Gravity[1] });
-		m_ActiveScene->SetVelocityIterations(m_VeloctiyIterations);
-		m_ActiveScene->SetPositionIterations(m_PositionIterations);
 		m_EditorCamera.DisableRotation(m_DisableCameraRotation);
 		m_EditorCamera.SetFOV(m_CameraFOV);
 
@@ -239,7 +236,6 @@ namespace Hazel
 		ImGui::Begin("Statistics");
 
 		std::string name = "None";
-		std::string name2 = "None";
 		if (m_HoveredEntity)
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
@@ -264,13 +260,19 @@ namespace Hazel
 		ImGui::Begin("Settings");
 		static float padding = 16.f;
 		static float thumbnailSize = 128.f;
+		static const uint16_t U16One = 1;
+		static uint16_t steps = 1;
+		static double dt = 0.01667;
+		static double decDt = 0.001667;
 
 		ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
 		ImGui::SliderFloat("Padding", &padding, 0, 32);
-		ImGui::DragFloat("Spring Constant Multiplier", &m_SpringConstMult, 0.01f, 0.001, 120.0f);
-		ImGui::SliderFloat2("Local Gravity", m_Gravity, -20, 20);
-		ImGui::SliderInt("Velocity Iterations", &m_VeloctiyIterations, 1, 500);
-		ImGui::SliderInt("Position Iterations", &m_PositionIterations, 1, 500);
+		ImGui::DragFloat("Spring Constant Multiplier", &m_SpringConstMult, 0.1f, 0.01, 1200.0f);
+		ImGui::InputScalar("Physics Steps", ImGuiDataType_U16, &steps, &U16One);
+		ImGui::InputScalar("Delta Time", ImGuiDataType_Double, &dt, &decDt);
+		ImGui::SameLine();
+		if (ImGui::Button("Reset"))
+			dt = 0.01667;
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 		ImGui::Checkbox("Use editor camera for runtime", &m_UseEditorCameraOnRuntime);
 		ImGui::Checkbox("Disable camera rotation", &m_DisableCameraRotation);
@@ -281,7 +283,8 @@ namespace Hazel
 		ImGui::SameLine();
 		if (ImGui::Button("x"))
 			m_CameraFOV = 45.0f;
-		
+		m_ActiveScene->SetPhysicsDT(dt);
+		m_ActiveScene->SetPhysicsSteps(steps);
 		//ImGui::ShowDemoWindow(&dockspaceOpen);
 		ImGui::End();
 
@@ -775,7 +778,7 @@ namespace Hazel
 
 			glm::mat4 transform = glm::translate(glm::mat4(1.f), { mouseWorld, 0.2f })
 				* glm::scale(glm::mat4(1.f), glm::vec3(0.5));
-			Hazel::Renderer2D::DrawCircle(transform, { 1.0f, 0.2f, 0.3f, 1.0f });
+			Renderer2D::DrawCircle(transform, { 1.0f, 0.2f, 0.3f, 1.0f });
 			Renderer2D::EndScene();
 		}
 		else

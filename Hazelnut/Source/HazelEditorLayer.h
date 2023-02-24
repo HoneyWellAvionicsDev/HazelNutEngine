@@ -40,6 +40,7 @@ namespace Hazel
 
 		void DragHoveredEntity();
 		void OnDuplicateEntity();
+		bool SetDependency(Entity focus, Entity target);
 		void PersistSelectionContext();
 		void ObjectSnapping(Entity entity);
 		glm::vec2 GetWorldPosFromMouse(glm::vec2 mousePos);
@@ -68,10 +69,7 @@ namespace Hazel
 		bool m_DisableCameraRotation = false;
 		bool m_DragFromCentre = false;
 		float m_CameraFOV = 45.0f;
-		float m_Gravity[2] = { 0.f, -9.81f };
-		float m_SpringConstMult = 40.0;
-		int m_VeloctiyIterations = 6;
-		int m_PositionIterations = 2;
+		float m_SpringConstMult = 40.0f;
 		//panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		ContentViewPanel m_ContentBrowserPanel;
