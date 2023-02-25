@@ -68,7 +68,7 @@ namespace Hazel
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
 		HZ_PROFILE_FUNCTION();
-
+		
 		if (FrameBufferSpecification spec = m_FrameBuffer->GetSpecification();
 			m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
 			(spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
@@ -366,8 +366,6 @@ namespace Hazel
 			}
 		}
 
-
-
 		ImGui::End();
 		ImGui::PopStyleVar();
 
@@ -411,7 +409,8 @@ namespace Hazel
 			else if (m_SceneState == SceneState::Simulate)
 				OnSceneStop();
 		}
-		
+
+		DeleteDeffered();
 
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
@@ -485,7 +484,7 @@ namespace Hazel
 				glm::translate(glm::mat4(1.0f), { transform.Translation.x, transform.Translation.y, transform.Translation.z + 0.001f })
 				* glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
 				* glm::scale(glm::mat4(1.0f), { transform.Scale.x, transform.Scale.y, transform.Scale.z });
-			Renderer2D::DrawRect(selectedTransform, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
+			Renderer2D::DrawRect(selectedTransform, glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));	
 
 			// draw snap points
 			if (m_SceneState == SceneState::Edit && selectedEntity.HasComponent<LinkPointsComponent>())
@@ -818,6 +817,22 @@ namespace Hazel
 		return true;
 	}
 
+	void EditorLayer::DeleteDeffered()
+	{
+		Entity deff = m_SceneHierarchyPanel.GetDefferedEntity();
+
+		if (!deff)
+			return;
+
+		m_ActiveScene = Scene::CopyExclusive(m_EditorScene, deff);
+		m_ActiveScene->RemoveLinkPoints(deff.GetUUID());
+		m_EditorScene = m_ActiveScene;
+		m_SceneHierarchyPanel.ResetDeffered();
+		m_SceneHierarchyPanel.SetContext(m_EditorScene);
+		m_SceneHierarchyPanel.CheckTerminate();
+		m_HoveredEntity = {};
+	}
+
 	void EditorLayer::PersistSelectionContext()
 	{
 		if (m_SceneHierarchyPanel.GetSelectedEntity() != Entity())
@@ -839,7 +854,7 @@ namespace Hazel
 
 		if (!entity.HasComponent<LinkPointsComponent>())
 			return;
-		
+
 		auto view = m_ActiveScene->m_Registry.view<LinkPointsComponent, TransformComponent>();
 		auto& selectedTransform = entity.GetComponent<TransformComponent>();
 		auto range = m_ActiveScene->GetLinkPoints(entity.GetUUID());

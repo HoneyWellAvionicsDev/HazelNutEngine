@@ -41,6 +41,7 @@ namespace Hazel
 		void DragHoveredEntity();
 		void OnDuplicateEntity();
 		bool SetDependency(Entity focus, Entity target);
+		void DeleteDeffered();
 		void PersistSelectionContext();
 		void ObjectSnapping(Entity entity);
 		glm::vec2 GetWorldPosFromMouse(glm::vec2 mousePos);

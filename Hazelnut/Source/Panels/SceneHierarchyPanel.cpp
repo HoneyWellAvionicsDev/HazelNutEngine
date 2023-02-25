@@ -46,6 +46,14 @@ namespace Hazel
 			
 			//ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
 
+			auto view = m_Context->GetAllEntitiesWith<IDComponent>();
+			for (auto it = view.rbegin(); it != view.rend(); it++) //auto it = view.rbegin(); it != view.rend(); it++
+			{
+				Entity entity{ *it, m_Context.get() };
+				if (filter.PassFilter(entity.GetName().c_str()))
+					DrawEntityNode(entity);
+			}
+
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 				m_SelectionContext = {};
 
@@ -57,25 +65,9 @@ namespace Hazel
 
 				ImGui::EndPopup();
 			}
-
-			//m_Context->m_Registry.each([&](auto entityID)
-			//{
-			//	Entity entity{(entt::entity)((m_Context->m_Registry.size() - 1) - (int)entityID), m_Context.get() };
-			//	if(filter.PassFilter(entity.GetName().c_str()))
-			//		DrawEntityNode(entity);
-			//});
-
-			auto view = m_Context->GetAllEntitiesWith<IDComponent>();
-			for (auto it = view.rbegin(); it != view.rend(); it++)
-			{
-				Entity entity{ *it, m_Context.get() };
-				if (filter.PassFilter(entity.GetName().c_str()))
-					DrawEntityNode(entity);
-			}
 		}
 
 		ImGui::End();
-		//DeleteDeffered();
 		ImGui::Begin("Properties");
 		if (m_SelectionContext)
 		{
@@ -93,11 +85,15 @@ namespace Hazel
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)entity, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 			m_SelectionContext = entity;
-		bool deleted = false;
+
 		if (ImGui::BeginPopupContextItem()) //TODO: only display this menu if SceneState == Edit (we dont wanna delete entities during runtime)
 		{
 			if (ImGui::MenuItem("Delete Entity"))
-				deleted = true; 
+			{
+				m_DefferedEntity = entity;
+				if (m_SelectionContext == entity)
+					m_SelectionContext = {};
+			}
 
 			ImGui::EndPopup();
 		}
@@ -108,13 +104,7 @@ namespace Hazel
 			ImGui::TreePop();
 		}
 
-		if (deleted)
-		{
-			m_Context->RemoveLinkPoints(entity.GetUUID());
-			m_Context->DestroyEntity(entity);
-			if (m_SelectionContext == entity)
-				m_SelectionContext = {};
-		}
+		
 	}
 
 	static void DrawVec3Control(const std::string& label, glm::vec3& values, float sliderSpeedfloat, float resetValue = 0.f, float columnWidth = 100.f)

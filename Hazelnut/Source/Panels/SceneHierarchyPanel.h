@@ -19,6 +19,8 @@ namespace Hazel
 		void OnImGuiRender();
 
 		Entity GetSelectedEntity() const { return m_SelectionContext; }
+		Entity GetDefferedEntity() const { return m_DefferedEntity; }
+		void ResetDeffered() { m_DefferedEntity = Entity(); }
 		bool DependencyCheck() const { return m_SetDependency; }
 		void CheckTerminate() { m_SetDependency = false; }
 	private:
@@ -29,6 +31,7 @@ namespace Hazel
 	private:
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
+		Entity m_DefferedEntity = Entity();
 		bool m_SetDependency = false;
 	};
 }

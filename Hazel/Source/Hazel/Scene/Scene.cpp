@@ -1,8 +1,6 @@
 #include <hzpch.h>
 
 #include "Hazel/Renderer/Renderer2D.h"
-//temp
-#include "Hazel/Core/Input.h"
 
 #include "Scene.h"
 #include "Components.h"
@@ -55,8 +53,10 @@ namespace Hazel
 			for (auto e : view)
 			{
 				UUID uuid = src.get<IDComponent>(e).ID;
-				HZ_CORE_ASSERT(enttMap.find(uuid) != enttMap.end(), "Component ID missing");
 				entt::entity dstEnttID = enttMap.at(uuid);
+
+				if (enttMap.find(uuid) == enttMap.end())
+					continue;
 
 				auto& component = src.get<Component>(e);
 				dst.emplace_or_replace<Component>(dstEnttID, component);
@@ -95,12 +95,14 @@ namespace Hazel
 		newScene->m_ViewportHeight = source->m_ViewportHeight;
 		newScene->m_EntityLinkPointMap = source->m_EntityLinkPointMap;
 		newScene->m_SceneName = source->m_SceneName;
+		newScene->m_PhysicsDeltaT = source->m_PhysicsDeltaT;
+		newScene->m_PhysicsSteps = source->m_PhysicsSteps;
 
 		auto& srcSceneRegistry = source->m_Registry;
 		auto& dstSceneRegistry = newScene->m_Registry;
+
 		std::unordered_map<UUID, entt::entity> enttMap;
 
-		// Create entities in new scene
 		auto idView = srcSceneRegistry.view<IDComponent>();
 		
 		for (auto it = idView.rbegin(); it != idView.rend(); it++)
@@ -108,10 +110,43 @@ namespace Hazel
 			UUID uuid = srcSceneRegistry.get<IDComponent>(*it).ID;
 			const auto& name = srcSceneRegistry.get<TagComponent>(*it).Tag;
 			Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
-			enttMap[uuid] = (entt::entity)newEntity;
+			enttMap[uuid] = static_cast<entt::entity>(newEntity);
 		}
 
-		// Copy components (except IDComponent and TagComponent)
+		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
+
+		return newScene;
+	}
+
+	Ref<Scene> Scene::CopyExclusive(Ref<Scene> source, Entity exclusion)
+	{
+		Ref<Scene> newScene = CreateRef<Scene>();
+
+		newScene->m_ViewportWidth = source->m_ViewportWidth;
+		newScene->m_ViewportHeight = source->m_ViewportHeight;
+		newScene->m_EntityLinkPointMap = source->m_EntityLinkPointMap;
+		newScene->m_SceneName = source->m_SceneName;
+		newScene->m_PhysicsDeltaT = source->m_PhysicsDeltaT;
+		newScene->m_PhysicsSteps = source->m_PhysicsSteps;
+
+		auto& srcSceneRegistry = source->m_Registry;
+		auto& dstSceneRegistry = newScene->m_Registry;
+
+		std::unordered_map<UUID, entt::entity> enttMap;
+
+		auto idView = srcSceneRegistry.view<IDComponent>();
+
+		for (auto it = idView.rbegin(); it != idView.rend(); it++)
+		{
+			UUID uuid = srcSceneRegistry.get<IDComponent>(*it).ID;
+			if (uuid == exclusion.GetUUID())
+				continue;
+
+			const auto& name = srcSceneRegistry.get<TagComponent>(*it).Tag;
+			Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
+			enttMap[uuid] = static_cast<entt::entity>(newEntity);
+		}
+
 		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
 
 		return newScene;
@@ -134,7 +169,6 @@ namespace Hazel
 
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
-
 		Entity newEntity = CreateEntity(entity.GetName());
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
 
@@ -155,7 +189,7 @@ namespace Hazel
 
 	void Scene::DestroyEntity(Entity entity)
 	{
-		m_Registry.destroy(entity);
+		m_Registry.destroy(entity.GetHandle());
 	}
 
 	void Scene::OnRuntimeStart()
@@ -286,11 +320,11 @@ namespace Hazel
 	Entity Scene::GetPrimaryCameraEntity()
 	{
 		auto view = m_Registry.view<CameraComponent>();
-		for (auto entity : view)
+		for (auto e : view)
 		{
-			const auto& camera = view.get<CameraComponent>(entity);
+			const auto& camera = view.get<CameraComponent>(e);
 			if (camera.Primary)
-				return Entity{entity, this};
+				return Entity{e, this};
 		}
 		return {};
 	}
@@ -452,7 +486,7 @@ namespace Hazel
 			{
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 
-				Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+				Renderer2D::DrawSprite(transform.GetTransform(), sprite, static_cast<int>(entity));
 			}
 		}
 
@@ -463,7 +497,7 @@ namespace Hazel
 			{
 				auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
 
-				Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
+				Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, static_cast<int>(entity));
 			}
 		}
 
