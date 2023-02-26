@@ -10,10 +10,7 @@ project "Hazelnut"
 	files
 	{
 		"Source/**.h",
-		"Source/**.cpp",
-
-		--"%{wks.location}/Hazel/vendors/ImGuizmo/*.h",
-		--"%{wks.location}/Hazel/vendors/ImGuizmo/*.cpp"
+		"Source/**.cpp"
 	}
 
 	includedirs
@@ -21,10 +18,12 @@ project "Hazelnut"
 		"%{wks.location}/Hazel/vendors/spdlog/include",
 		"%{wks.location}/Hazel/Source",
 		"%{wks.location}/Hazel/vendors",
+		"%{wks.location}/Test",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.imGui}",
-		"%{IncludeDir.ImGuizmo}"
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.googletest}"
 	}
 
 	links

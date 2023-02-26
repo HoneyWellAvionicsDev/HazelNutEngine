@@ -18,9 +18,9 @@ project "Hazel"
 		"vendors/stb_image/**.cpp",
 		"vendors/glm/glm/**.hpp",
 		"vendors/glm/glm/**.inl",
-
         "vendors/ImGuizmo/ImGuizmo.h",
-        "vendors/ImGuizmo/ImGuizmo.cpp"
+        "vendors/ImGuizmo/ImGuizmo.cpp",
+        "vendors/googletest/googletest/**.h"
     }
 
     defines
@@ -42,7 +42,8 @@ project "Hazel"
         "%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.yaml_cpp}",
-        "%{IncludeDir.VulkanSDK}"
+        "%{IncludeDir.VulkanSDK}",
+        "%{IncludeDir.googletest}"
     }
 
     links

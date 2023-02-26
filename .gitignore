@@ -33,3 +33,7 @@ Hazelnut/assets/cache
 Hazel/vendor/VulkanSDK
 Roadmap.txt
 Hazelnut/imgui.ini
+packages
+Test/packages.config
+Sample-Test2
+Sample-Test1
