@@ -13,6 +13,7 @@
 #include "ConjugateGradientMethod.h"
 #include "FixedPositionConstraint.h"
 #include "LinkConstraint.h"
+#include "CircleConstraint.h"
 
 #include <vector>
 
@@ -92,10 +93,8 @@ namespace Enyoo
 			Matrix JWQ;
 		};
 
-
 		Matrices m_Matrices;
 		IndexMap m_ConstaintBodyIndex;
-
 	};
 }
 

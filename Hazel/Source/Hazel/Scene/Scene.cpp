@@ -329,6 +329,11 @@ namespace Hazel
 		return {};
 	}
 
+	bool Scene::Valid(Entity entity) const
+	{
+		return m_Registry.valid(entity.GetHandle());
+	}
+
 	void Scene::RemoveLinkPoints(UUID uuid)
 	{
 		auto range = GetLinkPoints(uuid);
@@ -430,19 +435,7 @@ namespace Hazel
 		SystemAssembler->GenerateRigidBodies();
 		SystemAssembler->GenerateConstraints();
 		SystemAssembler->GenerateForceGens();
-		Entity ent1 = GetEntity(9304673390613496804);
-		Entity ent2 = GetEntity(15660925186931433701);
-		//Entity ent3 = GetEntity(7582156039611883941);
-		auto& base = ent1.GetComponent<RigidBodyComponent>().RuntimeBody;
-		auto& roller = ent2.GetComponent<RigidBodyComponent>().RuntimeBody;
-
-		Ref<Enyoo::CircleConstraint> circle = CreateRef<Enyoo::CircleConstraint>();
-		circle->SetBaseBody(base.get());
-		circle->SetRollingBody(roller.get());
-		circle->SetRadius(1.5);
-		circle->SetLocal({ 0.0, 0.25 });
-		m_ConstrainedBodySystem->AddConstraint(circle);
-
+	
 		m_ConstrainedBodySystem->Initialize();
 	}
 
@@ -578,6 +571,12 @@ namespace Hazel
 	}
 
 	template<>
+	void Scene::OnComponentAdded<ConstraintComponent>(Entity entity, ConstraintComponent& component)
+	{
+
+	}
+
+	template<>
 	void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
 	{
 
@@ -657,6 +656,12 @@ namespace Hazel
 
 	template<>
 	void Scene::OnComponentRemoved<ForceGeneratorComponent>(Entity entity, ForceGeneratorComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<ConstraintComponent>(Entity entity, ConstraintComponent& component)
 	{
 
 	}

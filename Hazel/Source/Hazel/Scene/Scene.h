@@ -25,9 +25,15 @@ namespace Hazel
 		~Scene();
 
 		static Ref<Scene> Copy(Ref<Scene> other);
+		static Ref<Scene> CopyExclusive(Ref<Scene> other, Entity exclusion);
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
+		Entity DuplicateEntity(Entity entity);
+		Entity GetEntity(UUID uuid);
+		Entity GetPrimaryCameraEntity();
+		const entt::registry& GetRegistry() const { return m_Registry; }
+		bool Valid(Entity entity) const;
 
 		void DestroyEntity(Entity entity);
 
@@ -44,10 +50,6 @@ namespace Hazel
 
 		void OnViewportResize(uint32_t width, uint32_t height);
 
-		Entity DuplicateEntity(Entity entity);
-
-		Entity GetEntity(UUID uuid);
-		Entity GetPrimaryCameraEntity();
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()

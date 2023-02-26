@@ -5,7 +5,7 @@
 namespace Enyoo
 {
 	ConstantSpeedMotor::ConstantSpeedMotor()
-		: m_MaxTorque(500.0), m_AngularVelocity(1.0), m_Ks(1.0), m_Kd(1.0), m_BaseBody(nullptr), m_TargetBody(nullptr)
+		: m_MaxTorque(500.0), m_AngularVelocity(1.0), m_Ks(100.0), m_Kd(1.0), m_BaseBody(nullptr), m_TargetBody(nullptr)
 	{
 	}
 	

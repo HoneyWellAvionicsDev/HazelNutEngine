@@ -103,8 +103,6 @@ namespace Hazel
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth;
 			ImGui::TreePop();
 		}
-
-		
 	}
 
 	static void DrawVec3Control(const std::string& label, glm::vec3& values, float sliderSpeedfloat, float resetValue = 0.f, float columnWidth = 100.f)
@@ -303,6 +301,7 @@ namespace Hazel
 			DisplayAddComponentEntry<ForceGeneratorComponent>("Force Generator");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("2D Box Collider");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("2D Circle Collider");
+			DisplayAddComponentEntry<ConstraintComponent>("Constraint");
 			ImGui::EndPopup();
 		}
 
@@ -614,11 +613,43 @@ namespace Hazel
 						m_SetDependency = true;
 
 					ImGui::DragFloat("Max Torque", &component.MaxTorque, 1.0f, 1.0f, 1200.0f);
-					ImGui::DragFloat("Angular Speed", &component.AngularVelocity, 0.1f, 0.01f, 400.0f);
+					ImGui::DragFloat("Angular Speed", &component.AngularVelocity, 0.1f, -400.0f, 400.0f);
+					ImGui::SameLine();
+					if (ImGui::Button("Reset"))
+						component.AngularVelocity = 0.0f;
 					break;
 				}
 
 			}
+		});
+
+		DrawComponent<ConstraintComponent>("Body Constraint", entity, [&](auto& component)
+		{
+			ImGui::Text("Target ID: %I64u", component.TargetID);
+			ImGui::SameLine();
+			if (ImGui::Button("Set"))
+				m_SetDependency = true;
+
+			const char* constTypeStrings[] = { "Static", "Rolling", "Rolling Friction", "Flat Surface"};
+			const char* currentTypeString = constTypeStrings[static_cast<int>(component.Type)];
+			if (ImGui::BeginCombo("Constraint Type", currentTypeString))
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					bool isSelected = currentTypeString == constTypeStrings[i];
+					if (ImGui::Selectable(constTypeStrings[i], isSelected))
+					{
+						currentTypeString = constTypeStrings[i];
+						component.Type = static_cast<ConstraintComponent::ConstraintType>(i);
+					}
+
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndCombo();
+			}
+
 		});
 
 		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)

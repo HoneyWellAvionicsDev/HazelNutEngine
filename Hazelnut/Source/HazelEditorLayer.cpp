@@ -803,6 +803,15 @@ namespace Hazel
 		if (!m_SceneHierarchyPanel.DependencyCheck())
 			return false;
 
+		if (!m_SceneHierarchyPanel.GetSelectedEntity())
+			return false;
+
+		if (focus == target)
+			return false;
+
+		if (!m_ActiveScene->Valid(target))
+			return false;
+
 		if (!target.HasComponent<RigidBodyComponent>())
 		{
 			m_SceneHierarchyPanel.CheckTerminate();
@@ -810,8 +819,18 @@ namespace Hazel
 		}
 
 		UUID targetuuid = target.GetComponent<IDComponent>().ID;
-		auto& fgc = focus.GetComponent<ForceGeneratorComponent>();
-		fgc.targetID = targetuuid;
+		
+		if (focus.HasComponent<ForceGeneratorComponent>())
+		{
+			auto& fgc = focus.GetComponent<ForceGeneratorComponent>();
+			fgc.targetID = targetuuid;
+		}
+
+		if (focus.HasComponent<ConstraintComponent>())
+		{
+			auto& cc = focus.GetComponent<ConstraintComponent>();
+			cc.TargetID = targetuuid;
+		}
 
 		m_SceneHierarchyPanel.CheckTerminate();
 		return true;

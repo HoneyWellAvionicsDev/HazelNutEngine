@@ -180,6 +180,31 @@ namespace Hazel
 		return ForceGeneratorComponent::GeneratorType::Gravity;
 	}
 
+	static std::string ConstraintTypeToString(ConstraintComponent::ConstraintType constType)
+	{
+		switch (constType)
+		{
+			case ConstraintComponent::ConstraintType::Static:				return "Static";
+			case ConstraintComponent::ConstraintType::FlatSurface:			return "FlatSurface";
+			case ConstraintComponent::ConstraintType::Rolling:				return "Rolling";
+			case ConstraintComponent::ConstraintType::RollingFriction:		return "RollingFriction";
+		}
+
+		HZ_CORE_ASSERT(false, "Unknown constraint type");
+		return "Static";
+	}
+
+	static ConstraintComponent::ConstraintType ConstraintTypeFromString(const std::string& constTypeStr)
+	{
+		if (constTypeStr == "Static")					return ConstraintComponent::ConstraintType::Static;
+		if (constTypeStr == "FlatSurface")				return ConstraintComponent::ConstraintType::FlatSurface;
+		if (constTypeStr == "Rolling")					return ConstraintComponent::ConstraintType::Rolling;
+		if (constTypeStr == "RollingFriction")			return ConstraintComponent::ConstraintType::RollingFriction;
+
+		HZ_CORE_ASSERT(false, "Unknown constraint type");
+		return ConstraintComponent::ConstraintType::Static;
+	}
+
 	SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
 		:m_Scene(scene)
 	{
@@ -226,7 +251,7 @@ namespace Hazel
 
 			out << YAML::Key << "Camera" << YAML::Value;
 			out << YAML::BeginMap; 
-			out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.GetProjectionType();
+			out << YAML::Key << "ProjectionType" << YAML::Value << static_cast<int>(camera.GetProjectionType());
 			out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.GetPerspectiveVerticalFOV();
 			out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.GetPerspectiveNearClip();
 			out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.GetPerspectiveFarClip();
@@ -350,6 +375,18 @@ namespace Hazel
 				out << YAML::Key << "MaxTorque" << YAML::Value << forceGenComponent.MaxTorque;
 				out << YAML::Key << "AngularVelocity" << YAML::Value << forceGenComponent.AngularVelocity;
 			}
+
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<ConstraintComponent>())
+		{
+			out << YAML::Key << "ConstraintComponent";
+			out << YAML::BeginMap;
+
+			auto& cc = entity.GetComponent<ConstraintComponent>();
+			out << YAML::Key << "ConstraintType" << YAML::Value << ConstraintTypeToString(cc.Type);
+			out << YAML::Key << "TargetID" << YAML::Value << cc.TargetID;
 
 			out << YAML::EndMap;
 		}
@@ -564,6 +601,14 @@ namespace Hazel
 						fgc.MaxTorque = forceGenComponent["MaxTorque"].as<float>();
 						fgc.AngularVelocity = forceGenComponent["AngularVelocity"].as<float>();
 					}
+				}
+
+				auto constraintComponent = entity["ConstraintComponent"];
+				if (constraintComponent)
+				{
+					auto& cc = deserializedEntity.AddComponent<ConstraintComponent>();
+					cc.Type = ConstraintTypeFromString(constraintComponent["ConstraintType"].as<std::string>());
+					cc.TargetID = constraintComponent["TargetID"].as<uint64_t>();
 				}
 
 				auto boxCollider2DComponent = entity["BoxCollider2DComponent"];

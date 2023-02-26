@@ -32,8 +32,8 @@ namespace Hazel
 
 		DynamicSystemAssembler(Scene* scene, EntityView entityView);
 
-		void CreateLinkConstraint(Entity focus, Entity target);
-		void CreateFixedConstraint(Entity focus, Entity target, const glm::dvec2& focusLocal);
+		Ref<Enyoo::LinkConstraint> CreateLinkConstraint(Entity focus, Entity target);
+		Ref<Enyoo::FixedPositionConstraint> CreateFixedConstraint(Entity focus, Entity target, const glm::dvec2& focusLocal);
 		[[NODISCARD]] Ref<Enyoo::Spring> CreateSpring(Entity endBody1, Entity endBody2, const glm::dvec2& body1Local, const glm::dvec2& body2Local);
 
 		void GenerateRigidBodies();
@@ -50,10 +50,11 @@ namespace Hazel
 		bool Proximity(const glm::dvec2& focusWorld, const glm::dvec2& targetWorld) const;
 		size_t HashJoint(const Joint& joint) const;
 		Entity FindAdjacentFixedBody(Entity entity) const;
-		Entity FindBody(const glm::dvec2& focusWorld, UUID uuid) const;
+		Entity FindSpringEndBody(const glm::dvec2& focusWorld, UUID uuid) const;
 		void GenerateAdjacencyList(const EntityView& view);
 		void HandleFixedBodies(const EntityView& view);
 		void HandleLinkedBodies(const EntityView& view);
+		void HandleConstraints();
 	private:
 		Scene* m_Scene = nullptr;
 		AdjacencyList m_AdjacencyList;

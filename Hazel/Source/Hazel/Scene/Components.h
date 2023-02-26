@@ -170,6 +170,18 @@ namespace Hazel
 		ForceGeneratorComponent(const ForceGeneratorComponent&) = default;
 	};
 
+	struct ConstraintComponent
+	{
+		enum class ConstraintType : uint8_t { Static = 0, Rolling, RollingFriction, FlatSurface };
+		ConstraintType Type = ConstraintType::Static;
+		UUID TargetID = 0;
+
+		Ref<Enyoo::Constraint> RuntimeConstraint = nullptr;
+
+		ConstraintComponent() = default;
+		ConstraintComponent(const ConstraintComponent&) = default;
+	};
+
 	struct BoxCollider2DComponent
 	{
 		glm::vec2 Offset = { 0.0f, 0.0f };
@@ -209,6 +221,6 @@ namespace Hazel
 		ComponentGroup<TransformComponent, SpriteRendererComponent,
 		CircleRendererComponent, CameraComponent, LinkPointsComponent,
 		NativeScriptComponent, RigidBody2DComponent, RigidBodyComponent,
-		ForceGeneratorComponent,
+		ForceGeneratorComponent, ConstraintComponent,
 		BoxCollider2DComponent, CircleCollider2DComponent>;
 }
