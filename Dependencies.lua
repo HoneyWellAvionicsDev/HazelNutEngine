@@ -15,7 +15,6 @@ IncludeDir["entt"] = "%{wks.location}/Hazel/vendors/entt/include"
 IncludeDir["shaderc"] = "%{wks.location}/Hazel/vendors/shaderc/include"
 IncludeDir["SPIRV_Cross"] = "%{wks.location}/Hazel/vendors/SPIRV-Cross"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["googletest"] = "%{wks.location}/Hazel/vendors/googletest/googletest/include"
 
 
 
