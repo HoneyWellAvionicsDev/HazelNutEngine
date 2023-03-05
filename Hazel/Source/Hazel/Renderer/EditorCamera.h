@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 
 
-namespace Hazel
+namespace Jbonk
 {
 	class EditorCamera : public Camera
 	{

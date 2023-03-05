@@ -11,7 +11,7 @@ namespace Enyoo
 
 	bool ConjugateGradientMethod::Solve(Matrix& A, Vector& b, Vector& x)
 	{
-		HZ_CORE_ASSERT(b.Columns() == 1);
+		JB_CORE_ASSERT(b.Columns() == 1);
 
 		const size_t n = b.Rows();
 

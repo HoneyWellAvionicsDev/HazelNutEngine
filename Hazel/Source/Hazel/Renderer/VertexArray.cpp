@@ -3,17 +3,17 @@
 #include "Platform/opengl/OpenGLVertexArray.h"
 #include "Renderer.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	Ref<VertexArray> VertexArray::Create()
 	{
 		switch (Renderer::GetAPI())
 		{
-			case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
+			case RendererAPI::API::None:			JB_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
 			case RendererAPI::API::OpenGL:			return CreateRef<OpenGLVertexArray>();
 		}
 
-		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons");
+		JB_CORE_ASSERT(false, "Jbonk failed to detect the renderer API for unknown reasons");
 		return nullptr;
 	}
 }

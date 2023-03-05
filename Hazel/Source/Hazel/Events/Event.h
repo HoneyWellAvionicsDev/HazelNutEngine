@@ -5,7 +5,7 @@
 
 
 
-namespace Hazel
+namespace Jbonk
 {
 	//Currently our events in hazel are blocking which means when an event occurs it must be dealt with then and there
 	//for the future we will make an event bus to buffer events and process them during the event part

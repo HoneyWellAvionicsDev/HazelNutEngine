@@ -5,7 +5,7 @@
 
 #include "VertexArray.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class RendererAPI
 	{

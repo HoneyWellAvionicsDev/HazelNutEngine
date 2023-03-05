@@ -6,8 +6,8 @@ namespace Enyoo
 {
 	class ConjugateGradientMethod
 	{
-		using Matrix = Hazel::Math::Matrix;
-		using Vector = Hazel::Math::Matrix;
+		using Matrix = Jbonk::Math::Matrix;
+		using Vector = Jbonk::Math::Matrix;
 
 	public:
 		ConjugateGradientMethod();

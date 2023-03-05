@@ -2,7 +2,7 @@
 
 #include <xhash>
 
-namespace Hazel
+namespace Jbonk
 {
 	class UUID
 	{
@@ -23,9 +23,9 @@ namespace std
 	template<typename T> struct hash;
 
 	template<>
-	struct hash<Hazel::UUID>
+	struct hash<Jbonk::UUID>
 	{
-		size_t operator()(const Hazel::UUID& uuid) const
+		size_t operator()(const Jbonk::UUID& uuid) const
 		{
 			return static_cast<uint64_t>(uuid);
 		}

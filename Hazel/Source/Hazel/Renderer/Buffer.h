@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Hazel
+namespace Jbonk
 {
 	enum class ShaderDataType : uint8_t
 	{
@@ -27,7 +27,7 @@ namespace Hazel
 			case ShaderDataType::Int4:              return 16;
 			case ShaderDataType::Bool:              return 1;
 		}
-		HZ_CORE_ASSERT(false, "Unknown ShaderDataType!")
+		JB_CORE_ASSERT(false, "Unknown ShaderDataType!")
 		return 0;
 	}
 
@@ -62,7 +62,7 @@ namespace Hazel
 				case ShaderDataType::Mat4:              return 4;
 				case ShaderDataType::Bool:              return 1;
 			}
-			HZ_CORE_ASSERT(false, "Unknown ShaderDataType!")
+			JB_CORE_ASSERT(false, "Unknown ShaderDataType!")
 			return 0;
 		}
 

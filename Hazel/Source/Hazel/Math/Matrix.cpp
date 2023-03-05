@@ -1,7 +1,7 @@
 #include "hzpch.h"
 #include "Matrix.h"
 
-namespace Hazel::Math
+namespace Jbonk::Math
 {
 	Matrix::Matrix()
 		: m_Matrix(nullptr), m_Rows(0), m_Columns(0)
@@ -32,7 +32,6 @@ namespace Hazel::Math
 
 	Matrix::~Matrix()
 	{
-		//HZ_CORE_ASSERT(m_Matrix == nullptr);
 	}
 
 	void Matrix::Resize(size_t rows, size_t columns)
@@ -57,7 +56,7 @@ namespace Hazel::Math
 
 	void Matrix::InsertMatrix(size_t row, size_t column, const Matrix& subMatrix)
 	{
-		HZ_CORE_ASSERT(row < m_Rows && column < m_Columns);
+		JB_CORE_ASSERT(row < m_Rows && column < m_Columns);
 
 		for (size_t i = 0; i < subMatrix.m_Rows; i++)
 		{
@@ -70,8 +69,8 @@ namespace Hazel::Math
 
 	Matrix Matrix::ScaleRightDiagonal(const Matrix& vector)
 	{
-		HZ_CORE_ASSERT(vector.m_Columns < 2);
-		HZ_CORE_ASSERT(vector.m_Rows == this->m_Columns);
+		JB_CORE_ASSERT(vector.m_Columns < 2);
+		JB_CORE_ASSERT(vector.m_Rows == this->m_Columns);
 
 		Matrix output = *this;
 
@@ -88,8 +87,8 @@ namespace Hazel::Math
 
 	Matrix Matrix::ScaleLeftDiagonal(const Matrix& vector)
 	{
-		HZ_CORE_ASSERT(vector.m_Columns < 2);
-		HZ_CORE_ASSERT(vector.m_Rows == this->m_Rows);
+		JB_CORE_ASSERT(vector.m_Columns < 2);
+		JB_CORE_ASSERT(vector.m_Rows == this->m_Rows);
 
 		Matrix output = *this;
 
@@ -106,7 +105,7 @@ namespace Hazel::Math
 
 	Matrix Matrix::TransposeMultiply(const Matrix& B)
 	{
-		HZ_CORE_ASSERT(m_Rows == B.Rows()); //AB so width of A must equal Height of B
+		JB_CORE_ASSERT(m_Rows == B.Rows()); //AB so width of A must equal Height of B
 		Matrix output(m_Rows, B.m_Columns);
 
 		for (size_t i = 0; i < m_Rows; i++)
@@ -139,7 +138,7 @@ namespace Hazel::Math
 
 	Matrix Matrix::Times(const Matrix& B) 
 	{
-		HZ_CORE_ASSERT(m_Columns == B.Rows()); //AB so width of A must equal Height of B
+		JB_CORE_ASSERT(m_Columns == B.Rows()); //AB so width of A must equal Height of B
 		Matrix output(m_Rows, B.m_Columns);
 
 		for (size_t i = 0; i < m_Rows; i++)
@@ -158,7 +157,7 @@ namespace Hazel::Math
 
 	Matrix& Matrix::MultiplyToThis(const Matrix& B)
 	{
-		HZ_CORE_ASSERT(m_Columns == B.Rows()); //AB so width of A must equal Height of B
+		JB_CORE_ASSERT(m_Columns == B.Rows()); //AB so width of A must equal Height of B
 
 		Resize(m_Rows, B.Columns());
 
@@ -190,7 +189,7 @@ namespace Hazel::Math
 
 	double Matrix::Magnitude() const
 	{
-		HZ_CORE_ASSERT(this->m_Columns == 1);
+		JB_CORE_ASSERT(this->m_Columns == 1);
 
 		double mag = 0.0;
 		for (size_t i = 0; i < m_Rows; i++)
@@ -204,7 +203,7 @@ namespace Hazel::Math
 	//returns the magnituge squared
 	double Matrix::MagnitudeSquared() const
 	{
-		HZ_CORE_ASSERT(this->m_Columns == 1);
+		JB_CORE_ASSERT(this->m_Columns == 1);
 
 		double mag = 0.0;
 		for (size_t i = 0; i < m_Rows; i++)
@@ -216,9 +215,9 @@ namespace Hazel::Math
 
 	double Matrix::Dot(const Matrix& b) const
 	{
-		HZ_CORE_ASSERT(this->m_Columns == 1);
-		HZ_CORE_ASSERT(this->m_Columns == b.m_Columns);
-		HZ_CORE_ASSERT(this->m_Rows == b.m_Rows);
+		JB_CORE_ASSERT(this->m_Columns == 1);
+		JB_CORE_ASSERT(this->m_Columns == b.m_Columns);
+		JB_CORE_ASSERT(this->m_Rows == b.m_Rows);
 
 		double dot = 0.0;
 		for (size_t i = 0; i < m_Rows; i++)
@@ -230,7 +229,7 @@ namespace Hazel::Math
 
 	Matrix Matrix::Add(const Matrix& B) 
 	{
-		HZ_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
+		JB_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
 		
 		Matrix output = *this;
 
@@ -246,7 +245,7 @@ namespace Hazel::Math
 
 	Matrix& Matrix::AddToThis(const Matrix& B)
 	{
-		HZ_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
+		JB_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
 
 		for (size_t i = 0; i < m_Rows; i++)
 		{
@@ -260,7 +259,7 @@ namespace Hazel::Math
 
 	Matrix& Matrix::AddMinusToThis(const Matrix& B)
 	{
-		HZ_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
+		JB_CORE_ASSERT(this->m_Rows == B.m_Rows && this->m_Columns == B.m_Columns);
 
 		for (size_t i = 0; i < m_Rows; i++)
 		{

@@ -2,7 +2,7 @@
 
 #include "Hazel/Core/Core.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class Input
 	{

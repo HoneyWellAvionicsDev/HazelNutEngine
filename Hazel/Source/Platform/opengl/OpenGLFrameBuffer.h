@@ -2,7 +2,7 @@
 
 #include "Hazel/Renderer/FrameBuffer.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class OpenGLFrameBuffer : public FrameBuffer
 	{
@@ -19,10 +19,9 @@ namespace Hazel
 
 		virtual void ClearAttachment(uint32_t attachmentIndex, /*const void**/int value) override;
 
-		uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const override { HZ_CORE_ASSERT(index < m_ColorAttachments.size(), "Index out of bounds"); return m_ColorAttachments[index]; }
+		uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const override { JB_CORE_ASSERT(index < m_ColorAttachments.size(), "Index out of bounds"); return m_ColorAttachments[index]; }
 		const FrameBufferSpecification& GetSpecification() const override { return m_Specification; }
 
-		void Test() { this->Invalidate(); }
 	private:
 		uint32_t m_RendererID = 0;
 		uint32_t m_DepthAttachment = 0;

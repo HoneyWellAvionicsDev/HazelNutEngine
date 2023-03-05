@@ -86,7 +86,7 @@ namespace YAML
 	};
 }
 
-namespace Hazel
+namespace Jbonk
 {
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
 	{
@@ -118,7 +118,7 @@ namespace Hazel
 			case RigidBody2DComponent::BodyType::Kinematic: return "Kinematic";
 		}
 
-		HZ_CORE_ASSERT(false, "Unknown body type");
+		JB_CORE_ASSERT(false, "Unknown body type");
 		return "Static";
 	}
 
@@ -128,7 +128,7 @@ namespace Hazel
 		if (bodyTypeString == "Dynamic")	return RigidBody2DComponent::BodyType::Dynamic;
 		if (bodyTypeString == "Kinematic")	return RigidBody2DComponent::BodyType::Kinematic;
 
-		HZ_CORE_ASSERT(false, "Unknown body type");
+		JB_CORE_ASSERT(false, "Unknown body type");
 		return RigidBody2DComponent::BodyType::Static;
 	}
 
@@ -138,7 +138,7 @@ namespace Hazel
 		if (bodyShapeString == "Circle")	return RigidBodyComponent::BodyShape::Circle;
 		//if (bodyTypeString == "")	return RigidBody2DComponent::BodyType::;
 
-		HZ_CORE_ASSERT(false, "Unknown body type");
+		JB_CORE_ASSERT(false, "Unknown body type");
 		return RigidBodyComponent::BodyShape::Rect;
 	}
 
@@ -151,7 +151,7 @@ namespace Hazel
 			//case RigidBodyComponent::BodyShape::: return "";
 		}
 
-		HZ_CORE_ASSERT(false, "Unknown body type");
+		JB_CORE_ASSERT(false, "Unknown body type");
 		return "Rect";
 	}
 
@@ -165,7 +165,7 @@ namespace Hazel
 			case ForceGeneratorComponent::GeneratorType::Motor:					return "Motor";
 		}
 
-		HZ_CORE_ASSERT(false, "Unknown generator type");
+		JB_CORE_ASSERT(false, "Unknown generator type");
 		return "Gravity";
 	}
 
@@ -176,7 +176,7 @@ namespace Hazel
 		if (genTypeStr == "Test2")			return ForceGeneratorComponent::GeneratorType::GravitationalField;
 		if (genTypeStr == "Motor")			return ForceGeneratorComponent::GeneratorType::Motor;
 
-		HZ_CORE_ASSERT(false, "Unknown generator type");
+		JB_CORE_ASSERT(false, "Unknown generator type");
 		return ForceGeneratorComponent::GeneratorType::Gravity;
 	}
 
@@ -190,7 +190,7 @@ namespace Hazel
 			case ConstraintComponent::ConstraintType::RollingFriction:		return "RollingFriction";
 		}
 
-		HZ_CORE_ASSERT(false, "Unknown constraint type");
+		JB_CORE_ASSERT(false, "Unknown constraint type");
 		return "Static";
 	}
 
@@ -201,7 +201,7 @@ namespace Hazel
 		if (constTypeStr == "Rolling")					return ConstraintComponent::ConstraintType::Rolling;
 		if (constTypeStr == "RollingFriction")			return ConstraintComponent::ConstraintType::RollingFriction;
 
-		HZ_CORE_ASSERT(false, "Unknown constraint type");
+		JB_CORE_ASSERT(false, "Unknown constraint type");
 		return ConstraintComponent::ConstraintType::Static;
 	}
 
@@ -212,7 +212,7 @@ namespace Hazel
 
 	void SceneSerializer::SerializeEntity(YAML::Emitter& out, Entity entity)
 	{
-		HZ_CORE_ASSERT(entity.HasComponent<IDComponent>(), "Entity must have a UUID");
+		JB_CORE_ASSERT(entity.HasComponent<IDComponent>(), "Entity must have a UUID");
 
 		out << YAML::BeginMap; 
 		out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID(); 
@@ -447,12 +447,12 @@ namespace Hazel
 
 		std::ofstream fileout(filepath); //add flags to create dir if DNE
 		fileout << out.c_str();
-		HZ_CORE_TRACE("Scene saved");
+		JB_CORE_TRACE("Scene saved");
 	}
 
 	void SceneSerializer::SerializeRuntime(const std::filesystem::path& filepath)
 	{
-		HZ_CORE_ASSERT(false, "implement");
+		JB_CORE_ASSERT(false, "implement");
 	}
 
 	bool SceneSerializer::Deserialize(const std::filesystem::path& filepath)
@@ -464,7 +464,7 @@ namespace Hazel
 		}
 		catch (YAML::ParserException e)
 		{
-			HZ_CORE_ERROR("Failed to load scene file '{0}'\n	{1}", filepath, e.what());
+			JB_CORE_ERROR("Failed to load scene file '{0}'\n	{1}", filepath, e.what());
 			return false;
 		}
 
@@ -472,7 +472,7 @@ namespace Hazel
 			return false;
 		
 		std::string sceneName = data["Scene"].as<std::string>();
-		HZ_CORE_TRACE("Deserializing scene '{0}'", sceneName);
+		JB_CORE_TRACE("Deserializing scene '{0}'", sceneName);
 		m_Scene->SetSceneName(sceneName);
 
 		auto entities = data["Entities"];
@@ -487,7 +487,7 @@ namespace Hazel
 				if (tagComponent)
 					name = tagComponent["Tag"].as<std::string>();
 
-				HZ_CORE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
+				JB_CORE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
 				Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid, name);
 
@@ -654,7 +654,7 @@ namespace Hazel
 
 	bool SceneSerializer::DeserializeRuntime(const std::filesystem::path& filepath)
 	{
-		HZ_CORE_ASSERT(false, "implement");
+		JB_CORE_ASSERT(false, "implement");
 		return false;
 	}
 }

@@ -4,7 +4,7 @@
 #include "ScriptableEntity.h"
 #include "box2d/b2_body.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	void CameraController::OnCreate()
 	{

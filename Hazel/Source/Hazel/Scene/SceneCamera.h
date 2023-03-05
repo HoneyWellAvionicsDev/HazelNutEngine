@@ -2,7 +2,7 @@
 
 #include "Hazel/Renderer/Camera.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class SceneCamera : public Camera
 	{

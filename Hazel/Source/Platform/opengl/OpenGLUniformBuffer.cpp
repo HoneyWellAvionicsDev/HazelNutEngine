@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>
 
-namespace Hazel 
+namespace Jbonk 
 {
 	OpenGLUniformBuffer::OpenGLUniformBuffer(uint32_t size, uint32_t binding)
 	{

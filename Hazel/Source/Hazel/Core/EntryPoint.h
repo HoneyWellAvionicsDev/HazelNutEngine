@@ -2,27 +2,37 @@
 
 #include "Hazel/Core/Core.h"
 #include "Hazel/Core/Application.h"
+#include "Hazel/Core/utest.h"
 
-#ifdef HZ_PLATFORM_WINDOWS
+#define RUN_UNIT_TEST 0
+#if RUN_UNIT_TEST
+	UTEST_MAIN();
+#else
 
-extern Hazel::Application* Hazel::CreateApplication(ApplicationCommandLineArgs args);      //extern that will be found in DevGround.cpp
-	
+#ifdef HZ_PLATFORM_WINDOWS //WIN MAIN
+
+extern Jbonk::Application* Jbonk::CreateApplication(ApplicationCommandLineArgs args);      
+
+UTEST_STATE();
+
 int main(int argc, char** argv)
 {
-	Hazel::Log::Init();
+	Jbonk::Log::Init();
 
-	HZ_PROFILE_BEGIN_SESSION("Startup", "HazelProfile-Startup.json");
-	auto app = Hazel::CreateApplication({ argc, argv });                 //creates instance of applicaiton
-	HZ_PROFILE_END_SESSION();
+	PROFILE_BEGIN_SESSION("Startup", "HazelProfile-Startup.json");
+	auto app = Jbonk::CreateApplication({ argc, argv });              
+	PROFILE_END_SESSION();
 
-	HZ_PROFILE_BEGIN_SESSION("Runtime", "HazelProfile-Runtime.json");
+	PROFILE_BEGIN_SESSION("Runtime", "HazelProfile-Runtime.json");
 	app->Run();
-	HZ_PROFILE_END_SESSION();
+	PROFILE_END_SESSION();
 
-	HZ_PROFILE_BEGIN_SESSION("Shutdown", "HazelProfile-Shutdown.json");
+	PROFILE_BEGIN_SESSION("Shutdown", "HazelProfile-Shutdown.json");
 	delete app;
-	HZ_PROFILE_END_SESSION();
+	PROFILE_END_SESSION();
+
+	return 0;
 }
 
+#endif //END WIN MAIN
 #endif
-

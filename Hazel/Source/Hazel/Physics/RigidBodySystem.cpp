@@ -27,7 +27,7 @@ namespace Enyoo
 			s_RigidBodyPoints->emplace_back(body->Position, body->Index);
 		
 		s_RigidBodyKDTree = std::make_shared<KDTree<BodyPoint>>(*s_RigidBodyPoints);
-		HZ_CORE_ASSERT(s_RigidBodyKDTree->Validate());
+		JB_CORE_ASSERT(s_RigidBodyKDTree->Validate());
 	}
 
 	void RigidBodySystem::Step(double dt, uint32_t steps)
@@ -231,7 +231,7 @@ namespace Enyoo
 			for (uint32_t i = 0; i < constraint->GetBodyCount(); i++)
 			{
 				RigidBody* body = constraint->GetBody(i);
-				PointerPair index = { constraint.get() ,body };
+				PointerPair index = { constraint.get(), body };
 
 				m_Matrices.SparseJacobian.InsertMatrix(currentConstraintIndex, m_ConstaintBodyIndex.at(index), constraintSlice.J[i]);
 				m_Matrices.SparseJacobianDot.InsertMatrix(currentConstraintIndex, m_ConstaintBodyIndex.at(index), constraintSlice.Jdot[i]);
@@ -278,11 +278,11 @@ namespace Enyoo
 		Matrix A = m_Matrices.SparseJacobian * WJT;
 		
 		// solve matrix equation
-		Hazel::Timer timer;
+		Jbonk::Timer timer;
 		bool solved = m_LinearEquationSolver.Solve(A, m_Matrices.JdotQdot, m_Matrices.lambda);
 		//if (!solved)
-		//    HZ_CORE_TRACE("Not solved");
-		//HZ_CORE_TRACE("Time: {0}ms", timer.ElapsedMilliseconds());
+		//    JB_CORE_TRACE("Not solved");
+		//JB_CORE_TRACE("Time: {0}ms", timer.ElapsedMilliseconds());
 
 		// disperse matrices to state
 		m_Matrices.Qhat = SparseJacobianTranspose * m_Matrices.lambda;

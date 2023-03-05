@@ -4,7 +4,7 @@
 
 
 
-namespace Hazel
+namespace Jbonk
 {
 	class KeyEvent : public Event
 	{

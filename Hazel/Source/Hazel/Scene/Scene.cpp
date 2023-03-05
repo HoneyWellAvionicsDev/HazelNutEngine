@@ -17,7 +17,7 @@
 #include "box2d/b2_circle_shape.h"
 
 
-namespace Hazel
+namespace Jbonk
 {
 	static b2BodyType NativeRigidbody2DTypeToBox2D(RigidBody2DComponent::BodyType bodyType)
 	{
@@ -28,7 +28,7 @@ namespace Hazel
 			case RigidBody2DComponent::BodyType::Dynamic:   return b2_dynamicBody;
 		}
 
-		HZ_CORE_ASSERT(false, "Unknown body type");
+		JB_CORE_ASSERT(false, "Unknown body type");
 		return b2_staticBody;
 	}
 

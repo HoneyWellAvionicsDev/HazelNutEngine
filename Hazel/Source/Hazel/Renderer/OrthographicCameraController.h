@@ -5,7 +5,7 @@
 #include "Hazel/Events/ApplicationEvent.h"
 #include "Hazel/Events/MouseEvent.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	struct OrthographicCameraBounds
 	{

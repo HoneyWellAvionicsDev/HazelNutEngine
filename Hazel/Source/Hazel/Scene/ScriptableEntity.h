@@ -6,7 +6,7 @@
 
 
 
-namespace Hazel
+namespace Jbonk
 {
 	namespace Utils
 	{
@@ -18,7 +18,7 @@ namespace Hazel
 				case ScriptType::CameraController:  return "CameraController";
 				case ScriptType::Test:			    return "Test";
 			}
-			HZ_CORE_ASSERT(false, "Unknown type");
+			JB_CORE_ASSERT(false, "Unknown type");
 			return nullptr;
 		}
 
@@ -28,7 +28,7 @@ namespace Hazel
 			if (type == "CameraController") return ScriptType::CameraController;
 			if (type == "Test")				return ScriptType::Test;
 
-			HZ_CORE_ASSERT(false, "Unknown type");
+			JB_CORE_ASSERT(false, "Unknown type");
 			return ScriptType::None;
 		}
 	}
@@ -41,7 +41,7 @@ namespace Hazel
 		template<typename T>
 		T& GetComponent()
 		{
-			HZ_CORE_ASSERT(m_Entity.HasComponent<T>());
+			JB_CORE_ASSERT(m_Entity.HasComponent<T>());
 			return m_Entity.GetComponent<T>();
 		}
 

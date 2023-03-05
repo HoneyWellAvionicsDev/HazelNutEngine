@@ -3,7 +3,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace Hazel
+namespace Jbonk
 {
 	SceneCamera::SceneCamera()
 	{
@@ -31,7 +31,7 @@ namespace Hazel
 
 	void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
 	{
-		HZ_CORE_ASSERT(width > 0 && height > 0, "Invalid viewport size");
+		JB_CORE_ASSERT(width > 0 && height > 0, "Invalid viewport size");
 		m_AspectRatio = (float)width / (float)height;
 		RecalculateProjection();
 	}

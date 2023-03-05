@@ -7,7 +7,7 @@ namespace YAML
 	class Emitter;
 }
 
-namespace Hazel
+namespace Jbonk
 {
 	class SceneSerializer
 	{

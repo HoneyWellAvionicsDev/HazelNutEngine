@@ -2,7 +2,7 @@
 
 #include "Hazel/Renderer/UniformBuffer.h"
 
-namespace Hazel {
+namespace Jbonk {
 
 	class OpenGLUniformBuffer : public UniformBuffer
 	{

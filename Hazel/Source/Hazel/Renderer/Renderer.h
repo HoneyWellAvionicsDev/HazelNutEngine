@@ -5,7 +5,7 @@
 #include "Shader.h"
 #include "glm/glm.hpp"
 
-namespace Hazel
+namespace Jbonk
 {
 	class Renderer
 	{

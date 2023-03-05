@@ -3,7 +3,7 @@
 #include "Hazel/Renderer/Buffer.h"
 
 
-namespace Hazel
+namespace Jbonk
 {
 	class VertexArray
 	{

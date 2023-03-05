@@ -8,11 +8,10 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <imgui.h>
 #include "ImGuizmo.h"
-
-namespace Hazel
+#include "Hazel/Core/utest.h"
+namespace Jbonk
 {
 	extern const std::filesystem::path g_AssetPath;
-
 
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer")
@@ -21,14 +20,13 @@ namespace Hazel
 	
 	void EditorLayer::OnAttach()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		FrameBufferSpecification FrameBufferSpec;
 		FrameBufferSpec.Attachments = { FrameBufferTextureFormat::RGBA8, FrameBufferTextureFormat::RED_INTEGER, FrameBufferTextureFormat::Depth };
 		FrameBufferSpec.Width = 1280;
 		FrameBufferSpec.Height = 720;
 		m_FrameBuffer = FrameBuffer::Create(FrameBufferSpec);
-
 		m_IconPlay = Texture2D::Upload("Resources/Icons/PlayButton.png");
 		m_IconSimulate = Texture2D::Upload("Resources/Icons/SimulateButton.png");
 		m_IconStop = Texture2D::Upload("Resources/Icons/StopButton.png");
@@ -42,7 +40,7 @@ namespace Hazel
 			auto sceneFilePath = commandLineArgs[1];
 			SceneSerializer serializer(m_ActiveScene);
 			if (!serializer.Deserialize(sceneFilePath))
-				HZ_CORE_ERROR("Could not deserialize scene from {0}", sceneFilePath);
+				JB_CORE_ERROR("Could not deserialize scene from {0}", sceneFilePath);
 		}
 
 		m_EditorCamera = EditorCamera(m_CameraFOV, 1.778f, 0.1f, 100000.0f);
@@ -67,7 +65,7 @@ namespace Hazel
 	
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		
 		if (FrameBufferSpecification spec = m_FrameBuffer->GetSpecification();
 			m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
@@ -154,7 +152,7 @@ namespace Hazel
 	
 	void EditorLayer::OnImGuiRender()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen = true;
@@ -524,9 +522,9 @@ namespace Hazel
 			m_EditorCamera.OnEvent(event);
 
 		EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed)); 
-		dispatcher.Dispatch<MouseButtonPressedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnMouseClick));
-		dispatcher.Dispatch<MouseButtonReleasedEvent>(HZ_BIND_EVENT_FN(EditorLayer::OnMouseRelease));
+		dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed)); 
+		dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::OnMouseClick));
+		dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(EditorLayer::OnMouseRelease));
 	}
 
 	bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
@@ -649,7 +647,7 @@ namespace Hazel
 
 	void EditorLayer::OpenScene()
 	{                                                       //(allfiles ("*")) - the actual filter
-		std::string filepath = FileDialogs::OpenFile("Hazel Scene (*.hazel)\0*.hazel\0");
+		std::string filepath = FileDialogs::OpenFile("Jbonk Scene (*.hazel)\0*.hazel\0");
 		if (!filepath.empty())
 		{
 			OpenScene(filepath);
@@ -664,7 +662,7 @@ namespace Hazel
 
 		if (filepath.extension().string() != ".hazel")
 		{
-			HZ_CORE_WARN("Could not load {0} - not a scene file", filepath.filename().string());
+			JB_CORE_WARN("Could not load {0} - not a scene file", filepath.filename().string());
 			return;
 		}
 
@@ -680,7 +678,7 @@ namespace Hazel
 			m_EditorScenePath = filepath;
 		}
 
-		HZ_CORE_TRACE("Scene took {0} ms ", timer.ElapsedMilliseconds());
+		JB_CORE_TRACE("Scene took {0} ms ", timer.ElapsedMilliseconds());
 	}
 
 	void EditorLayer::SaveScene()
@@ -696,7 +694,7 @@ namespace Hazel
 
 	void EditorLayer::SaveSceneAs()
 	{                                                               
-		std::string filepath = FileDialogs::SaveFile("Hazel Scene (*.hazel)\0*.hazel\0");
+		std::string filepath = FileDialogs::SaveFile("Jbonk Scene (*.hazel)\0*.hazel\0");
 		if (!filepath.empty())
 		{
 			SerializeScene(m_ActiveScene, filepath);
@@ -742,7 +740,7 @@ namespace Hazel
 
 	void EditorLayer::OnSceneStop()
 	{
-		HZ_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate, "Scene state not set");
+		JB_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate, "Scene state not set");
 
 		if (m_SceneState == SceneState::Play)
 			m_ActiveScene->OnRuntimeStop();
@@ -925,3 +923,4 @@ namespace Hazel
 		return worldPos;
 	}
 }
+

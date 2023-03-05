@@ -7,7 +7,7 @@
 #include "Hazel/Physics/RigidBodySystem.h"
 
 
-namespace Hazel
+namespace Jbonk
 {
 	DynamicSystemAssembler::DynamicSystemAssembler(Scene* scene, EntityView entityView)
 		: m_Scene(scene), m_EntityView(entityView)
@@ -17,7 +17,7 @@ namespace Hazel
 
 	Ref<Enyoo::LinkConstraint> DynamicSystemAssembler::CreateLinkConstraint(Entity focus, Entity target)
 	{
-		HZ_CORE_ASSERT(focus != target);
+		JB_CORE_ASSERT(focus != target);
 
 		if (SpringBody(focus) || SpringBody(target))
 			return nullptr;
@@ -78,7 +78,7 @@ namespace Hazel
 		springForceGenerator->SetSecondBody(targetBody.get());
 		springForceGenerator->SetFirstPosition(body1Local);
 		springForceGenerator->SetSecondPosition(body2Local);
-		HZ_CORE_TRACE("Springed: {0} to {1}", endBody1.GetUUID(), endBody2.GetUUID());
+
 		return springForceGenerator;
 	}
 
@@ -218,7 +218,7 @@ namespace Hazel
 			}
 		}
 
-		HZ_CORE_ASSERT(false, "How did this happen?");
+		JB_CORE_ASSERT(false, "How did this happen?");
 		return {};
 	}
 
@@ -358,7 +358,7 @@ namespace Hazel
 			
 			for (auto it = range.first; it != range.second; it++)
 			{
-				HZ_CORE_ASSERT(entity != it->second, "this should never happen");
+				JB_CORE_ASSERT(entity != it->second, "this should never happen");
 			
 				auto [focusLocal, targetLocal] = GetMatchingLocals(it->second, entity);
 				auto& body = it->second.GetComponent<RigidBodyComponent>().RuntimeBody;

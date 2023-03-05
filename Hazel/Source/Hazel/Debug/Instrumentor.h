@@ -6,7 +6,7 @@
 #include <fstream>
 
 #include <thread>
-namespace Hazel
+namespace Jbonk
 {
     struct ProfileResult
     {
@@ -122,16 +122,16 @@ namespace Hazel
     };
 }
 
-#define HZ_PROFILE 0
-#if HZ_PROFILE
-    #define HZ_PROFILE_BEGIN_SESSION(name, filepath)     ::Hazel::Instrumentor::Get().BeginSession(name, filepath)
-    #define HZ_PROFILE_END_SESSION()                     ::Hazel::Instrumentor::Get().EndSession()
-    #define HZ_PROFILE_SCOPE(name)                       ::Hazel::InstrumentationTimer timer##__LINE__(name);
-    #define HZ_PROFILE_FUNCTION()                        HZ_PROFILE_SCOPE(__FUNCSIG__)
+#define PROFILE 0
+#if PROFILE
+    #define PROFILE_BEGIN_SESSION(name, filepath)     ::Jbonk::Instrumentor::Get().BeginSession(name, filepath)
+    #define PROFILE_END_SESSION()                     ::Jbonk::Instrumentor::Get().EndSession()
+    #define PROFILE_SCOPE(name)                       ::Jbonk::InstrumentationTimer timer##__LINE__(name);
+    #define PROFILE_FUNCTION()                        PROFILE_SCOPE(__FUNCSIG__)
 #else
-    #define HZ_PROFILE_BEGIN_SESSION(name, filepath)
-    #define HZ_PROFILE_END_SESSION()
-    #define HZ_PROFILE_SCOPE(name)
-    #define HZ_PROFILE_FUNCTION()
+    #define PROFILE_BEGIN_SESSION(name, filepath)
+    #define PROFILE_END_SESSION()
+    #define PROFILE_SCOPE(name)
+    #define PROFILE_FUNCTION()
 
 #endif

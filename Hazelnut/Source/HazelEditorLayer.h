@@ -5,7 +5,7 @@
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ContentViewPanel.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class EditorLayer : public Layer
 	{

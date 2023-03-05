@@ -8,7 +8,7 @@
 
 #include "Hazel/Scene/Components.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class Renderer2D
 	{

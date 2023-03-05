@@ -49,7 +49,7 @@ namespace Enyoo
 		
 			Fg.x = Force * rHat.x;
 			Fg.y = Force * rHat.y;
-			//HZ_CORE_TRACE("Force x: {0}, y: {1}", Fg.x, Fg.y);
+			//JB_CORE_TRACE("Force x: {0}, y: {1}", Fg.x, Fg.y);
 			//state.ApplyForce({0.0, 0.0}, Fg, bodyIndex);
 			//state.Torque[bodyIndex] = 0.0;
 			state.Force[bodyIndex] += Fg;

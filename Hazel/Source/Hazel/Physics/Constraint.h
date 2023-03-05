@@ -9,8 +9,8 @@
 
 namespace Enyoo
 {
-	using Matrix = Hazel::Math::Matrix;
-	using Vector = Hazel::Math::Matrix;
+	using Matrix = Jbonk::Math::Matrix;
+	using Vector = Jbonk::Math::Matrix;
 
 	struct ConstraintOutput
 	{

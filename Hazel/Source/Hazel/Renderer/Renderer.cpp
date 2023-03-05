@@ -3,13 +3,13 @@
 #include "Renderer2D.h"
 #include "Platform/opengl/OpenGLShader.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	Renderer::SceneData* Renderer::s_SceneData = new Renderer::SceneData;
 
 	void Renderer::Init()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		RenderCommand::Init();
 		Renderer2D::Init();
 	}

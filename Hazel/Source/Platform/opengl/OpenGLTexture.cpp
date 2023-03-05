@@ -4,12 +4,12 @@
 #include <stb_image.h>
 
 
-namespace Hazel
+namespace Jbonk
 {
 	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height)
 		: m_Width(width), m_Height(height)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		m_InteralFormat = GL_RGBA8;
 		m_Format = GL_RGBA;
@@ -27,18 +27,18 @@ namespace Hazel
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
 		: m_Path(path)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		//TODO: add a check to see if file path exsists
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
 		stbi_uc* data = nullptr;
 		{
-			HZ_PROFILE_SCOPE("OpenGLTexture2D::OpenGLTexture2D(const std::string&) - stbi_load");
+			PROFILE_SCOPE("OpenGLTexture2D::OpenGLTexture2D(const std::string&) - stbi_load");
 			Timer timer;
 			data = stbi_load(path.c_str(), &width, &height, &channels, 0);                        //stores texture on RAM
-			HZ_CORE_TRACE("Texture from path {0} took {1}ms", path, timer.ElapsedMilliseconds());
+			JB_CORE_TRACE("Texture from path {0} took {1}ms", path, timer.ElapsedMilliseconds());
 		}
-		HZ_CORE_ASSERT(data, "Failed to load image!"); //maybe we could throw after asserting
+		JB_CORE_ASSERT(data, "Failed to load image!"); //maybe we could throw after asserting
 		m_Width = width;
 		m_Height = height;
 
@@ -57,7 +57,7 @@ namespace Hazel
 		m_InteralFormat = internalFormat;
 		m_Format = dataFormat;
 
-		HZ_CORE_ASSERT(internalFormat, "Format not supported yet!");
+		JB_CORE_ASSERT(internalFormat, "Format not supported yet!");
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);                                             //create texture on GPU
 		glTextureStorage2D(m_RendererID, 1, internalFormat, m_Width, m_Height);                               //create space for texture on GPU
@@ -76,17 +76,17 @@ namespace Hazel
 
 	OpenGLTexture2D::~OpenGLTexture2D()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		glDeleteTextures(1, &m_RendererID);
 	}
 
 	void OpenGLTexture2D::SetData(void* data, uint32_t size)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		uint32_t bpp = m_Format == GL_RGBA ? 4 : 3;
-		HZ_CORE_ASSERT(size == m_Width * m_Height * bpp, "Data must be entire texture!");
+		JB_CORE_ASSERT(size == m_Width * m_Height * bpp, "Data must be entire texture!");
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_Format, GL_UNSIGNED_BYTE, data);
 	}
 

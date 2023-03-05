@@ -4,7 +4,7 @@
 #ifdef _WIN64
 #define HZ_PLATFORM_WINDOWS
 #else
-#error "x86 buikds are not supported. Get a modern system."
+#error "x86 builds are not supported. Get a modern system."
 #endif
 #elif defined(__APPLE__) || defined(__MACH__)
 #include <TargetConditionals.h>
@@ -25,5 +25,4 @@
 #elif defined(__linux__)
 #define HZ_PLATFORM_LINUX
 #else
-#define HAZEL_API
 #endif

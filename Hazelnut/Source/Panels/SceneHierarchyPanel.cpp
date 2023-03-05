@@ -18,7 +18,7 @@
 #endif
 
 
-namespace Hazel
+namespace Jbonk
 {
 	const std::filesystem::path g_AssetPath = "assets";
 

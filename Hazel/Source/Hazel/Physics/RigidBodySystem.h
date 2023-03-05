@@ -19,17 +19,17 @@
 
 namespace Enyoo
 {
-	static Hazel::Ref<std::vector<BodyPoint>> s_RigidBodyPoints;
-	static Hazel::Ref<KDTree<BodyPoint>> s_RigidBodyKDTree;
+	static Jbonk::Ref<std::vector<BodyPoint>> s_RigidBodyPoints;
+	static Jbonk::Ref<KDTree<BodyPoint>> s_RigidBodyKDTree;
 	
 
 	class RigidBodySystem
 	{
-		using Matrix = Hazel::Math::Matrix;
-		using Vector = Hazel::Math::Matrix;
-		using RigidBodyPtr = Hazel::Ref<RigidBody>;
-		using ConstraintPtr = Hazel::Ref<Constraint>;
-		using ForceGeneratorPtr = Hazel::Ref<ForceGenerator>;
+		using Matrix = Jbonk::Math::Matrix;
+		using Vector = Jbonk::Math::Matrix;
+		using RigidBodyPtr = Jbonk::Ref<RigidBody>;
+		using ConstraintPtr = Jbonk::Ref<Constraint>;
+		using ForceGeneratorPtr = Jbonk::Ref<ForceGenerator>;
 		using PointerPair = std::pair<Constraint*, RigidBody*>;
 		using IndexMap = std::unordered_map<PointerPair, size_t, Utilities::HashPointerFn>;
 
@@ -104,9 +104,10 @@ namespace Enyoo
 * 
 * 1. Fix fixed bodies not actually being fixed in place (done)
 * 2. Correct moment of intertia for each body shape (done)
-* 3. Rolling Constraint 
+* 3. Rolling Constraint (done)
 * 4. Speed up matrix multiplication
 * 5. Add UI for step count (done)
 * 6. Support Removing and adding bodies during runtime
 * 7. Rigidbody system profiler
+* 8. Stop using size_t as indexes (its unsigned)
 */

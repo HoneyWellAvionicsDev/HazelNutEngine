@@ -6,7 +6,7 @@
 #include "Hazel/Events/MouseEvent.h"
 #include "Hazel/Events/ApplicationEvent.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class ImGuiLayer : public Layer
 	{

@@ -3,7 +3,7 @@
 #include "Hazel/Renderer/Texture.h"
 #include <glad/glad.h>
 
-namespace Hazel
+namespace Jbonk
 {
 	class OpenGLTexture2D : public Texture2D
 	{

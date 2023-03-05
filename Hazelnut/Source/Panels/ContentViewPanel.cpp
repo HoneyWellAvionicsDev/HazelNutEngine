@@ -3,7 +3,7 @@
 
 #include <imgui/imgui.h>
 
-namespace Hazel
+namespace Jbonk
 {
 
 	extern const std::filesystem::path g_AssetPath = "assets";

@@ -13,7 +13,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 
-namespace Hazel
+namespace Jbonk
 {
 	struct IDComponent
 	{

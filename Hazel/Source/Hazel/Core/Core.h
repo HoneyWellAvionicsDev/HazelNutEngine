@@ -6,31 +6,28 @@
 
 #ifdef HZ_DEBUG
 	#if defined(HZ_PLATFORM_WINDOWS)
-		#define HZ_DEBUGBREAK() __debugbreak()
+		#define DEBUG_BREAK() __debugbreak()
 	#elif defined(HZ_PLATFORM_LINUX)
 		#include <signal.h>
-		#define HZ_DEBUGBREAK() raise(SIGTRAP)
+		#define DEBUG_BREAK() raise(SIGTRAP)
 	#else
 		#error "Platform doesn't support debugbreak yet"
 	#endif
-	#define HZ_ENABLE_ASSERTS
+	#define ENABLE_ASSERTS
 #else
-	#define HZ_DEBUGBREAK()
+	#define DEBUG_BREAK()
 #endif
 
-#define HZ_EXPAND_MACRO(x) x
-#define HZ_STRINGIFY_MACRO(x) #x
+#define EXPAND_MACRO(x) x
+#define STRINGIFY_MACRO(x) #x
 
 #define BIT(x) (1 << x)
 
-#define HZ_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
+#define BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
-#define HZ_FORCE_INLINE
-#ifdef HZ_FORCE_INLINE 
 #define FORCEINLINE __forceinline
-#endif
 
-namespace Hazel
+namespace Jbonk
 {
 	template<typename T>
 	using Scope = std::unique_ptr<T>;
@@ -51,6 +48,7 @@ namespace Hazel
 
 #include "Hazel/Core/Assert.h"
 #include "Hazel/Core/Log.h"
+#include "Hazel/Core/Exception.h"
 
 
 

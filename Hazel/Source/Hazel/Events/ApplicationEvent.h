@@ -4,7 +4,7 @@
 
 #include "Event.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class WindowResizeEvent : public Event
 	{

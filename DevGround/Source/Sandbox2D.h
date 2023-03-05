@@ -4,7 +4,7 @@
 #include "Hazel/Core/Layer.h"
 
 
-class Sandbox2D : public Hazel::Layer
+class Sandbox2D : public Jbonk::Layer
 {
 public:
 	Sandbox2D();
@@ -12,24 +12,24 @@ public:
 
 	void OnAttach() override;
 	void OnDetach() override;
-	void OnUpdate(Hazel::Timestep ts) override;
+	void OnUpdate(Jbonk::Timestep ts) override;
 	void OnImGuiRender() override;
-	void OnEvent(Hazel::Event& event) override;
+	void OnEvent(Jbonk::Event& event) override;
 
 private:
-	Hazel::OrthographicCameraController m_CameraController;
+	Jbonk::OrthographicCameraController m_CameraController;
 
 	//temp
-	Hazel::Ref<Hazel::VertexArray> m_SquareVA;
-	Hazel::Ref<Hazel::Shader> m_FlatColorShader;
-	Hazel::Ref<Hazel::Texture2D> m_Texture;
-	Hazel::Ref<Hazel::Texture2D> m_Texture2;
-	Hazel::Ref<Hazel::Texture2D> m_SpriteSheet;
-	Hazel::Ref<Hazel::SubTexture2D> m_FullHeart;
+	Jbonk::Ref<Jbonk::VertexArray> m_SquareVA;
+	Jbonk::Ref<Jbonk::Shader> m_FlatColorShader;
+	Jbonk::Ref<Jbonk::Texture2D> m_Texture;
+	Jbonk::Ref<Jbonk::Texture2D> m_Texture2;
+	Jbonk::Ref<Jbonk::Texture2D> m_SpriteSheet;
+	Jbonk::Ref<Jbonk::SubTexture2D> m_FullHeart;
 
 	glm::vec4 m_SquareColor = { 0.2f, 0.3f, 0.8f, 1.f };
 	float m_RotationalSpeed = 60.f;
 
-	std::unordered_map<char, Hazel::Ref<Hazel::SubTexture2D>> s_TextureMap;
+	std::unordered_map<char, Jbonk::Ref<Jbonk::SubTexture2D>> s_TextureMap;
 };
 

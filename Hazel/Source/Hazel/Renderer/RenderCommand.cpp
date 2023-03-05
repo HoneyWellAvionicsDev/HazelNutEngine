@@ -2,7 +2,7 @@
 #include "RenderCommand.h"
 #include "Platform/opengl/OpenGLRendererAPI.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	RendererAPI* RenderCommand::s_RendererAPI = new OpenGLRendererAPI;
 }

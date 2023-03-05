@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include "Texture.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class SubTexture2D
 	{

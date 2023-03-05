@@ -2,7 +2,7 @@
 
 #include "Hazel/Renderer/VertexArray.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class OpenGLVertexArray : public VertexArray
 	{

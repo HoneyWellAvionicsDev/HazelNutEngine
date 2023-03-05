@@ -2,7 +2,7 @@
 #include "OpenGLRendererAPI.h"
 #include <glad/glad.h>
 
-namespace Hazel
+namespace Jbonk
 {
 	void OpenGLMessageCallback(
 		unsigned source,
@@ -15,13 +15,13 @@ namespace Hazel
 	{
 		switch (severity)
 		{
-			case GL_DEBUG_SEVERITY_HIGH:		 HZ_CORE_FATAL(message); return;
-			case GL_DEBUG_SEVERITY_MEDIUM:		 HZ_CORE_ERROR(message); return;
-			case GL_DEBUG_SEVERITY_LOW:			 HZ_CORE_WARN(message);	 return;
-			case GL_DEBUG_SEVERITY_NOTIFICATION: HZ_CORE_TRACE(message); return;
+			case GL_DEBUG_SEVERITY_HIGH:		 JB_CORE_FATAL(message); return;
+			case GL_DEBUG_SEVERITY_MEDIUM:		 JB_CORE_ERROR(message); return;
+			case GL_DEBUG_SEVERITY_LOW:			 JB_CORE_WARN(message);	 return;
+			case GL_DEBUG_SEVERITY_NOTIFICATION: JB_CORE_TRACE(message); return;
 		}
 
-		HZ_CORE_ASSERT(false, "Unknown severity level!");
+		JB_CORE_ASSERT(false, "Unknown severity level!");
 	}
 
 	void OpenGLRendererAPI::Init()

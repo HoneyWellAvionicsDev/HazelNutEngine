@@ -8,17 +8,17 @@
 ////#include "Platform/Direct3D/Direct3DBuffer.h"
 //#endif
 
-namespace Hazel
+namespace Jbonk
 {
 	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size)
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
+		case RendererAPI::API::None:			JB_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
 		case RendererAPI::API::OpenGL:			return CreateScope<OpenGLVertexBuffer>(size);
 		}
 
-		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons")
+		JB_CORE_ASSERT(false, "Jbonk failed to detect the renderer API for unknown reasons")
 			return nullptr;
 	}
 
@@ -26,11 +26,11 @@ namespace Hazel
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
+		case RendererAPI::API::None:			JB_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
 		case RendererAPI::API::OpenGL:			return CreateScope<OpenGLVertexBuffer>(vertices, size);
 		}
 
-		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons")
+		JB_CORE_ASSERT(false, "Jbonk failed to detect the renderer API for unknown reasons")
 		return nullptr;
 	}
 
@@ -38,11 +38,11 @@ namespace Hazel
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::API::None:			HZ_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
+		case RendererAPI::API::None:			JB_CORE_ASSERT(false, "You need a renderer API dumbass"); return nullptr;
 		case RendererAPI::API::OpenGL:			return CreateScope<OpenGLIndexBuffer>(indices, size);
 		}
 
-		HZ_CORE_ASSERT(false, "Hazel failed to detect the renderer API for unknown reasons");
+		JB_CORE_ASSERT(false, "Jbonk failed to detect the renderer API for unknown reasons");
 		return nullptr;
 
 	

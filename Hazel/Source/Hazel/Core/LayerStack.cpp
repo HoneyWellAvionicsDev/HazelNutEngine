@@ -1,7 +1,7 @@
 #include "hzpch.h"
 #include "LayerStack.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	LayerStack::LayerStack()
 	{

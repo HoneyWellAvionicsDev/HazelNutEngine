@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Hazel
+namespace Jbonk
 {
 	class FileDialogs
 	{

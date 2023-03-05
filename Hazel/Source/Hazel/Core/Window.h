@@ -5,7 +5,7 @@
 #include "Hazel/Core/Core.h"
 #include "Hazel/Events/Event.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	struct WindowProps
 	{
@@ -13,7 +13,7 @@ namespace Hazel
 		uint32_t Width;
 		uint32_t Height;
 
-		WindowProps(const std::string& title = "Hazel Engine",
+		WindowProps(const std::string& title = "Jbonk Engine",
 			uint32_t width = 1920,
 			uint32_t height = 1080)
 			: Title(title), Width(width), Height(height)

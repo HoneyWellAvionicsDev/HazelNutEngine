@@ -45,7 +45,7 @@ namespace Enyoo
 	struct WorldPoint : public std::array<double, 2> //inherent from std::array because it already has the []operator implemented
 	{
 		static constexpr uint32_t DIM = 2;
-		Hazel::UUID id;
+		Jbonk::UUID id;
 
 		WorldPoint() {}
 		WorldPoint(double x, double y)

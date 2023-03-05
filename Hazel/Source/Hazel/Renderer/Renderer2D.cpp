@@ -13,7 +13,7 @@
 
 
 
-namespace Hazel
+namespace Jbonk
 {
 	struct QuadVertex
 	{
@@ -101,7 +101,7 @@ namespace Hazel
 
 	void Renderer2D::Init()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		s_Data.QuadVertexArray = VertexArray::Create();
 		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
@@ -193,14 +193,14 @@ namespace Hazel
 
 	void Renderer2D::Shutdown()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		delete[] s_Data.QuadVertexBufferBase;
 	}
 
 	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2Ddata::CameraData));
@@ -210,7 +210,7 @@ namespace Hazel
 
 	void Renderer2D::BeginScene(const EditorCamera& camera)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2Ddata::CameraData));
@@ -220,7 +220,7 @@ namespace Hazel
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2Ddata::CameraData));
@@ -230,7 +230,7 @@ namespace Hazel
 
 	void Renderer2D::EndScene()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		Flush();
 	}
@@ -289,14 +289,14 @@ namespace Hazel
 
 	void Renderer2D::StartNewBatch()
 	{	
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		Flush();
 		StartBatch();
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = { {0.f, 0.f}, {1.f, 0.f}, {1.f, 1.f}, {0.f, 1.f} };
@@ -330,7 +330,7 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		glm::mat4 transform = glm::translate(glm::mat4(1.f), position)
 			* glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
 
@@ -339,7 +339,7 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor, int entityID)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = { {0.f, 0.f}, {1.f, 0.f}, {1.f, 1.f}, {0.f, 1.f} };
@@ -387,7 +387,7 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.f), position)
 			* glm::scale(glm::mat4(1.f), { size.x, size.y, 1.f });
@@ -402,7 +402,7 @@ namespace Hazel
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const glm::vec4& tint, float tileFactor)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		const glm::vec2* textureCoords = subtexture->GetTextureCoords();
@@ -453,7 +453,7 @@ namespace Hazel
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = { {0.f, 0.f}, {1.f, 0.f}, {1.f, 1.f}, {0.f, 1.f} };
@@ -490,7 +490,7 @@ namespace Hazel
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, const glm::vec4& tint, float tileFactor)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = { {0.f, 0.f}, {1.f, 0.f}, {1.f, 1.f}, {0.f, 1.f} };
@@ -541,7 +541,7 @@ namespace Hazel
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<SubTexture2D>& subtexture, const glm::vec4& tint, float tileFactor)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		const glm::vec2* textureCoords = subtexture->GetTextureCoords();
@@ -588,7 +588,7 @@ namespace Hazel
 
 	void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness /*= 1.0f*/, float fade /*= 0.005f*/, int entityID /*= -1*/)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		// TODO: implement for circles
 		// if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)

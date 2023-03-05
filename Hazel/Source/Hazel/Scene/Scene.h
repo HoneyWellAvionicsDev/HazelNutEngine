@@ -10,7 +10,7 @@
 class b2World;
 
 
-namespace Hazel
+namespace Jbonk
 {
 	using LinkPointMap = std::unordered_multimap<UUID, glm::vec2>;
 	using LinkPointMapIterator = LinkPointMap::iterator;

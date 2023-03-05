@@ -4,7 +4,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace Hazel
+namespace Jbonk
 {
 	bool Input::IsKeyPressed(int keycode)
 	{

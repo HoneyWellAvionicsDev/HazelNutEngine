@@ -11,7 +11,7 @@
 
 #include "Window.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	struct ApplicationCommandLineArgs
 	{
@@ -20,7 +20,7 @@ namespace Hazel
 
 		const char* operator[](int index) const
 		{
-			HZ_CORE_ASSERT(index < Count, "Out of bounds");
+			JB_CORE_ASSERT(index < Count, "Out of bounds");
 			return Args[index];
 		}
 	};

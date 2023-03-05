@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace Hazel
+namespace Jbonk
 {
 	class Timer
 	{

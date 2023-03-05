@@ -10,19 +10,19 @@
 
 
 
-namespace Hazel
+namespace Jbonk
 {
 	static uint8_t s_GLFWWindowCount = 0;
 
 	static void GLFWErrorCallback(int error, const char* description)
 	{
-		HZ_CORE_ERROR("GLFW ERROR ({0}): {1}", error, description);
+		JB_CORE_ERROR("GLFW ERROR ({0}): {1}", error, description);
 	}
 
 
 	WindowsWindow::WindowsWindow(const WindowProps& props)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		Init(props);
 	}
 
@@ -33,19 +33,19 @@ namespace Hazel
 
 	void WindowsWindow::Init(const WindowProps& props)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		m_Data.Title = props.Title;
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
 
-		HZ_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
+		JB_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
 
 		if (s_GLFWWindowCount == 0)
 		{
-			HZ_CORE_INFO("Initializing GLFW");
+			JB_CORE_INFO("Initializing GLFW");
 			int success = glfwInit();
-			HZ_CORE_ASSERT(success, "Could not initalize GLFW!"); 
+			JB_CORE_ASSERT(success, "Could not initalize GLFW!"); 
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
@@ -153,18 +153,18 @@ namespace Hazel
 
 	void WindowsWindow::Shutdown()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		glfwDestroyWindow(m_Window);
 		if (--s_GLFWWindowCount == 0)
 		{
-			HZ_CORE_INFO("Terminating GLFW");
+			JB_CORE_INFO("Terminating GLFW");
 			glfwTerminate();
 		}
 	}
 
 	void WindowsWindow::OnUpdate()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		glfwPollEvents();
 		m_Context->SwapBuffers();
@@ -172,7 +172,7 @@ namespace Hazel
 
 	void WindowsWindow::SetVSync(bool enabled)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		if (enabled)
 			glfwSwapInterval(1);

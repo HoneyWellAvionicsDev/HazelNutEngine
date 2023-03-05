@@ -3,7 +3,7 @@
 
 #include "HazelEditorLayer.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class HazelEditor : public Application
 	{
@@ -23,7 +23,7 @@ namespace Hazel
 	Application* CreateApplication(ApplicationCommandLineArgs args)
 	{
 		ApplicationSpecification spec;
-		spec.Name = "Hazelnut";
+		spec.Name = "Jbonk Physics";
 		spec.CommandLineArgs = args;
 
 		return new HazelEditor(spec);

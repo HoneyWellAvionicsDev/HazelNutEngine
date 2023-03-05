@@ -2,57 +2,57 @@
 #include "OpenGLVertexArray.h"
 #include <glad/glad.h>
 
-namespace Hazel
+namespace Jbonk
 {
 	static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
 	{
 		switch (type)
 		{
-			case Hazel::ShaderDataType::Float:			 return GL_FLOAT;
-			case Hazel::ShaderDataType::Float2:			 return GL_FLOAT;
-			case Hazel::ShaderDataType::Float3:			 return GL_FLOAT;
-			case Hazel::ShaderDataType::Float4:			 return GL_FLOAT;
-			case Hazel::ShaderDataType::Mat3:			 return GL_FLOAT;
-			case Hazel::ShaderDataType::Mat4:			 return GL_FLOAT;
-			case Hazel::ShaderDataType::Int:			 return GL_INT;
-			case Hazel::ShaderDataType::Int2:			 return GL_INT;
-			case Hazel::ShaderDataType::Int3:			 return GL_INT;
-			case Hazel::ShaderDataType::Int4:			 return GL_INT;
-			case Hazel::ShaderDataType::Bool:			 return GL_BOOL;
+			case Jbonk::ShaderDataType::Float:			 return GL_FLOAT;
+			case Jbonk::ShaderDataType::Float2:			 return GL_FLOAT;
+			case Jbonk::ShaderDataType::Float3:			 return GL_FLOAT;
+			case Jbonk::ShaderDataType::Float4:			 return GL_FLOAT;
+			case Jbonk::ShaderDataType::Mat3:			 return GL_FLOAT;
+			case Jbonk::ShaderDataType::Mat4:			 return GL_FLOAT;
+			case Jbonk::ShaderDataType::Int:			 return GL_INT;
+			case Jbonk::ShaderDataType::Int2:			 return GL_INT;
+			case Jbonk::ShaderDataType::Int3:			 return GL_INT;
+			case Jbonk::ShaderDataType::Int4:			 return GL_INT;
+			case Jbonk::ShaderDataType::Bool:			 return GL_BOOL;
 		}
-		HZ_CORE_ASSERT(false, "Unknown ShaderDataType!")
+		JB_CORE_ASSERT(false, "Unknown ShaderDataType!")
 			return 0;
 	}
 
 	OpenGLVertexArray::OpenGLVertexArray()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		glCreateVertexArrays(1, &m_RendererID);
 	}
 
 	OpenGLVertexArray::~OpenGLVertexArray()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		glDeleteVertexArrays(1, &m_RendererID);
 	}
 
 	void OpenGLVertexArray::Bind() const
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		glBindVertexArray(m_RendererID);
 	}
 
 	void OpenGLVertexArray::Unbind() const
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		glBindVertexArray(0);
 	}
 
 	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
-		HZ_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex buffer has no layout!");
+		JB_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex buffer has no layout!");
 
 		glBindVertexArray(m_RendererID);
 		vertexBuffer->Bind();
@@ -112,7 +112,7 @@ namespace Hazel
 					break;
 				}
 				default:
-					HZ_CORE_ASSERT(false, "Unknown ShaderDataType!");
+					JB_CORE_ASSERT(false, "Unknown ShaderDataType!");
 			}
 		}
 		m_VertexBuffers.push_back(vertexBuffer);
@@ -121,7 +121,7 @@ namespace Hazel
 
 	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		glBindVertexArray(m_RendererID);
 		indexBuffer->Bind();

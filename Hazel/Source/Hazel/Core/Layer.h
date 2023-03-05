@@ -4,7 +4,7 @@
 #include "Hazel/Events/Event.h"
 #include "Hazel/Core/TimeStep.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	//basically to create a layer, we will derive from this class and override its members
 	class Layer

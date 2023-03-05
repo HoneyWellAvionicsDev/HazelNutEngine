@@ -7,7 +7,7 @@
 #include <map>
 #include <queue>
 
-namespace Hazel
+namespace Jbonk
 {
 	static constexpr float s_LinkPointRadius = 0.1;
 

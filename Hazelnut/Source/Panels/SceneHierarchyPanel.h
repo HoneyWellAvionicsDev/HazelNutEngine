@@ -5,7 +5,7 @@
 #include "Hazel/Scene/Scene.h"
 #include "Hazel/Scene/Entity.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class SceneHierarchyPanel
 	{

@@ -2,7 +2,7 @@
 
 #include "RendererAPI.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	class RenderCommand
 	{

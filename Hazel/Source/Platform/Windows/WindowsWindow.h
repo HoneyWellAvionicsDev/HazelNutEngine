@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 
 
-namespace Hazel
+namespace Jbonk
 {
 	class WindowsWindow : public Window
 	{

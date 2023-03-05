@@ -6,7 +6,7 @@
 //TODO remove this later and imporve your api
 typedef unsigned int GLenum;
 
-namespace Hazel
+namespace Jbonk
 {
 	class OpenGLShader : public Shader
 	{

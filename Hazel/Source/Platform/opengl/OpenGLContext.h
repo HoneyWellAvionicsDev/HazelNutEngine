@@ -4,7 +4,7 @@
 
 struct GLFWwindow;
 
-namespace Hazel
+namespace Jbonk
 {
 	class OpenGLContext : public GraphicsContext
 	{

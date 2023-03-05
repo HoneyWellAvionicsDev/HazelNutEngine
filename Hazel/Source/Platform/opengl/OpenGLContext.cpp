@@ -4,41 +4,41 @@
 
 #include "OpenGLContext.h"
 
-namespace Hazel
+namespace Jbonk
 {
 	OpenGLContext::OpenGLContext(GLFWwindow* windowHandle)
 		: m_WindowHandle(windowHandle)
 	{
-		HZ_CORE_ASSERT(windowHandle, "Window handle is null!")
+		JB_CORE_ASSERT(windowHandle, "Window handle is null!")
 	}
 
 	void OpenGLContext::Init()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 
 		glfwMakeContextCurrent(m_WindowHandle);                                                     //sets our render target to be our window
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);                      //gets glfw extensions 
-		HZ_CORE_ASSERT(status, "Failed to initialize Glad!");
+		JB_CORE_ASSERT(status, "Failed to initialize Glad!");
 
-		HZ_CORE_INFO("OpenGL Info:");
-		HZ_CORE_INFO("  Vendor: {0}", glGetString(GL_VENDOR));
-		HZ_CORE_INFO("  Graphics Card: {0}", glGetString(GL_RENDERER));
-		HZ_CORE_INFO("  Version: {0}", glGetString(GL_VERSION));
+		JB_CORE_INFO("OpenGL Info:");
+		JB_CORE_INFO("  Vendor: {0}", glGetString(GL_VENDOR));
+		JB_CORE_INFO("  Graphics Card: {0}", glGetString(GL_RENDERER));
+		JB_CORE_INFO("  Version: {0}", glGetString(GL_VERSION));
 
 
-		#ifdef HZ_ENABLE_ASSERTS
+		#ifdef ENABLE_ASSERTS
 			int versionMajor;
 			int versionMinor;
 			glGetIntegerv(GL_MAJOR_VERSION, &versionMajor);
 			glGetIntegerv(GL_MINOR_VERSION, &versionMinor);
 		
-			HZ_CORE_ASSERT(versionMajor > 4 || (versionMajor == 4 && versionMinor >= 5), "Hazel requires at least OpenGL version 4.5!");
+			JB_CORE_ASSERT(versionMajor > 4 || (versionMajor == 4 && versionMinor >= 5), "Jbonk requires at least OpenGL version 4.5!");
 		#endif
 	}
 
 	void OpenGLContext::SwapBuffers()
 	{
-		HZ_PROFILE_FUNCTION();
+		PROFILE_FUNCTION();
 		glfwSwapBuffers(m_WindowHandle);
 	}
 
