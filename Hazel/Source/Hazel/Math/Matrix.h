@@ -68,12 +68,15 @@ namespace Jbonk::Math
 		//Debug methods
 		void Print() 
 		{
+			int round = 3;
+			int width = 8;
+			const double pow10 = std::pow(10.0, round);
 			std::cout << "----------------------------------------------\n";
 			for (size_t i = 0; i < m_Rows; i++)
 			{
 				for (size_t j = 0; j < m_Columns; j++)
 				{
-					std::cout << std::setw(14) << std::left << (*this)[i][j] << " ";
+					std::cout << std::setprecision(round) << std::fixed << std::setw(width) << std::right << (std::round((*this)[i][j] * pow10) / pow10) << " ";
 				}
 				std::cout << '\n';
 			}

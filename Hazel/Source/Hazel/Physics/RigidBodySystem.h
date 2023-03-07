@@ -16,6 +16,7 @@
 #include "CircleConstraint.h"
 
 #include <vector>
+#include <map>
 
 namespace Enyoo
 {
@@ -62,9 +63,11 @@ namespace Enyoo
 
 	private:
 		void PopulateSystemState();
-		void PopulateMassMatrices(Matrix& Mass, Matrix& massInverse);
+		void PopulateMassMatrices();
 		void UpdateForces();
 		void ResolveConstraints();
+		void ResolveConstraintsO();
+		void FlushConstraints();
 	private:
 		SystemState m_State;
 		
@@ -95,6 +98,7 @@ namespace Enyoo
 
 		Matrices m_Matrices;
 		IndexMap m_ConstaintBodyIndex;
+		std::map<size_t, size_t> m_ConstrainedBodies; //could also just been a vector of pairs
 	};
 }
 

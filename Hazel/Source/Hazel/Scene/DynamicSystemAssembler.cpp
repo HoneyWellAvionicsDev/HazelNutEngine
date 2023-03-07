@@ -129,7 +129,7 @@ namespace Jbonk
 		HandleConstraints();
 	}
 
-	bool DynamicSystemAssembler::GenerateForceGens()
+	bool DynamicSystemAssembler::GenerateForceObjects()
 	{
 		auto view = m_Scene->GetAllEntitiesWith<ForceGeneratorComponent>();
 		for (auto e : view)

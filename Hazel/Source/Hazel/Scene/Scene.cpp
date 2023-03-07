@@ -434,7 +434,7 @@ namespace Jbonk
 		Scope<DynamicSystemAssembler> SystemAssembler = CreateScope<DynamicSystemAssembler>(this, view);
 		SystemAssembler->GenerateRigidBodies();
 		SystemAssembler->GenerateConstraints();
-		SystemAssembler->GenerateForceGens();
+		SystemAssembler->GenerateForceObjects();
 	
 		m_ConstrainedBodySystem->Initialize();
 	}

@@ -38,7 +38,7 @@ namespace Jbonk
 
 		void GenerateRigidBodies();
 		void GenerateConstraints();
-		bool GenerateForceGens();
+		bool GenerateForceObjects();
 
 		LocalPoints GetMatchingLocals(Entity focusEntity, Entity targetEntity) const;
 		bool Adjacent(Entity focus, Entity target) const;

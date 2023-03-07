@@ -14,16 +14,19 @@ template<FloatType T>
 struct SparseMatrixTest
 {
 public:
+	SparseMatrixTest() = default;
 	SparseMatrixTest(uint16_t rows, uint16_t columns);
-	T get(uint16_t row, uint16_t column) const;
-	void set(uint16_t row, uint16_t column, const T& value);
-	void update_row_indices(uint16_t row);
+	SparseMatrixTest(const Matrix& matrix);
+	T get(size_t row, size_t column) const;
+	void set(size_t row, size_t column, const T& value);
+	void add_value(size_t row, size_t column, const T& value);
+	void update_row_indices(size_t row);
 
 	uint16_t _rows, _columns;
 
 	std::vector<T> _nnz_values;
-	std::vector<uint16_t> _col_index;
-	std::vector<int16_t> _row_index;
+	std::vector<size_t> _col_index;
+	std::vector<size_t> _row_index;
 
 };
 
@@ -31,21 +34,45 @@ template<FloatType T>
 SparseMatrixTest<T>::SparseMatrixTest(uint16_t rows, uint16_t columns)
 	: _rows(rows), _columns(columns)
 {
-	_row_index = std::vector<int16_t>(rows + 1, -1);
+	_row_index = std::vector<size_t>(rows + 1, -1);
 }
 
 template<FloatType T>
-void SparseMatrixTest<T>::update_row_indices(uint16_t row)
+SparseMatrixTest<T>::SparseMatrixTest(const Matrix& matrix) //const Matrix<FloatType>& matrix
+	: _rows(matrix.Rows()), _columns(matrix.Columns())
+{
+	_row_index.reserve(_rows + 1);
+	_row_index.push_back(0);
+	uint16_t count = 0;
+
+	for (size_t i = 0; i < _rows; i++)
+	{
+		for (size_t j = 0; j < _columns; j++)
+		{
+			if (matrix[i][j] == T())
+				continue;
+
+			_nnz_values.push_back(matrix[i][j]);
+			_col_index.push_back(static_cast<uint16_t>(j));
+			count++;
+		}
+
+		_row_index.push_back(count);
+	}
+}
+
+template<FloatType T>
+void SparseMatrixTest<T>::update_row_indices(size_t row)
 {
 	if (row == _rows - 1)
 		_row_index[row + 1] += 1;
 
-	for (uint16_t i = _row_index[row]; i < _row_index.size(); i++)
+	for (size_t i = _row_index[row]; i < _row_index.size(); i++)
 		_row_index[i] += 1;
 }
 
 template<FloatType T>
-void SparseMatrixTest<T>::set(uint16_t row, uint16_t column, const T& value)
+void SparseMatrixTest<T>::add_value(size_t row, size_t column, const T& value)
 {
 	if (value == T())
 		return;
@@ -58,16 +85,8 @@ void SparseMatrixTest<T>::set(uint16_t row, uint16_t column, const T& value)
 		return;
 	}
 
-
 	size_t row_start = _row_index[row];
 	size_t row_end = _row_index[row + 1] - 1;
-
-	if (row_start == -1)
-	{
-		//insert to both
-		_row_index[row] = 0;
-		return;
-	}
 
 	if (_col_index[row_start] == column)
 	{
@@ -104,7 +123,7 @@ void SparseMatrixTest<T>::set(uint16_t row, uint16_t column, const T& value)
 }
 
 template<FloatType T>
-T SparseMatrixTest<T>::get(uint16_t row, uint16_t column) const
+T SparseMatrixTest<T>::get(size_t row, size_t column) const
 {
 	size_t row_start = _row_index[row];
 	size_t row_end = _row_index[row + 1];
@@ -125,6 +144,30 @@ T SparseMatrixTest<T>::get(uint16_t row, uint16_t column) const
 }
 
 template<FloatType T>
+void SparseMatrixTest<T>::set(size_t row, size_t column, const T& value)
+{
+	//if (value == T()) consider deleting the entry if value is 0.0
+
+	//check if there exists a value at (row, column)
+
+	JB_CORE_ASSERT(this->_nnz_values.size());
+	size_t row_start = _row_index[row];
+	size_t row_end = _row_index[row + 1];
+	size_t current_col = 0;
+
+	for (size_t i = row_start; i < row_end; i++)
+	{
+		current_col = _col_index[i];
+
+		if (current_col == column)
+			_nnz_values[i] = value;
+
+		if (current_col > column)
+			break;
+	}
+}
+
+template<FloatType T>
 static Vector sparse_csr_matrix_vector(const SparseMatrixTest<T>& A, const Vector& x)
 {
 	Vector b = Matrix(A._rows, 1);
@@ -142,7 +185,7 @@ static Vector sparse_csr_matrix_vector(const SparseMatrixTest<T>& A, const Vecto
 	return b;
 }
 
-static Vector sparse_csr_matrix_vector_fast(const SparseMatrixTest<double>& A, const Vector& x) //this method works well for sparse matrices with dense rows
+static Vector sparse_csr_matrix_vector_f(const SparseMatrixTest<double>& A, const Vector& x) //this method works well for sparse matrices with dense rows
 {
 	Vector b = Matrix(A._rows, 1);
 
@@ -194,6 +237,87 @@ static Vector sparse_csr_matrix_vector_fast(const SparseMatrixTest<double>& A, c
 	}
 
 	return b;
+}
+
+struct SparseMatrixFixture
+{
+	Matrix matrix;
+	SparseMatrixTest<double> sparseMatrix;
+};
+
+UTEST_F_SETUP(SparseMatrixFixture)
+{
+	utest_fixture->matrix = Matrix(4, 6);
+
+	utest_fixture->matrix[0][0] = 10.0;
+	utest_fixture->matrix[0][1] = 20.0;
+	utest_fixture->matrix[1][1] = 30.0;
+	utest_fixture->matrix[1][3] = 40.0;
+	utest_fixture->matrix[2][2] = 50.0;
+	utest_fixture->matrix[2][3] = 60.0;
+	utest_fixture->matrix[2][4] = 70.0;
+	utest_fixture->matrix[3][5] = 80.0;
+
+	utest_fixture->sparseMatrix = SparseMatrixTest<double>(utest_fixture->matrix);
+}
+
+UTEST_F_TEARDOWN(SparseMatrixFixture)
+{
+
+}
+
+
+UTEST_F(SparseMatrixFixture, MatrixConstruction)
+{
+	ASSERT_EQ(utest_fixture->sparseMatrix._nnz_values[0], 10.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._nnz_values[1], 20.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._nnz_values[2], 30.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._nnz_values[3], 40.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._nnz_values[4], 50.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._nnz_values[5], 60.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._nnz_values[6], 70.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._nnz_values[7], 80.0);
+
+	ASSERT_EQ(utest_fixture->sparseMatrix._col_index[0], 0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._col_index[1], 1);
+	ASSERT_EQ(utest_fixture->sparseMatrix._col_index[2], 1);
+	ASSERT_EQ(utest_fixture->sparseMatrix._col_index[3], 3);
+	ASSERT_EQ(utest_fixture->sparseMatrix._col_index[4], 2);
+	ASSERT_EQ(utest_fixture->sparseMatrix._col_index[5], 3);
+	ASSERT_EQ(utest_fixture->sparseMatrix._col_index[6], 4);
+	ASSERT_EQ(utest_fixture->sparseMatrix._col_index[7], 5);
+		
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[0], 0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[1], 2);
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[2], 4);
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[3], 7);
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[4], 8);
+			
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(0, 0), 10.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(0, 1), 20.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(1, 1), 30.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(1, 3), 40.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(2, 2), 50.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(2, 3), 60.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(2, 4), 70.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(3, 5), 80.0);
+}
+
+UTEST_F(SparseMatrixFixture, changeValues)
+{
+	utest_fixture->sparseMatrix.set(2, 2, 75.0);
+	utest_fixture->sparseMatrix.set(3, 5, 120.0);
+	utest_fixture->sparseMatrix.set(0, 1, 400.0);
+
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[0], 0);
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[1], 2);
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[2], 4);
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[3], 7);
+	ASSERT_EQ(utest_fixture->sparseMatrix._row_index[4], 8);
+
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(2, 2), 75.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(3, 5), 120.0);
+	ASSERT_EQ(utest_fixture->sparseMatrix.get(0, 1), 400.0);
 }
 
 UTEST(SparseMatrixTest, MatrixIndex)
@@ -253,11 +377,11 @@ UTEST(SparseMatrixTest, MatrixIndex)
 	ASSERT_EQ(sparseMatrix.get(3, 3), 0.0);
 	ASSERT_EQ(sparseMatrix.get(3, 4), 0.0);
 
-	sparseMatrix.set(3, 1, 25.0);
-	sparseMatrix.set(1, 0, 15.0);
-	sparseMatrix.set(1, 5, 95.0);
-	sparseMatrix.set(1, 2, 45.0);
-	
+	sparseMatrix.add_value(3, 1, 25.0);
+	sparseMatrix.add_value(1, 0, 15.0);
+	sparseMatrix.add_value(1, 5, 95.0);
+	sparseMatrix.add_value(1, 2, 45.0);
+
 	ASSERT_EQ(sparseMatrix._row_index[0], 0);
 	ASSERT_EQ(sparseMatrix._row_index[1], 2);
 	ASSERT_EQ(sparseMatrix._row_index[2], 7);
@@ -387,7 +511,7 @@ UTEST(SparseMatrixTest, fastVectorMul)
 		sparseMatrix._row_index.push_back(R[i]);
 	}
 
-	Vector result = sparse_csr_matrix_vector_fast(sparseMatrix, x);
+	Vector result = sparse_csr_matrix_vector_f(sparseMatrix, x);
 
 	ASSERT_EQ(result[0][0], 297.0);
 	ASSERT_EQ(result[1][0], 46.0);
